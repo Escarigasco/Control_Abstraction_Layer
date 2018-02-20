@@ -7,16 +7,18 @@ class bay_valve:
     def __init__(self, bay_ID, ID):
         self.bay_ID = bay_ID
         self.ID = ID
-        self.position = 10  # this needs to be real time read
 
     def get_name(self):
         return self.ID
 
+    def set_position(self, setpoint):
+        self.position = setpoint
+
     def get_position(self):
-        return self.position
+        return self.position  # this needs to be real time read
 
-        def __repr__(self):
-            return "<Valve, id: {0}>".format(self.ID)
+    def __repr__(self):
+        return "<Valve, id: {0}>".format(self.ID)
 
-        def __str__(self):
-            return "<Valve, id: {0}>".format(self.ID)
+    def __str__(self):
+        return "<Valve, id: {0}>".format(self.ID)

@@ -6,13 +6,13 @@ from hydraulic_bay import hydraulic_bay
 class switch_board(object):
     'Class for switch board definition and properties'
 
-    def __init__(self, building_ID, ID, soup):
+    def __init__(self, building_ID, ID, board):
 
         self.building_ID = building_ID
         self.ID = ID
         self.bays_list = {}
 
-        bays = soup.find_all("bay")
+        bays = board.find_all("bay")
 
         for bay in bays:
             self.bays_list[bay["id"]] = hydraulic_bay(self.ID, bay["id"], bay)
