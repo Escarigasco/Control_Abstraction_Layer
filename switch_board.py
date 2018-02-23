@@ -11,8 +11,9 @@ class switch_board(object):
         self.building_ID = building_ID
         self.ID = ID
         self.bays_list = {}
+        self.board = board
 
-        bays = board.find_all("bay")
+        bays = self.board.find_all("bay")
 
         for bay in bays:
             self.bays_list[bay["id"]] = hydraulic_bay(self.ID, bay["id"], bay)

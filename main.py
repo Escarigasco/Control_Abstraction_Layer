@@ -1,6 +1,9 @@
 
 from switch_board_building import switch_board_building
 from interface import interface
+#  from IPython.core.debugger import Tracer
+#  Tracer()()
+
 
 BuildingID = "Building716"
 Receiver = "First"

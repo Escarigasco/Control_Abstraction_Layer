@@ -6,11 +6,11 @@ from bs4 import BeautifulSoup as Soup
 class switch_board_building(object):
     'Class for switch board building definition and properties'
 
-    def __init__(self, ID):
+    def __init__(self, ID):  # inizialition with only ID
         self.ID = ID
 
-        self.switch_board_list = {}
-        handler = open("file.xml").read()
+        self.switch_board_list = {}  # create dic of switch board
+        handler = open("file.xml").read()  # read xml
         soup = Soup(handler, 'lxml')
 
         boards = soup.find_all("switch_board")
