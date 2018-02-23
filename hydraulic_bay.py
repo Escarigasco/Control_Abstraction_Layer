@@ -2,7 +2,7 @@
 from bs4 import BeautifulSoup as Soup
 from pipeline import pipeline
 from bay_valve import bay_valve
-from connector import connector
+from bay_connector import bay_connector
 
 
 class hydraulic_bay(object):
@@ -16,31 +16,32 @@ class hydraulic_bay(object):
         self.valves = {}
         self.bay = bay
 
-        if (self.bay["connected_device"] == "source"):
-            print("I am here")
-            pipes_in = bay.find_all("pipe", type=["C", "B"])
-            pipes_out = bay.find_all("pipe", type=["H", "B"])
-        elif (bay["connected_device"] == "sink"):
-            print("I am here")
-            pipes_in = bay.find_all("pipe", type=["H", "B"])
-            pipes_out = bay.find_all("pipe", type=["C", "B"])
+        connector = self.bay.find("connector")  # find connectors
+        valves = self.bay.find_all("valve")     # find valves
 
-        valves = bay.find_all("valve")
+        if (self.bay["connected_device"] == "source"):
+            return_line = "H"  # discrimination for the connector
+            pipes_in = self.bay.find_all("pipe", busbar=["1C", "2C", "B"])   # find inlet pipes
+            pipes_out = self.bay.find_all("pipe", busbar=["1H", "2H", "B"])  # find outlet pipes
+            self.connector_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, return_line)  # create connectors object
+
+        elif (bay["connected_device"] == "sink"):
+            return_line = "C"  # discrimination for the connector
+            pipes_in = self.bay.find_all("pipe", busbar=["1H", "2H", "B"])   # find inlet pipes
+            pipes_out = self.bay.find_all("pipe", busbar=["1C", "2C", "B"])  # find inlet pipes
+            self.connector_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, return_line)  # create connectors object
 
         for pipe in pipes_in:
             direction = "in"
-            self.pipes_in_list[pipe["id"]] = pipeline(self.ID, pipe["id"], direction)
+            self.pipes_in_list[pipe["id"]] = pipeline(self.ID, pipe["id"], direction)  # creates pipes
             print(pipe)
 
         for pipe in pipes_out:
             direction = "out"
-            self.pipes_out_list[pipe["id"]] = pipeline(self.ID, pipe["id"], direction)
+            self.pipes_out_list[pipe["id"]] = pipeline(self.ID, pipe["id"], direction)  # creates pipes
 
         for valve in valves:
-            self.valves[valve["id"]] = bay_valve(self.ID, valve["id"])
-            # self.bays_list[bay["id"]] = switch_board(bay["id"], bay)
-
-        self.down_connection = connector(bay)
+            self.valves_list[valve["id"]] = bay_valve(self.ID, valve["id"], valve["connection"], valve["flow"])  # creates valves
 
     def get_name(self):
         return self.ID
