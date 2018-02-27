@@ -9,6 +9,9 @@ class pipeline(object):
         self.ID = ID
         self.direction = direction
 
+    def get_name(self):
+        return self.ID
+
     def __repr__(self):
         return "<Pipe, id: {0}>".format(self.ID)
 
