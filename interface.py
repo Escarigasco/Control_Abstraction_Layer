@@ -15,6 +15,8 @@ class interface(object):
 
     def get_system_sensors(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
+        line_sensors_list = {}
+        connector_sensors_lists = {}
 
         for bay in bays_list.keys():  # parsing dictionary keys
             hydraulic_bay = bays_list[bay]
@@ -22,13 +24,14 @@ class interface(object):
 
             for connector in bay_connectors_list.keys():
                 bay_connector = bay_connectors_list[connector]
-                connector_sensors_lists = bay_connector.connector_sensors_list
+                connector_sensors_lists.update(bay_connector.connector_sensors_list)
                 lines_list = bay_connector.lines_list
 
-                line_sensors_list = {}
                 for line in lines_list.keys():
                         connector_line = lines_list[line]
                         line_sensors_list.update(connector_line.line_sensors_list)  # add sensors list from each line
+            print(connector_sensors_lists.keys())
+            print(line_sensors_list.keys())
 
         self.sensors_lists = {**connector_sensors_lists, **line_sensors_list}
 
@@ -36,6 +39,7 @@ class interface(object):
 
     def get_system_pumps(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
+        line_pumps_list = {}
 
         for bay in bays_list.keys():  # parsing dictionary keys
             hydraulic_bay = bays_list[bay]
@@ -45,7 +49,6 @@ class interface(object):
                 bay_connector = bay_connectors_list[connector]
                 lines_list = bay_connector.lines_list
 
-                line_pumps_list = {}
                 for line in lines_list.keys():
                         connector_line = lines_list[line]
                         line_pumps_list.update(connector_line.pumps_list)  # add pumps list from each line
@@ -55,8 +58,8 @@ class interface(object):
 
     def get_system_valves(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
-
         bay_valves_list = {}
+
         for bay in bays_list.keys():  # parsing dictionary keys
             hydraulic_bay = bays_list[bay]
             bay_valves_list.update(hydraulic_bay.valves_list)
@@ -66,7 +69,6 @@ class interface(object):
 
     def get_system_pipes(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
-
         pipes_in_list = {}   # ridefinition of variable for clarity
         pipes_out_list = {}
 
@@ -82,19 +84,34 @@ class interface(object):
 
         return self.pipes_list
 
+    def get_connected_devices(self):
+        bays_list = self.board.bays_list  # ridefinition of variable for clarity
+        self.connected_devices_list = {}
+
+        for bay in bays_list.keys():  # parsing dictionary keys
+            hydraulic_bay = bays_list[bay]
+            bay_connectors_list = hydraulic_bay.connectors_list
+
+            for connector in bay_connectors_list.keys():
+                bay_connector = bay_connectors_list[connector]
+                self.connected_devices_list.update(bay_connector.connected_devices_list)
+
+        return self.connected_devices_list
+
     def get_all_parents(self):  # return a list of all possible superstructure within a swithcboard
         bays_list = self.board.bays_list
-
         bay_connectors_list = {}
+        connector_lines_list = {}
+
         for bay in bays_list.keys():
             hydraulic_bay = bays_list[bay]
             bay_connectors_list.update(hydraulic_bay.connectors_list)  # computing burden
             list_for_iteration = hydraulic_bay.connectors_list
 
-            connector_lines_list = {}
+
             for connector in list_for_iteration.keys():
                 bay_connector = list_for_iteration[connector]
                 connector_lines_list.update(bay_connector.lines_list)
 
-        parents_list = {**bays_list, **bay_connectors_list, **connector_lines_list}
-        return parents_list
+        self.parents_list = {**bays_list, **bay_connectors_list, **connector_lines_list}
+        return self.parents_list
