@@ -12,15 +12,20 @@ class GUI(tk.Tk):
         self.E1 = tk.Entry(self)
         self.E1.grid(row=0, column=1)
 
-        self.L2 = tk.Label(self, text="Setpoint")
+        self.L2 = tk.Label(self, text="Sensor")
         self.L2.grid(row=1, column=0)
         self.E2 = tk.Entry(self)
         self.E2.grid(row=1, column=1)
 
-        self.L3 = tk.Label(self, text="Sensor")
+        self.L3 = tk.Label(self, text="Setpoint")
         self.L3.grid(row=2, column=0)
         self.E3 = tk.Entry(self)
         self.E3.grid(row=2, column=1)
+
+        self.L4 = tk.Label(self, text="Source")
+        self.L4.grid(row=3, column=0)
+        self.E4 = tk.Entry(self)
+        self.E4.grid(row=3, column=1)
 
         self.button = tk.Button(self, text="Update", command=self.on_button)
         self.button.grid()
@@ -31,10 +36,15 @@ class GUI(tk.Tk):
     def on_button(self):  # you have to make this method private
         self.parameter = self.E1.get()
         print(self.E1.get())
-        self.setpoint = self.E2.get()
-        print(self.E2.get())
+
         self.sensor = self.E3.get()
         print(self.E3.get())
+
+        self.setpoint = self.E2.get()
+        print(self.E2.get())
+
+        self.source = self.E4.get()
+        print(self.E4.get())
 
     def get_parameters(self):
         array_of_parameters = {}
@@ -42,8 +52,9 @@ class GUI(tk.Tk):
         self.setpoint = 2
         self.sensor = 3
         array_of_parameters["parameter"] = self.parameter
-        array_of_parameters["setpoint"] = self.setpoint
         array_of_parameters["sensor"] = self.sensor
+        array_of_parameters["setpoint"] = self.setpoint
+        array_of_parameters["source"] = self.source
         return array_of_parameters
 
 
