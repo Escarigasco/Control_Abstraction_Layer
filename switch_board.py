@@ -14,13 +14,12 @@ class switch_board(object):
         self.board = board
 
         bays = self.board.find_all("bay")
-
         for bay in bays:
             self.bays_list[bay["id"]] = hydraulic_bay(self.ID, bay["id"], bay)
 
     def get_parent(self):
         return self.parent_ID
-    
+
     def get_name(self):
         return self.ID
 

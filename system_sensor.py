@@ -9,6 +9,7 @@ class system_sensor:
         self.variable = controlled_variable  # Temp, Flow, etc..
         self.device_embedded = device_embedded  # if it belongs to larger sensor
         self.position = position  # is in the pipe or in the connector or anywhere else - redundant with parent_ID?
+        print(self.ID)
 
     def get_parent(self):
         return self.parent_ID
