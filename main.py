@@ -7,13 +7,16 @@ from interface import interface
 
 BuildingID = "Building716"
 Receiver = "First"
+SwitchID = "Switch_Board_1"
 
 
 building716 = switch_board_building(BuildingID)
 
-intf = interface(building716)
+intf = interface(building716, SwitchID)
 
-Bay_1 = intf.get_hydraulic_bay(intf.get_switch_board("Switch_Board_1"), "Bay_5")
+system_sensors = intf.get_system_sensors()
+system_pumps = intf.get_system_pumps()
+
 
 # server = input_receiver()
 
