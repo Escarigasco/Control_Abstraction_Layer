@@ -6,8 +6,8 @@ from connected_device import connected_device
 
 class bay_connector:
 
-    def __init__(self, bay_ID, ID, connector, output_line):
-        self.bay_ID = bay_ID
+    def __init__(self, parent_ID, ID, connector, output_line):
+        self.parent_ID = parent_ID
         self.ID = ID
         self.lines_list = {}
         self.connector = connector
@@ -33,7 +33,9 @@ class bay_connector:
 
         for device in devices:
             self.connected_devices_list[device["id"]] = connected_device(self.ID, device["id"], device["type"])
-            print(self.connected_devices_list[device["id"]])
+
+    def get_parent(self):
+        return self.parent_ID
 
     def get_name(self):
         return self.ID

@@ -6,8 +6,8 @@ from line_pump import line_pump
 class connector_line(object):
     'Class for switch board definition and properties'
 
-    def __init__(self, connector_ID, ID, line, flow_type, is_return):
-        self.connector_ID = connector_ID
+    def __init__(self, parent_ID, ID, line, flow_type, is_return):
+        self.parent_ID = parent_ID
         self.ID = ID
         self.flow_type = flow_type
         self.line_sensors_list = {}
@@ -22,7 +22,9 @@ class connector_line(object):
 
         for pump in pumps:
             self.pumps_list[pump["id"]] = line_pump(self.ID, pump["id"])
-            print(pump["id"])
+
+    def get_parent(self):
+        return self.parent_ID
 
     def __repr__(self):
         return "<Line, id: {0}>".format(self.ID)

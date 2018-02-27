@@ -7,8 +7,8 @@ from bay_connector import bay_connector
 class hydraulic_bay(object):
     'Class for switch board definition and properties'
 
-    def __init__(self, switch_board_ID, ID, bay):
-        self.switch_board_ID = switch_board_ID
+    def __init__(self, parent_ID, ID, bay):
+        self.parent_ID = parent_ID
         self.ID = ID
         self.pipes_in_list = {}
         self.pipes_out_list = {}
@@ -41,6 +41,9 @@ class hydraulic_bay(object):
 
         for valve in valves:
             self.valves_list[valve["id"]] = bay_valve(self.ID, valve["id"], valve["connection"], valve["flow"])  # creates valves
+
+    def get_parent(self):
+        return self.parent_ID
 
     def get_name(self):
         return self.ID
