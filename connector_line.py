@@ -10,19 +10,19 @@ class connector_line(object):
         self.connector_ID = connector_ID
         self.ID = ID
         self.flow_type = flow_type
-        self.line_sensor_list = {}
-        self.pump_list = {}
+        self.line_sensors_list = {}
+        self.pumps_list = {}
         self.line = line
 
         sensors = self.line.find_all("sensor", position="inline")
         pumps = self.line.find_all("pump", position="inline")
 
         for sensor in sensors:
-            self.line_sensor_list[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], position="inline")
-            print(self.line_sensor_list[sensor["id"]])
+            self.line_sensors_list[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], position="inline")
 
         for pump in pumps:
-            self.pump_list[pump["id"]] = line_pump(self.ID, pump["id"])
+            self.pumps_list[pump["id"]] = line_pump(self.ID, pump["id"])
+            print(pump["id"])
 
     def __repr__(self):
         return "<Line, id: {0}>".format(self.ID)

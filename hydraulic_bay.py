@@ -14,7 +14,7 @@ class hydraulic_bay(object):
         self.pipes_out_list = {}
         self.valves_list = {}
         self.bay = bay
-        self.connector_list = {}
+        self.connectors_list = {}
 
         connector = self.bay.find("connector")  # find connectors
         valves = self.bay.find_all("valve")     # find valves
@@ -23,13 +23,13 @@ class hydraulic_bay(object):
             output_line = "H"  # discrimination for the connector
             pipes_in = self.bay.find_all("pipe", busbar=["1C", "2C", "B"])   # find inlet pipes
             pipes_out = self.bay.find_all("pipe", busbar=["1H", "2H", "B"])  # find outlet pipes
-            self.connector_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, output_line)  # create connectors object
+            self.connectors_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, output_line)  # create connectors object
 
         elif (bay["connected_device"] == "sink"):
             output_line = "C"  # discrimination for the connector
             pipes_in = self.bay.find_all("pipe", busbar=["1H", "2H", "B"])   # find inlet pipes
             pipes_out = self.bay.find_all("pipe", busbar=["1C", "2C", "B"])  # find inlet pipes
-            self.connector_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, output_line)  # create connectors object
+            self.connectors_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, output_line)  # create connectors object
 
         for pipe in pipes_in:
             direction = "in"
