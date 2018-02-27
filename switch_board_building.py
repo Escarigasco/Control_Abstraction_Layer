@@ -23,4 +23,3 @@ class switch_board_building(object):
 
 if __name__ == "__main__":
     test = switch_board_building("Building716")
-    print(test.switch_board_list)
