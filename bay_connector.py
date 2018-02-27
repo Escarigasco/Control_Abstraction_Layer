@@ -1,6 +1,7 @@
 # connector class
 from connector_line import connector_line
 from system_sensor import system_sensor
+from connected_device import connected_device
 
 
 class bay_connector:
@@ -12,9 +13,11 @@ class bay_connector:
         self.connector = connector
         self.output_line = output_line
         self.connector_sensors_list = {}
+        self.connected_devices_list = {}
 
         lines = self.connector.find_all("line")
         sensors = self.connector.find_all("sensor", position="connector")
+        devices = self.connector.find_all("connected_device")
 
         for line in lines:
             if (self.output_line == line["type"]):
@@ -27,6 +30,10 @@ class bay_connector:
 
         for sensor in sensors:
             self.connector_sensors_list[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], sensor["position"])  # don't pass the soup as is the end of the tree'''
+
+        for device in devices:
+            self.connected_devices_list[device["id"]] = connected_device(self.ID, device["id"], device["type"])
+            print(self.connected_devices_list[device["id"]])
 
     def get_name(self):
         return self.ID
