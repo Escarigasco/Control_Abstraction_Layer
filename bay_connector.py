@@ -1,25 +1,32 @@
 # connector class
 from connector_line import connector_line
+from system_sensor import system_sensor
 
 
 class bay_connector:
 
-    def __init__(self, bay_ID, ID, connector, return_line):
+    def __init__(self, bay_ID, ID, connector, output_line):
         self.bay_ID = bay_ID
         self.ID = ID
         self.line_list = {}
         self.connector = connector
-        self.return_line = return_line
+        self.output_line = output_line
+        self.connector_sensor_list = {}
 
         lines = self.connector.find_all("line")
+        sensors = self.connector.find_all("sensor", position="connector")
 
         for line in lines:
-            if (self.return_line == line["type"]):
-                is_return = True
-                self.line_list[line["id"]] = connector_line(self.ID, line["id"], line, is_return)
-            else:
-                is_return = False
-                self.line_list[line["id"]] = connector_line(self.ID, line["id"], line, is_return)
+            if (self.output_line == line["type"]):
+                is_output = True
+                self.line_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output)
 
-        def get_name(self):
-            return self.ID
+            else:
+                is_output = False
+                self.line_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output)
+
+        for sensor in sensors:
+            self.connector_sensor_list[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], sensor["position"])  # don't pass the soup as is the end of the tree'''
+
+    def get_name(self):
+        return self.ID
