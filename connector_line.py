@@ -1,17 +1,31 @@
 # Line Class
+from system_sensor import system_sensor
+from line_pump import line_pump
 
 
 class connector_line(object):
     'Class for switch board definition and properties'
 
-    def __init__(self, connector_ID, ID, line, is_return):
+    def __init__(self, connector_ID, ID, line, flow_type, is_return):
         self.connector_ID = connector_ID
         self.ID = ID
-        self.sensor_list = {}
+        self.flow_type = flow_type
+        self.line_sensor_list = {}
+        self.pump_list = {}
         self.line = line
 
-        sensors = self.line.find_all("sensor")     # find sensor
-        pump = self.line.find_all("pump")        # find pump
+        sensors = self.line.find_all("sensor", position="inline")
+        pumps = self.line.find_all("pump", position="inline")
 
         for sensor in sensors:
-            self.sensor_list[sensor["id"]] = line_sensor(self.ID, sensor["ID"], sensor, sensor["T"], sensor["embedded"])
+            self.line_sensor_list[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], position="inline")
+            print(self.line_sensor_list[sensor["id"]])
+
+        for pump in pumps:
+            self.pump_list[pump["id"]] = line_pump(self.ID, pump["id"])
+
+    def __repr__(self):
+        return "<Line, id: {0}>".format(self.ID)
+
+    def __str__(self):
+        return "<Line, id: {0}>".format(self.ID)
