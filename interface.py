@@ -59,10 +59,20 @@ class interface(object):
     def get_system_valves(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
         bay_valves_list = {}
+        pipes_in_list = {}   # ridefinition of variable for clarity
+        pipes_out_list = {}
 
         for bay in bays_list.keys():  # parsing dictionary keys
             hydraulic_bay = bays_list[bay]
-            bay_valves_list.update(hydraulic_bay.valves_list)
+            pipes_in_list = hydraulic_bay.pipes_in_list
+            pipes_out_list = hydraulic_bay.pipes_out_list
+
+            for pipe in pipes_in_list.keys():
+                pipeline = pipes_in_list[pipe]
+                bay_valves_list.update(pipeline.valves_list)
+            for pipe in pipes_out_list.keys():
+                pipeline = pipes_out_list[pipe]
+                bay_valves_list.update(pipeline.valves_list)
 
         self.bay_valves_list = bay_valves_list
         return self.bay_valves_list
