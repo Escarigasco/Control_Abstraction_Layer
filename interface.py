@@ -10,8 +10,8 @@ class interface(object):
         self.pumps_list = {}  # redundant definition for intelligibility
         self.pipes_list = {}
 
-    def get_hydraulic_bay(self, switch_board, hydraulic_bay_ID):
-        return switch_board.bays_list[hydraulic_bay_ID]
+    def get_hydraulic_bays(self):
+        return self.board.bays_list
 
     def get_system_sensors(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
@@ -107,7 +107,6 @@ class interface(object):
             hydraulic_bay = bays_list[bay]
             bay_connectors_list.update(hydraulic_bay.connectors_list)  # computing burden
             list_for_iteration = hydraulic_bay.connectors_list
-
 
             for connector in list_for_iteration.keys():
                 bay_connector = list_for_iteration[connector]

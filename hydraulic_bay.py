@@ -49,7 +49,7 @@ class hydraulic_bay(object):
         return self.ID
 
     def __repr__(self):
-        return "<Bay, id: {0}, connected to: {1}>".format(self.ID, self.switch_board_ID)
+        return "<Bay, id: {0}, connected to: {1}>".format(self.ID, self.parent_ID)
 
     def __str__(self):
-        return "<Bay, id: {0}, connected to: {1}>".format(self.ID, self.switch_board_ID)
+        return "<Bay, id: {0}, connected to: {1}>".format(self.ID, self.parent_ID)

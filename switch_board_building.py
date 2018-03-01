@@ -10,7 +10,8 @@ class switch_board_building(object):
         self.ID = ID
 
         self.switch_board_list = {}  # create dic of switch board
-        handler = open("file.xml").read()  # read xml
+        # handler = open(self.ID + ".xml").read()  # read xml
+        handler = open("file.xml").read()
         soup = Soup(handler, 'lxml')
 
         boards = soup.find_all("switch_board")
