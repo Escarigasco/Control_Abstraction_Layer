@@ -4,8 +4,8 @@
 class bay_valve:
     'Class for Valve definition and properties'
 
-    def __init__(self, bay_ID, ID, connection, flow):
-        self.bay_ID = bay_ID
+    def __init__(self, parent_ID, ID, connection, flow):
+        self.parent_ID = parent_ID
         self.ID = ID
         self.connection = connection
         self.flow = flow
