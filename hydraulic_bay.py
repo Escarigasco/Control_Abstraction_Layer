@@ -1,6 +1,5 @@
 # Bay Class
 from pipeline import pipeline
-from bay_valve import bay_valve
 from bay_connector import bay_connector
 
 
@@ -12,12 +11,11 @@ class hydraulic_bay(object):
         self.ID = ID
         self.pipes_in_list = {}
         self.pipes_out_list = {}
-        self.valves_list = {}
         self.bay = bay
         self.connectors_list = {}
 
         connector = self.bay.find("connector")  # find connectors
-        valves = self.bay.find_all("valve")     # find valves
+        # valves = self.bay.find_all("valve")     # find valves
 
         if (self.bay["connected_device"] == "source"):
             output_line = "H"  # discrimination for the connector
@@ -33,14 +31,11 @@ class hydraulic_bay(object):
 
         for pipe in pipes_in:
             direction = "in"
-            self.pipes_in_list[pipe["id"]] = pipeline(self.ID, pipe["id"], direction)  # creates pipes
+            self.pipes_in_list[pipe["id"]] = pipeline(self.ID, pipe["id"], pipe, direction)  # creates pipes
 
         for pipe in pipes_out:
             direction = "out"
-            self.pipes_out_list[pipe["id"]] = pipeline(self.ID, pipe["id"], direction)  # creates pipes
-
-        for valve in valves:
-            self.valves_list[valve["id"]] = bay_valve(self.ID, valve["id"], valve["connection"], valve["flow"])  # creates valves
+            self.pipes_out_list[pipe["id"]] = pipeline(self.ID, pipe["id"], pipe, direction)  # creates pipes
 
     def get_parent(self):
         return self.parent_ID
