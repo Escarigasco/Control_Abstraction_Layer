@@ -31,38 +31,96 @@
            
                     <connected_device id="Source_1HP5" type="heat_pump"></connected_device>
            </connector>
-           
       </bay>
-      <bay id="Bay_1" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
-           <pipe id="Pipeline_1C1" busbar="1C"> 
-               <valve id="Valve_1C1" connection="1C" flow="C"></valve>
+      <bay id="Bay_6" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="source">
+           <pipe id="Pipeline_1C6" busbar="1C"> 
+               <valve id="Valve_1C6" connection="1C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_2C1" busbar="2C">
-              <valve id="Valve_2C1" connection="2C" flow="C"></valve>
+           <pipe id="Pipeline_2C6" busbar="2C">
+              <valve id="Valve_2C6" connection="2C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_1H1" busbar="1H"> 
-              <valve id="Valve_1H1" connection="1H" flow="H"></valve> 
+           <pipe id="Pipeline_1H6" busbar="1H"> 
+              <valve id="Valve_1H6" connection="1H" flow="H"></valve> 
            </pipe>
-           <pipe id="Pipeline_2H1" busbar="2H"> 
-              <valve id="Valve_2H1" connection="2H" flow="H"></valve> 
+           <pipe id="Pipeline_2H6" busbar="2H"> 
+              <valve id="Valve_2H6" connection="2H" flow="H"></valve> 
            </pipe>
-           <pipe id="Pipeline_1B1" busbar="B"> 
-               <valve id="Valve_1B1" connection="B"  flow="H"></valve>
-               <valve id="Valve_2B1" connection="B"  flow="C"></valve>
+           <pipe id="Pipeline_1B6" busbar="B"> 
+               <valve id="Valve_1B6" connection="B"  flow="H"></valve>
+               <valve id="Valve_2B6" connection="B"  flow="C"></valve>
            </pipe>
-           <connector id="Connector_1">
-                    <line id="line_1H1" type="H" >
-                        <pump id="Pump_1H1" position ="inline"> </pump>
-                        <sensor id="Sensor_1HT1" variable="T" embedded="Sensor_1E1" position = "inline"> </sensor>
+           <connector id="Connector_6">
+                    <line id="line_1H6" type="H" >
+                        <pump id="Pump_1H6" position ="inline"> </pump>
+                        <sensor id="Sensor_1HT6" variable="T" embedded="Sensor_1E6" position = "inline"> </sensor>
                     </line>
-                    <line id="line_1C1" type="C" >
-                        <sensor id="Sensor_1CT1" variable="T" embedded="Sensor_1E1" position = "inline"> </sensor>
-                        <sensor id="Sensor_1CF1" variable="F" embedded="Sensor_1E1" position = "inline"> </sensor>
+                    <line id="line_1C6" type="C" >
+                        <sensor id="Sensor_1CT6" variable="T" embedded="Sensor_1E6" position = "inline"> </sensor>
+                        <sensor id="Sensor_1CF6" variable="F" embedded="Sensor_1E6" position = "inline"> </sensor>
                     </line>
-                    <sensor id="Sensor_1E1" variable="Energy" embedded="No" position = "connector"> </sensor>
-                    <connected_device id="Sink_1H1" type="house"></connected_device>
+                    <sensor id="Sensor_1E6" variable="Energy" embedded="No" position = "connector"> </sensor>
+                    <connected_device id="Sink_1H6" type="flex_house"></connected_device>
           </connector>
-           
+      </bay>
+      <bay id="Bay_7" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
+           <pipe id="Pipeline_1C7" busbar="1C"> 
+               <valve id="Valve_1C7" connection="1C" flow="C"></valve>
+           </pipe>
+           <pipe id="Pipeline_2C7" busbar="2C">
+              <valve id="Valve_2C7" connection="2C" flow="C"></valve>
+           </pipe>
+           <pipe id="Pipeline_1H7" busbar="1H"> 
+              <valve id="Valve_1H7" connection="1H" flow="H"></valve> 
+           </pipe>
+           <pipe id="Pipeline_2H7" busbar="2H"> 
+              <valve id="Valve_2H7" connection="2H" flow="H"></valve> 
+           </pipe>
+           <pipe id="Pipeline_1B7" busbar="B"> 
+               <valve id="Valve_1B7" connection="B"  flow="H"></valve>
+               <valve id="Valve_2B7" connection="B"  flow="C"></valve>
+           </pipe>
+           <connector id="Connector_7">
+                    <line id="line_1H7" type="H" >
+                        <pump id="Pump_1H7" position ="inline"> </pump>
+                        <sensor id="Sensor_1HT7" variable="T" embedded="Sensor_1E7" position = "inline"> </sensor>
+                    </line>
+                    <line id="line_1C7" type="C" >
+                        <sensor id="Sensor_1CT7" variable="T" embedded="Sensor_1E7" position = "inline"> </sensor>
+                        <sensor id="Sensor_1CF7" variable="F" embedded="Sensor_1E7" position = "inline"> </sensor>
+                    </line>
+                    <sensor id="Sensor_1E7" variable="Energy" embedded="No" position = "connector"> </sensor>
+                    <connected_device id="Sink_1H7" type="flex_house"></connected_device>
+          </connector>
+      </bay>
+      <bay id="Bay_8" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
+           <pipe id="Pipeline_1C8" busbar="1C"> 
+               <valve id="Valve_1C8" connection="1C" flow="C"></valve>
+           </pipe>
+           <pipe id="Pipeline_2C8" busbar="2C">
+              <valve id="Valve_2C8" connection="2C" flow="C"></valve>
+           </pipe>
+           <pipe id="Pipeline_1H8" busbar="1H"> 
+              <valve id="Valve_1H8" connection="1H" flow="H"></valve> 
+           </pipe>
+           <pipe id="Pipeline_2H8" busbar="2H"> 
+              <valve id="Valve_2H8" connection="2H" flow="H"></valve> 
+           </pipe>
+           <pipe id="Pipeline_1B8" busbar="B"> 
+               <valve id="Valve_1B8" connection="B"  flow="H"></valve>
+               <valve id="Valve_2B8" connection="B"  flow="C"></valve>
+           </pipe>
+           <connector id="Connector_8">
+                    <line id="line_1H8" type="H" >
+                        <pump id="Pump_1H8" position ="inline"> </pump>
+                        <sensor id="Sensor_1HT8" variable="T" embedded="Sensor_1E8" position = "inline"> </sensor>
+                    </line>
+                    <line id="line_1C8" type="C" >
+                        <sensor id="Sensor_1CT8" variable="T" embedded="Sensor_1E8" position = "inline"> </sensor>
+                        <sensor id="Sensor_1CF8" variable="F" embedded="Sensor_1E8" position = "inline"> </sensor>
+                    </line>
+                    <sensor id="Sensor_1E8" variable="Energy" embedded="No" position = "connector"> </sensor>
+                    <connected_device id="Sink_1H8" type="house"></connected_device>
+          </connector>
       </bay>
   </switch_board>
     <switch_board id="Switch_Board_2">
