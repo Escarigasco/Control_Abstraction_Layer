@@ -30,8 +30,8 @@ class interface(object):
                 for line in lines_list.keys():
                         connector_line = lines_list[line]
                         line_sensors_list.update(connector_line.line_sensors_list)  # add sensors list from each line
-            print(connector_sensors_lists.keys())
-            print(line_sensors_list.keys())
+            #  print(connector_sensors_lists.keys())
+            #  print(line_sensors_list.keys())
 
         self.sensors_lists = {**connector_sensors_lists, **line_sensors_list}
 
