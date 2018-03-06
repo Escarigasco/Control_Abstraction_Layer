@@ -31,11 +31,11 @@ class hydraulic_bay(object):
 
         for pipe in pipes_in:
             direction = "in"
-            self.pipes_in_list[pipe["id"]] = pipeline(self.ID, pipe["id"], pipe, direction)  # creates pipes
+            self.pipes_in_list[pipe["id"]] = pipeline(self.ID, pipe["id"], pipe, pipe["busbar"], direction)  # creates pipes
 
         for pipe in pipes_out:
             direction = "out"
-            self.pipes_out_list[pipe["id"]] = pipeline(self.ID, pipe["id"], pipe, direction)  # creates pipes
+            self.pipes_out_list[pipe["id"]] = pipeline(self.ID, pipe["id"], pipe, pipe["busbar"], direction)  # creates pipes
 
     def get_parent(self):
         return self.parent_ID
