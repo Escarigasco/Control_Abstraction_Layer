@@ -31,8 +31,6 @@ class interface(object):
                 for line in lines_list.keys():
                         connector_line = lines_list[line]
                         line_sensors_list.update(connector_line.line_sensors_list)  # add sensors list from each line
-            #  print(connector_sensors_lists.keys())
-            #  print(line_sensors_list.keys())
 
         self.sensors_lists = {**connector_sensors_lists, **line_sensors_list}
 
@@ -95,6 +93,31 @@ class interface(object):
 
         return self.pipes_list
 
+    def get_system_connectors(self):
+        bays_list = self.board.bays_list  # ridefinition of variable for clarity
+        self.connectors_list = {}
+
+        for bay in bays_list.keys():  # parsing dictionary keys
+            hydraulic_bay = bays_list[bay]
+            self.connectors_list.update(hydraulic_bay.connectors_list)
+
+        return self.connectors_list
+
+    def get_system_lines(self):
+        bays_list = self.board.bays_list  # ridefinition of variable for clarity
+        self.lines_list = {}
+        connectors_list = {}   # ridefinition of variable for clarity
+
+        for bay in bays_list.keys():  # parsing dictionary keys
+            hydraulic_bay = bays_list[bay]
+            connectors_list = hydraulic_bay.connectors_list
+
+            for connector in connectors_list.keys():
+                connector = connectors_list[connector]
+                self.lines_list.update(connector.lines_list)
+
+        return self.lines_list
+
     def get_connected_devices(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
         self.connected_devices_list = {}
@@ -113,17 +136,21 @@ class interface(object):
         bays_list = self.board.bays_list
         bay_connectors_list = {}
         connector_lines_list = {}
+        pipeline_list = {}
 
         for bay in bays_list.keys():
             hydraulic_bay = bays_list[bay]
             bay_connectors_list.update(hydraulic_bay.connectors_list)  # computing burden
-            list_for_iteration = hydraulic_bay.connectors_list
+            connector_for_iteration = hydraulic_bay.connectors_list
 
-            for connector in list_for_iteration.keys():
-                bay_connector = list_for_iteration[connector]
+            pipeline_list.update(hydraulic_bay.pipes_out_list)
+            pipeline_list.update(hydraulic_bay.pipes_in_list)
+
+            for connector in connector_for_iteration.keys():
+                bay_connector = connector_for_iteration[connector]
                 connector_lines_list.update(bay_connector.lines_list)
 
-        self.parents_list = {**bays_list, **bay_connectors_list, **connector_lines_list}
+        self.parents_list = {**bays_list, **bay_connectors_list, **connector_lines_list, **pipeline_list}
         return self.parents_list
 
     def build_busbars(self, system_pipes):
@@ -140,7 +167,7 @@ class interface(object):
             for direction in system_pipes.keys():
                 for pipe in system_pipes[direction].keys():
                     if (system_pipes[direction][pipe].get_busbar_connection() == busbar):
-                        print(busbar)
+
                         buffer_for_pipes.append(system_pipes[direction][pipe])
 
             busbars_list[busbar] = bb(busbar, buffer_for_pipes, status)
