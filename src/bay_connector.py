@@ -39,3 +39,9 @@ class bay_connector:
 
     def get_name(self):
         return self.ID
+
+    def __repr__(self):
+        return "<Connector, id: {0}>".format(self.ID)
+
+    def __str__(self):
+        return "<Connector, id: {0}>".format(self.ID)
