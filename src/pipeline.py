@@ -18,6 +18,9 @@ class pipeline(object):
         for valve in valves:
             self.valves_list[valve["id"]] = bay_valve(self.ID, valve["id"], valve["connection"], valve["flow"])  # creates valves
 
+    def get_parent(self):
+        return self.parent_ID
+
     def get_name(self):
         return self.ID
 
