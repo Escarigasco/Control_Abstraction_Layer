@@ -1,4 +1,5 @@
 # Class for interface
+from busbars import busbar as bb
 
 
 class interface(object):
@@ -124,3 +125,25 @@ class interface(object):
 
         self.parents_list = {**bays_list, **bay_connectors_list, **connector_lines_list}
         return self.parents_list
+
+    def build_busbars(self, system_pipes):
+        busbars_names = set([])
+        buffer_for_pipes = []
+        busbars_list = {}
+        status = 0
+
+        for direction in system_pipes.keys():
+            for pipe in system_pipes[direction].keys():
+                busbars_names.add(system_pipes[direction][pipe].get_busbar_connection())
+
+        for busbar in busbars_names:
+            for direction in system_pipes.keys():
+                for pipe in system_pipes[direction].keys():
+                    if (system_pipes[direction][pipe].get_busbar_connection() == busbar):
+                        print(busbar)
+                        buffer_for_pipes.append(system_pipes[direction][pipe])
+
+            busbars_list[busbar] = bb(busbar, buffer_for_pipes, status)
+            buffer_for_pipes = []
+
+        return busbars_list
