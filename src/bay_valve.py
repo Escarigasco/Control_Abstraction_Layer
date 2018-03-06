@@ -13,8 +13,11 @@ class bay_valve:
     def get_name(self):
         return self.ID
 
-    def set_position(self, setpoint):
-        self.position = setpoint
+    def get_flow(self):
+        return self.flow
+
+    def get_parent(self):
+        return self.parent_ID
 
     def get_position(self):
         return self.position  # this needs to be real time read
