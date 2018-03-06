@@ -20,10 +20,13 @@ class logical_layer(object):
         self.system_sensors = self.intf.get_system_sensors()
         self.system_pumps = self.intf.get_system_pumps()
         self.system_valves = self.intf.get_system_valves()
+        self.system_connectors = self.intf.get_system_connectors()
+        self.system_lines = self.intf.get_system_lines()
         self.system_pipes = self.intf.get_system_pipes()
         self.system_connected_devices = self.intf.get_connected_devices()
         self.system_bays = self.intf.get_hydraulic_bays()
         self.system_busbars = self.intf.build_busbars(self.system_pipes)
+        self.objtk = object_tracker(self.intf)
 
     def run(self, sensors, parameters, setpoints, sources):
 
@@ -32,25 +35,20 @@ class logical_layer(object):
         self.setpoints_list = setpoints
         self.sources_list = sources
 
-        objtk = object_tracker(self.intf)
-
-        sensors_position = objtk.where_are_sensors(self.system_sensors)
-        connected_device_position = objtk.where_are_connected_devices(self.system_connected_devices)
+        sensors_position = self.objtk.where_are_sensors(self.system_sensors)
+        connected_device_position = self.objtk.where_are_connected_devices(self.system_connected_devices)
+        lines_valve_connection = self.objtk.line_to_which_valve(self.system_valves, self.system_lines)
 
         # computational_unit = path_calculator() - it will define all the pipes entering the bays that
-        print(sensors_position.keys())
-        print(sensors_position.values())
-        print(connected_device_position.keys())
-        print(connected_device_position.values())
 
-    # return networkx object
+        # return networkx object
 
-    # server = input_receiver()
+        # server = input_receiver()
 
-    # user_inputs =  Server.get_commands()
+        # user_inputs =  Server.get_commands()
 
-    # classe = building716.interface(user_inputs)
+        # classe = building716.interface(user_inputs)
 
-    # components_involved = computational_unit.get_path(classe, user_inputs)
+        # components_involved = computational_unit.get_path(classe, user_inputs)
 
-    # components_functions = computation_unit.get_functions(components_involved, classe, user_inputs)
+        # components_functions = computation_unit.get_functions(components_involved, classe, user_inputs)
