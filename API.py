@@ -16,7 +16,7 @@ def main(argv):
 
     try:
         ops, args = getopt.getopt(argv, "")
-        
+
         if (len(argv) != nargs):
             print('main.py <BuildingID> <Switch_Board_ID>')
             sys.exit(2)
@@ -41,12 +41,19 @@ def main(argv):
 
         while(1):
 
-            n_sensors = int(input("how many sensors do you want to control?"))
-            for n in range(0, n_sensors):
-                sensors[n] = input("Insert sensor code for sensor {0}:".format(n + 1))
-                parameters[n] = input("Insert parameter code for sensor {0}:".format(n + 1))
-                setpoints[n] = int(input("Insert setpoint for sensor {0}:".format(n + 1)))
-                sources[n] = input("Insert source code to control sensor {0}:".format(n + 1))
+            operating_mode = input("Operating Mode:")
+            if (operating_mode == "M"):
+                n_sensors = int(input("how many sensors do you want to control?"))
+                for n in range(0, n_sensors):
+                    sensors[n] = input("Insert sensor code for sensor {0}:".format(n + 1))
+                    parameters[n] = input("Insert parameter code for sensor {0}:".format(n + 1))
+                    setpoints[n] = int(input("Insert setpoint for sensor {0}:".format(n + 1)))
+                    sources[n] = input("Insert source code to control sensor {0}:".format(n + 1))
+            else:
+                sensors[0] = "Sensor_1E8"
+                parameters[0] = "Energy"
+                setpoints[0] = 50
+                sources[0] = "Source_1HP5"
 
             logical.run(sensors, parameters, setpoints, sources)
             print("\n\n\n")
