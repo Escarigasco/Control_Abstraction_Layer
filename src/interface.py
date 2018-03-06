@@ -170,7 +170,7 @@ class interface(object):
 
                         buffer_for_pipes.append(system_pipes[direction][pipe])
 
-            busbars_list[busbar] = bb(busbar, buffer_for_pipes, status)
+            busbars_list[busbar] = bb(busbar, buffer_for_pipes, status) # review this composition because you are inserting lists of objects 
             buffer_for_pipes = []
 
         return busbars_list
