@@ -9,10 +9,12 @@ def main(argv):
     nargs = 2
     recognized_building_ID = False
     recognized_board_ID = False
-    sensors = {}
-    parameters = {}
-    setpoints = {}
-    sources = {}
+    sensors = []
+    parameters = []
+    setpoints = []
+    sources = []
+    control_object = []
+    control_strategy = []
 
     try:
         ops, args = getopt.getopt(argv, "")
@@ -40,22 +42,16 @@ def main(argv):
         logical = logical_layer(Building_ID, Switch_Board_ID)
 
         while(1):
+            n_sensors = int(input("how many sensors do you want to control?"))
+            for n in range(0, n_sensors):
+                sensors.insert(n, input("Insert sensor code for sensor {n}:".format(n)))
+                parameters.insert(n, input("Insert parameter code for sensor {n}:".format(n)))
+                setpoints.insert(n, int(input("Insert setpoint for sensor {n}:".format(n))))
+                sources.append(n, input("Insert source code to control sensor {n}:".format(n)))
+                control_object.insert(n, input("Insert device code to be controlled {n}:".format(n)))
+                control_strategy.insert(n, input("Insert control mode of device {n}:".format(n)))
 
-            operating_mode = input("Operating Mode:")
-            if (operating_mode == "M"):
-                n_sensors = int(input("how many sensors do you want to control?"))
-                for n in range(0, n_sensors):
-                    sensors[n] = input("Insert sensor code for sensor {0}:".format(n + 1))
-                    parameters[n] = input("Insert parameter code for sensor {0}:".format(n + 1))
-                    setpoints[n] = int(input("Insert setpoint for sensor {0}:".format(n + 1)))
-                    sources[n] = input("Insert source code to control sensor {0}:".format(n + 1))
-            else:
-                sensors[0] = "Sensor_1E8"
-                parameters[0] = "Energy"
-                setpoints[0] = 50
-                sources[0] = "Source_1HP5"
-
-            logical.run(sensors, parameters, setpoints, sources)
+            logical.run(sensors, parameters, setpoints, sources, control_object, control_strategy)
             print("\n\n\n")
 
     except getopt.GetoptError:
