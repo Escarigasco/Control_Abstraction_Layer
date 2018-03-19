@@ -1,7 +1,10 @@
 from switch_board_building import switch_board_building
 from interface import interface
 from object_tracker import object_tracker
-
+# from path_builder import path_builder as pb
+# from durable_rules import dr_path_builder as pb
+from test_rules import trigger
+from rule_engine import rule_engine
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
 
@@ -9,13 +12,11 @@ from object_tracker import object_tracker
 class logical_layer(object):
     'Component that output the control object'
     def __init__(self, buildingID, SwitchID):
+        self.buildingID = buildingID
+        self.SwitchID = SwitchID
 
-        self.BuildingID = "Building716"
-        self.Receiver = "First"
-        self.SwitchID = "Switch_Board_1"
-
-        self.building716 = switch_board_building(self.BuildingID)
-        self.intf = interface(self.building716, self.SwitchID)
+        self.building_config = switch_board_building(self.buildingID)
+        self.intf = interface(self.building_config, self.SwitchID)
 
         self.system_sensors = self.intf.get_system_sensors()
         self.system_pumps = self.intf.get_system_pumps()
@@ -27,28 +28,33 @@ class logical_layer(object):
         self.system_bays = self.intf.get_hydraulic_bays()
         self.system_busbars = self.intf.build_busbars(self.system_pipes)
         self.objtk = object_tracker(self.intf)
+        # self.my_path_builder = pb(self.system_valves, self.system_sensors)
 
-    def run(self, sensors, parameters, setpoints, sources):
-
-        self.sensors_list = sensors
-        self.parameters_list = parameters
-        self.setpoints_list = setpoints
-        self.sources_list = sources
+    def run(self, sensors, parameters, setpoints, sources, controlled_device, control_strategy):
+        self.input = {}
+        self.used_sensors = sensors
+        self.parameters = parameters
+        self.setpoints = setpoints
+        self.used_sources = sources
+        self.controlled_device = controlled_device
+        self.control_strategy = control_strategy
+        self.input = {"sensor": self.used_sensors, "parameter": self.parameters,
+                      "setpoint": self.setpoints, "sources": self.used_sources,
+                      "control_strategy": self.control_strategy, "controlled_device": self.controlled_device}
 
         sensors_position = self.objtk.where_are_sensors(self.system_sensors)
         connected_device_position = self.objtk.where_are_connected_devices(self.system_connected_devices)
         lines_valve_connection = self.objtk.line_to_which_valve(self.system_valves, self.system_lines)
+        # self.my_path_builder = trigger(self.system_sensors, self.system_connected_devices, self.input)
+        test = rule_engine()
 
-        # computational_unit = path_calculator() - it will define all the pipes entering the bays that
 
-        # return networkx object
-
-        # server = input_receiver()
-
-        # user_inputs =  Server.get_commands()
-
-        # classe = building716.interface(user_inputs)
-
-        # components_involved = computational_unit.get_path(classe, user_inputs)
-
-        # components_functions = computation_unit.get_functions(components_involved, classe, user_inputs)
+if __name__ == "__main__":
+    test = logical_layer("Building716", "Switch_Board_1")
+    sensors = "Sensor_1E8"
+    parameters = "Energy"
+    setpoints = 50
+    sources = "Source_1HP5"
+    controlled_device = "Pump_1H5"
+    control_strategy = "flow"
+    test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy)
