@@ -32,7 +32,8 @@ class bay_connector:
             self.connector_sensors_list[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], sensor["position"])  # don't pass the soup as is the end of the tree'''
 
         for device in devices:
-            self.connected_devices_list[device["id"]] = connected_device(self.ID, device["id"], device["type"])
+            self.connected_devices_list[device["id"]] = connected_device(self.ID, device["id"], device["type"], device["rating"])
+
 
     def get_parent(self):
         return self.parent_ID
