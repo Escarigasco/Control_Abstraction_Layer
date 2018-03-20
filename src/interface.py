@@ -162,15 +162,18 @@ class interface(object):
         for direction in system_pipes.keys():
             for pipe in system_pipes[direction].keys():
                 busbars_names.add(system_pipes[direction][pipe].get_busbar_connection())
-
+                print(system_pipes[direction][pipe].get_busbar_connection())
         for busbar in busbars_names:
             for direction in system_pipes.keys():
                 for pipe in system_pipes[direction].keys():
+                    #  print(system_pipes[direction].keys())
                     if (system_pipes[direction][pipe].get_busbar_connection() == busbar):
-
                         buffer_for_pipes.append(system_pipes[direction][pipe])
 
-            busbars_list[busbar] = bb(busbar, buffer_for_pipes, status) # review this composition because you are inserting lists of objects 
+            busbars_list[busbar] = bb(busbar, buffer_for_pipes, status)
             buffer_for_pipes = []
+            # you can't really solved the double call of the booster bar pipes as they are actually a couple
+            # of objects as the booster can be both a in or out pipe - in reality it will always be a in pipe and only sources will use it
+            # this is also proved by the fact that no motorized valve are installed at the sinks in the booster bar
 
         return busbars_list
