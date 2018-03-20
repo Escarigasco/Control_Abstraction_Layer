@@ -4,10 +4,14 @@
 class connected_device:
     'Class for Pump definition and properties'
 
-    def __init__(self, parent_ID, ID, type):
+    def __init__(self, parent_ID, ID, type_device, rated_power):
         self.parent_ID = parent_ID
         self.ID = ID
-        self.type = type
+        self.type = type_device
+        self.rated_power = int(rated_power)
+
+    def get_rated_power(self):
+        return self.rated_power
 
     def get_parent(self):
         return self.parent_ID
