@@ -71,5 +71,4 @@ class object_tracker(object):
 
             self.valve_position[valve_name] = valve_location
 
-        print(self.line_position)
-        print(self.valve_position)
+        return self.valve_position
