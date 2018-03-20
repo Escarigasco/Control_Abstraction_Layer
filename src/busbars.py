@@ -7,7 +7,6 @@ class busbar(object):
         self.system_pipes = system_pipes
         self.circuit_ID = circuit_ID
         self.status = status
-        print(system_pipes)
 
     def get_status():
         return self.status
@@ -19,7 +18,7 @@ class busbar(object):
         return self.circuit_ID
 
     def __repr__(self):
-        return "<BusBar, id: {0}>".format(self.circuit_ID)
+        return "id: {0}".format(self.circuit_ID)
 
     def __str__(self):
-        return "<BusBar, id: {0}>".format(self.circuit_ID)
+        return "id:{0}>".format(self.circuit_ID)
