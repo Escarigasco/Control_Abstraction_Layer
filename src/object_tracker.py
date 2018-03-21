@@ -1,5 +1,6 @@
 # Class for object_tracker
 import re
+from collections import defaultdict
 
 
 class object_tracker(object):
@@ -10,27 +11,12 @@ class object_tracker(object):
         self.device_position = {}
         self.line_position = {}
         self.valve_position = {}
+        self.pump_position = {}
 
-    def where_are_sensors(self, sensors):
+    def where_are_devices(self, devices):
         final_location = "Bay_"
         parents_list = self.intf.get_all_parents()
-
-        for sensor_name in sensors.keys():
-            sensor = sensors[sensor_name]
-            sensor_location = sensor.get_parent()
-
-            while not (re.match(final_location, sensor_location)):
-
-                parent = parents_list[sensor_location]
-                sensor_location = parent.get_parent()
-
-            self.sensor_position[sensor_name] = sensor_location
-
-        return self.sensor_position
-
-    def where_are_connected_devices(self, devices):
-        final_location = "Bay_"
-        parents_list = self.intf.get_all_parents()
+        device_position = defaultdict(list)
 
         for device_name in devices.keys():
             device = devices[device_name]
@@ -41,11 +27,11 @@ class object_tracker(object):
                 parent = parents_list[device_location]
                 device_location = parent.get_parent()
 
-            self.device_position[device_name] = device_location
+            device_position[device_location].append(devices[device_name])
+            device_position[device_name] = device_location
+        return device_position
 
-        return self.device_position
-
-    def line_to_which_valve(self, system_valves, system_lines):
+    def where_are_valves(self, system_valves, system_lines):
         final_location = "Bay_"
         parents_list = self.intf.get_all_parents()
 
