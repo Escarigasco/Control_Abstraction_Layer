@@ -10,8 +10,7 @@ class random_server(object):
         for valve in valves.keys():
             setpoint = random.randint(min_operating, max_operating)
             valves[valve].set_status(setpoint)
-            print(setpoint)
-
+            
         for pump in pumps.keys():
             setpoint = random.randrange(min_operating, max_operating, step)
             pumps[pump].set_status(setpoint)
