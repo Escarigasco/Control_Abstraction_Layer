@@ -27,7 +27,7 @@ class system_sensor:
         return self.status
 
     def __repr__(self):
-        return "<Sensor, id: {0}>".format(self.ID)
+        return "{0}".format(self.ID)
 
     def __str__(self):
-        return "<Sensor, id: {0}>".format(self.ID)
+        return "{0}".format(self.ID)
