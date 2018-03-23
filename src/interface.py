@@ -16,7 +16,7 @@ class interface(object):
 
     def get_system_sensors(self):
         bays_list = self.board.bays_list  # ridefinition of variable for clarity
-        line_sensors_list = {}
+        line_sensors = {}
         connector_sensors_lists = {}
 
         for bay in bays_list.keys():  # parsing dictionary keys
@@ -30,9 +30,9 @@ class interface(object):
 
                 for line in lines_list.keys():
                         connector_line = lines_list[line]
-                        line_sensors_list.update(connector_line.line_sensors_list)  # add sensors list from each line
+                        line_sensors.update(connector_line.line_sensors)  # add sensors list from each line
 
-        self.sensors_lists = {**connector_sensors_lists, **line_sensors_list}
+        self.sensors_lists = {**connector_sensors_lists, **line_sensors}
 
         return self.sensors_lists
 
@@ -50,7 +50,7 @@ class interface(object):
 
                 for line in lines_list.keys():
                         connector_line = lines_list[line]
-                        line_pumps_list.update(connector_line.pumps_list)  # add pumps list from each line
+                        line_pumps_list.update(connector_line.pumps)  # add pumps list from each line
 
         self.pumps_list = line_pumps_list
         return self.pumps_list
@@ -162,7 +162,7 @@ class interface(object):
         for direction in system_pipes.keys():
             for pipe in system_pipes[direction].keys():
                 busbars_names.add(system_pipes[direction][pipe].get_busbar_connection())
-                print(system_pipes[direction][pipe].get_busbar_connection())
+
         for busbar in busbars_names:
             for direction in system_pipes.keys():
                 for pipe in system_pipes[direction].keys():

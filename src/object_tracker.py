@@ -35,7 +35,7 @@ class object_tracker(object):
         final_location = "Bay_"
         parents_list = self.intf.get_all_parents()
 
-        for line_name in system_lines.keys():
+        '''for line_name in system_lines.keys():
             line = system_lines[line_name]
             line_location = line.get_parent()
 
@@ -44,7 +44,7 @@ class object_tracker(object):
                 parent = parents_list[line_location]
                 line_location = parent.get_parent()
 
-            self.line_position[line_name] = line_location
+            self.line_position[line_name] = line_location'''
 
         for valve_name in system_valves.keys():
             valve = system_valves[valve_name]

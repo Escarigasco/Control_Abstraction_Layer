@@ -20,10 +20,11 @@ class logical_layer(object):
         self.intf = interface(self.building_config, self.SwitchID)
 
         self.system_sensors = self.intf.get_system_sensors()
-        # self.system_pumps = self.intf.get_system_pumps()
+        self.system_pumps = self.intf.get_system_pumps()
         self.system_valves = self.intf.get_system_valves()
         # self.system_connectors = self.intf.get_system_connectors()
         self.system_lines = self.intf.get_system_lines()
+        print(self.system_lines)
         self.system_pipes = self.intf.get_system_pipes()
         self.system_connected_devices = self.intf.get_connected_devices()
         # self.system_bays = self.intf.get_hydraulic_bays()
@@ -46,11 +47,6 @@ class logical_layer(object):
         system_input = {"sensor": self.used_sensors, "parameter": self.parameters,
                         "setpoint": self.setpoints, "sources": self.used_sources,
                         "control_strategy": self.control_strategy, "controlled_device": self.controlled_device}
-
-        sensors_position = self.objtk.where_are_sensors(self.system_sensors)
-        connected_device_position = self.objtk.where_are_connected_devices(self.system_connected_devices)
-        lines_valve_connection = self.objtk.line_to_which_valve(self.system_valves, self.system_lines)
-
 
 
 
