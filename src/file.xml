@@ -1,6 +1,39 @@
 ﻿<?xml version="1.0"?>
 <switch_board_building id="Building716">
   <switch_board id="Switch_Board_1">
+        <bay id="Bay_4" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="source">
+             <pipe id="Pipeline_1C4" busbar="1C">
+                 <valve id="Valve_1C4" connection="1C" flow="C"></valve>
+             </pipe>
+             <pipe id="Pipeline_2C4" busbar="2C">
+                 <valve id="Valve_2C4" connection="2C" flow="C"></valve>
+             </pipe>
+             <pipe id="Pipeline_1H4" busbar="1H">
+                 <valve id="Valve_1H4" connection="1H" flow="H"></valve>
+             </pipe>
+             <pipe id="Pipeline_2H4" busbar="2H">
+                 <valve id="Valve_2H4" connection="2H" flow="H"></valve>
+             </pipe>
+             <pipe id="Pipeline_1B4" busbar="1B">
+                 <valve id="Valve_1B4" connection="1B"  flow="H"></valve>
+             </pipe>
+             <pipe id="Pipeline_2B4" busbar="2B">
+                 <valve id="Valve_2B4" connection="2B"  flow="C"></valve>
+             </pipe>
+             <connector id="Connector_4">
+                      <line id="line_1H4" type="H" >
+                          <sensor id="Sensor_1HT4" variable="T" embedded="Sensor_1E4" position="inline"> </sensor>
+                      </line>
+                      <line id="line_1C4" type="C" >
+                          <pump id="Pump_1C4" position ="inline"> </pump>
+                          <sensor id="Sensor_1CT4" variable="T" embedded="Sensor_1E4" position="inline"> </sensor>
+                          <sensor id="Sensor_1CF4" variable="F" embedded="Sensor_1E4" position="inline"> </sensor>
+                          <sensor id="Sensor_1E4" variable="Energy"  embedded="No" position = "inline"> </sensor>
+                          <sensor id="Sensor_1P4" variable="DP"  embedded="No" position = "inline"> </sensor>
+                      </line>
+                      <connected_device id="Source_1BH4" type="booster_heater" rating="22.5"></connected_device>
+             </connector>
+        </bay>
       <bay id="Bay_5" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="source">
            <pipe id="Pipeline_1C5" busbar="1C">
                <valve id="Valve_1C5" connection="1C" flow="C"></valve>
@@ -28,9 +61,9 @@
                     <line id="line_1C5" type="C" >
                         <sensor id="Sensor_1CT5" variable="T" embedded="Sensor_1E5" position="inline"> </sensor>
                         <sensor id="Sensor_1CF5" variable="F" embedded="Sensor_1E5" position="inline"> </sensor>
+                        <sensor id="Sensor_1E5" variable="Energy"  embedded="No" position = "inline"> </sensor>
+                        <sensor id="Sensor_1P5" variable="DP"  embedded="No" position = "inline"> </sensor>
                     </line>
-                    <sensor id="Sensor_1E5" variable="Energy"  embedded="No" position = "connector"> </sensor>
-                    <sensor id="Sensor_1P5" variable="DP"  embedded="No" position = "connector"> </sensor>
                     <connected_device id="Source_1HP5" type="heat_pump" rating="11"></connected_device>
            </connector>
       </bay>
@@ -61,9 +94,9 @@
                     <line id="line_1C6" type="C" >
                         <sensor id="Sensor_1CT6" variable="T" embedded="Sensor_1E6" position = "inline"> </sensor>
                         <sensor id="Sensor_1CF6" variable="F" embedded="Sensor_1E6" position = "inline"> </sensor>
+                        <sensor id="Sensor_1E6" variable="Energy" embedded="No" position = "inline"> </sensor>
+                        <sensor id="Sensor_1P6" variable="DP"  embedded="No" position = "inline"> </sensor>
                     </line>
-                    <sensor id="Sensor_1E6" variable="Energy" embedded="No" position = "connector"> </sensor>
-                    <sensor id="Sensor_1P6" variable="DP"  embedded="No" position = "connector"> </sensor>
                     <connected_device id="Source_1DH6" type="district_heating" rating="25"></connected_device>
           </connector>
       </bay>
@@ -88,9 +121,10 @@
                     <line id="line_1C7" type="C" >
                         <sensor id="Sensor_1CT7" variable="T" embedded="Sensor_1E7" position = "inline"> </sensor>
                         <sensor id="Sensor_1CF7" variable="F" embedded="Sensor_1E7" position = "inline"> </sensor>
+                        <sensor id="Sensor_1E7" variable="Energy" embedded="No" position = "inline"> </sensor>
+                        <sensor id="Sensor_1P7" variable="DP"  embedded="No" position = "inline"> </sensor>
                     </line>
-                    <sensor id="Sensor_1E7" variable="Energy" embedded="No" position = "connector"> </sensor>
-                    <sensor id="Sensor_1P7" variable="DP"  embedded="No" position = "connector"> </sensor>
+
                     <connected_device id="Sink_1H7" type="flex_house" rating="0"></connected_device>
           </connector>
       </bay>
@@ -115,9 +149,9 @@
                     <line id="line_1C8" type="C" >
                         <sensor id="Sensor_1CT8" variable="T" embedded="Sensor_1E8" position = "inline"> </sensor>
                         <sensor id="Sensor_1CF8" variable="F" embedded="Sensor_1E8" position = "inline"> </sensor>
+                        <sensor id="Sensor_1E8" variable="Energy" embedded="No" position = "inline"> </sensor>
+                        <sensor id="Sensor_1P8" variable="DP"  embedded="No" position = "inline"> </sensor>
                     </line>
-                    <sensor id="Sensor_1E8" variable="Energy" embedded="No" position = "connector"> </sensor>
-                    <sensor id="Sensor_1P8" variable="DP"  embedded="No" position = "connector"> </sensor>
                     <connected_device id="Sink_1H8" type="flex_house" rating="0"></connected_device>
           </connector>
       </bay>
