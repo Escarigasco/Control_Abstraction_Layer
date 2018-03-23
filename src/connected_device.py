@@ -8,7 +8,7 @@ class connected_device:
         self.parent_ID = parent_ID
         self.ID = ID
         self.type = type_device
-        self.rated_power = int(rated_power)
+        self.rated_power = float(rated_power)
 
     def get_rated_power(self):
         return self.rated_power
@@ -20,7 +20,7 @@ class connected_device:
         return self.ID
 
     def __repr__(self):
-        return "<Connected_device, id: {0}>".format(self.ID)
+        return "{0}".format(self.ID)
 
     def __str__(self):
-        return "<Connected_device, id: {0}>".format(self.ID)
+        return "{0}".format(self.ID)

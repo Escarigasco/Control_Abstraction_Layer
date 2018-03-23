@@ -10,8 +10,6 @@ class bay_valve:
         self.connection = connection
         self.flow = flow
         self.flow_direction = direction
-        print(self.ID)
-        print(self.flow_direction)
 
     def get_flow_direction(self):
         return self.flow_direction
@@ -38,7 +36,7 @@ class bay_valve:
         return self.status
 
     def __repr__(self):
-        return "id: {0}".format(self.ID)
+        return "{0}".format(self.ID)
 
     def __str__(self):
-        return "id: {0}".format(self.ID)
+        return "{0}".format(self.ID)
