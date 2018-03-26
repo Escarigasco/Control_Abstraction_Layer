@@ -1,10 +1,11 @@
 from switch_board_building import switch_board_building
 from interface import interface
 from object_tracker import object_tracker
-# from path_builder import path_builder as pb
-# from durable_rules import dr_path_builder as pb
+from path_builder import path_builder
+from path_matcher import path_matcher
+
 from test_rules import trigger
-from rule_engine import rule_engine
+# from rule_engine import rule_engine
 from configuration_reader import configuration_reader
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
@@ -18,19 +19,7 @@ class logical_layer(object):
 
         self.building_config = switch_board_building(self.buildingID)
         self.intf = interface(self.building_config, self.SwitchID)
-
-        self.system_sensors = self.intf.get_system_sensors()
-        self.system_pumps = self.intf.get_system_pumps()
-        self.system_valves = self.intf.get_system_valves()
-        # self.system_connectors = self.intf.get_system_connectors()
-        self.system_lines = self.intf.get_system_lines()
-        print(self.system_lines)
-        self.system_pipes = self.intf.get_system_pipes()
-        self.system_connected_devices = self.intf.get_connected_devices()
-        # self.system_bays = self.intf.get_hydraulic_bays()
-        self.system_busbars = self.intf.build_busbars(self.system_pipes)
         self.objtk = object_tracker(self.intf)
-        # self.my_path_builder = pb(self.system_valves, self.system_sensors)
 
     def run(self, sensors, parameters, setpoints, sources, controlled_device, control_strategy):
 
@@ -40,23 +29,26 @@ class logical_layer(object):
         self.used_sources = sources
         self.controlled_device = controlled_device
         self.control_strategy = control_strategy
-
-        builder = rule_engine(self.intf)
-        configuration_reader(self.intf, builder)
-
         system_input = {"sensor": self.used_sensors, "parameter": self.parameters,
                         "setpoint": self.setpoints, "sources": self.used_sources,
                         "control_strategy": self.control_strategy, "controlled_device": self.controlled_device}
+
+        # builder = rule_engine(self.intf)
+        cfg = configuration_reader(self.intf)
+        cfg.run()
+        pb = path_builder(self.intf)
+        possible_configurations = pb.run(system_input)
+        path_matcher()
 
 
 
 
 if __name__ == "__main__":
     test = logical_layer("Building716", "Switch_Board_1")
-    sensors = "Sensor_1E8"
+    sensors = ["Sensor_1E8"]
     parameters = "Energy"
     setpoints = 50
-    sources = "Source_1HP5"
+    sources = ["Source_1HP5"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
     test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy)
