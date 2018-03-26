@@ -2,22 +2,22 @@
 <switch_board_building id="Building716">
   <switch_board id="Switch_Board_1">
         <bay id="Bay_4" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="source">
-             <pipe id="Pipeline_1C4" busbar="1C">
+             <pipe id="Pipeline_1C4" busbar="1C" type="normal">
                  <valve id="Valve_1C4" connection="1C" flow="C"></valve>
              </pipe>
-             <pipe id="Pipeline_2C4" busbar="2C">
-                 <valve id="Valve_2C4" connection="2C" flow="C"></valve>
+             <pipe id="Pipeline_2C4" busbar="2C" type="normal">
+                 <valve id="Valve_2C4" connection="2C" flow="C" ></valve>
              </pipe>
-             <pipe id="Pipeline_1H4" busbar="1H">
+             <pipe id="Pipeline_1H4" busbar="1H" type="normal">
                  <valve id="Valve_1H4" connection="1H" flow="H"></valve>
              </pipe>
-             <pipe id="Pipeline_2H4" busbar="2H">
+             <pipe id="Pipeline_2H4" busbar="2H" type="normal">
                  <valve id="Valve_2H4" connection="2H" flow="H"></valve>
              </pipe>
-             <pipe id="Pipeline_1B4" busbar="1B">
+             <pipe id="Pipeline_1B4" busbar="1B" type="booster">
                  <valve id="Valve_1B4" connection="1B"  flow="H"></valve>
              </pipe>
-             <pipe id="Pipeline_2B4" busbar="2B">
+             <pipe id="Pipeline_2B4" busbar="2B" type="booster">
                  <valve id="Valve_2B4" connection="2B"  flow="C"></valve>
              </pipe>
              <connector id="Connector_4">
@@ -35,22 +35,22 @@
              </connector>
         </bay>
       <bay id="Bay_5" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="source">
-           <pipe id="Pipeline_1C5" busbar="1C">
+           <pipe id="Pipeline_1C5" busbar="1C" type="normal">
                <valve id="Valve_1C5" connection="1C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_2C5" busbar="2C">
+           <pipe id="Pipeline_2C5" busbar="2C" type="normal">
                <valve id="Valve_2C5" connection="2C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_1H5" busbar="1H">
+           <pipe id="Pipeline_1H5" busbar="1H" type="normal">
                <valve id="Valve_1H5" connection="1H" flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_2H5" busbar="2H">
+           <pipe id="Pipeline_2H5" busbar="2H" type="normal">
                <valve id="Valve_2H5" connection="2H" flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_1B5" busbar="1B">
+           <pipe id="Pipeline_1B5" busbar="1B" type="booster">
                <valve id="Valve_1B5" connection="1B"  flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_2B5" busbar="2B">
+           <pipe id="Pipeline_2B5" busbar="2B" type="booster">
                <valve id="Valve_2B5" connection="2B"  flow="C"></valve>
            </pipe>
            <connector id="Connector_5">
@@ -68,22 +68,22 @@
            </connector>
       </bay>
       <bay id="Bay_6" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="source">
-           <pipe id="Pipeline_1C6" busbar="1C">
+           <pipe id="Pipeline_1C6" busbar="1C" type="normal">
                <valve id="Valve_1C6" connection="1C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_2C6" busbar="2C">
+           <pipe id="Pipeline_2C6" busbar="2C" type="normal">
               <valve id="Valve_2C6" connection="2C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_1H6" busbar="1H">
+           <pipe id="Pipeline_1H6" busbar="1H" type="normal">
               <valve id="Valve_1H6" connection="1H" flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_2H6" busbar="2H">
+           <pipe id="Pipeline_2H6" busbar="2H" type="normal">
               <valve id="Valve_2H6" connection="2H" flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_1B6" busbar="1B">
+           <pipe id="Pipeline_1B6" busbar="1B" type="booster">
                <valve id="Valve_1B6" connection="1B"  flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_2B6" busbar="2B">
+           <pipe id="Pipeline_2B6" busbar="2B" type="booster">
                <valve id="Valve_2B6" connection="2B"  flow="C"></valve>
            </pipe>
            <connector id="Connector_6">
@@ -101,20 +101,20 @@
           </connector>
       </bay>
       <bay id="Bay_7" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
-           <pipe id="Pipeline_1C7" busbar="1C">
+           <pipe id="Pipeline_1C7" busbar="1C" type="normal">
                <valve id="Valve_1C7" connection="1C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_2C7" busbar="2C">
+           <pipe id="Pipeline_2C7" busbar="2C" type="normal">
               <valve id="Valve_2C7" connection="2C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_1H7" busbar="1H">
+           <pipe id="Pipeline_1H7" busbar="1H" type="normal">
               <valve id="Valve_1H7" connection="1H" flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_2H7" busbar="2H">
+           <pipe id="Pipeline_2H7" busbar="2H" type="normal">
               <valve id="Valve_2H7" connection="2H" flow="H"></valve>
            </pipe>
            <connector id="Connector_7">
-                    <line id="line_1H7" type="H" >
+                    <line id="line_1H7" type="H">
                         <pump id="Pump_1H7" position ="inline"> </pump>
                         <sensor id="Sensor_1HT7" variable="T" embedded="Sensor_1E7" position = "inline"> </sensor>
                     </line>
@@ -129,16 +129,16 @@
           </connector>
       </bay>
       <bay id="Bay_8" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
-           <pipe id="Pipeline_1C8" busbar="1C">
+           <pipe id="Pipeline_1C8" busbar="1C" type="normal">
                <valve id="Valve_1C8" connection="1C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_2C8" busbar="2C">
+           <pipe id="Pipeline_2C8" busbar="2C" type="normal">
               <valve id="Valve_2C8" connection="2C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_1H8" busbar="1H">
+           <pipe id="Pipeline_1H8" busbar="1H" type="normal">
               <valve id="Valve_1H8" connection="1H" flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_2H8" busbar="2H">
+           <pipe id="Pipeline_2H8" busbar="2H" type="normal">
               <valve id="Valve_2H8" connection="2H" flow="H"></valve>
            </pipe>
            <connector id="Connector_8">
@@ -158,16 +158,16 @@
   </switch_board>
     <switch_board id="Switch_Board_2">
       <bay id="Bay_1" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
-           <pipe id="Pipeline_1C1" busbar="1C">
+           <pipe id="Pipeline_1C1" busbar="1C" type="normal">
                <valve id="Valve_1C1" connection="1C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_2C1" busbar="2C">
+           <pipe id="Pipeline_2C1" busbar="2C" type="normal">
                <valve id="Valve_2C1" connection="2C" flow="C"></valve>
            </pipe>
-           <pipe id="Pipeline_1H1" busbar="1H">
+           <pipe id="Pipeline_1H1" busbar="1H" type="normal">
                <valve id="Valve_1H1" connection="1H" flow="H"></valve>
            </pipe>
-           <pipe id="Pipeline_2H1" busbar="2H">
+           <pipe id="Pipeline_2H1" busbar="2H" type="normal">
                <valve id="Valve_2H1" connection="2H" flow="H"></valve>
            </pipe>
            <pipe id="Pipeline_1B1" busbar="B">
