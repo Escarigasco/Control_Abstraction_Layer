@@ -1,5 +1,6 @@
 # Class for interface
 from busbars import busbar as bb
+_FIRST_OF_THE_CLASS = 0
 
 
 class interface(object):
@@ -157,7 +158,6 @@ class interface(object):
         busbars_names = set([])
         buffer_for_pipes = []
         busbars_list = {}
-        status = 0
 
         for direction in system_pipes.keys():
             for pipe in system_pipes[direction].keys():
@@ -170,7 +170,7 @@ class interface(object):
                     if (system_pipes[direction][pipe].get_busbar_connection() == busbar):
                         buffer_for_pipes.append(system_pipes[direction][pipe])
 
-            busbars_list[busbar] = bb(busbar, buffer_for_pipes, status)
+            busbars_list[busbar] = bb(busbar, buffer_for_pipes)
             buffer_for_pipes = []
             # you can't really solved the double call of the booster bar pipes as they are actually a couple
             # of objects as the booster can be both a in or out pipe - in reality it will always be a in pipe and only sources will use it
