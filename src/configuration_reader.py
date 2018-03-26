@@ -7,6 +7,7 @@ _COLD_FLOW = 'C'
 _HOT_FLOW = 'H'
 _DIRECTION_IN = 'in'
 _DIRECTION_OUT = 'out'
+_FIRST_OF_THE_CLASS = 0  # a constant is use to indicate the first element of a list - in reality for every case it could be a random number within the list indexes range, used 0 not to call a random number generator
 
 
 class configuration_reader(object):
@@ -81,18 +82,18 @@ class configuration_reader(object):
 
                                             if (line.pumps):
                                                 y += 0.5
-                                                pump_id = pump_position[bay][0].get_name()
+                                                pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
                                                 pump = line.pumps[pump_id]
                                                 # if (pump.get_status()):
                                                 Graph.add_node(pump, pos=(x_dev, y))
                                                 Graph.add_edges_from([(iterate_sensor, pump)])
                                                 y += 0.5
-                                                device = connected_device_position[bay][0]
+                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                                 Graph.add_node(device, pos=(x_dev, y))
                                                 Graph.add_edges_from([(pump, device)])
                                             else:
                                                 y += 0.5
-                                                device = connected_device_position[bay][0]
+                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                                 Graph.add_node(device, pos=(x_dev, y))
                                                 Graph.add_edges_from([(iterate_sensor, device)])
                                             # else:  # if the pump is disconnected
@@ -119,18 +120,18 @@ class configuration_reader(object):
 
                                         if (line.pumps):
                                             y += 0.5
-                                            pump_id = pump_position[bay][0].get_name()
+                                            pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
                                             pump = line.pumps[pump_id]
                                             # if (pump.get_status()):
                                             Graph.add_node(pump, pos=(x_dev, y))
                                             Graph.add_edges_from([(iterate_sensor, pump)])
                                             y += 0.5
-                                            device = connected_device_position[bay][0]
+                                            device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                             Graph.add_node(device, pos=(x_dev, y))
                                             Graph.add_edges_from([(pump, device)])
                                         else:
                                             y += 0.5
-                                            device = connected_device_position[bay][0]
+                                            device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                             Graph.add_node(device, pos=(x_dev, y))
                                             Graph.add_edges_from([(iterate_sensor, device)])
 
@@ -156,18 +157,18 @@ class configuration_reader(object):
                                                     # pass
                                             if (line.pumps):
                                                 y += 0.5
-                                                pump_id = pump_position[bay][0].get_name()
+                                                pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
                                                 pump = line.pumps[pump_id]
                                                 # if (pump.get_status()):
                                                 Graph.add_node(pump, pos=(x_dev, y))
                                                 Graph.add_edges_from([(pump, iterate_sensor)])
                                                 y += 0.5
-                                                device = connected_device_position[bay][0]
+                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                                 Graph.add_node(device, pos=(x_dev, y))
                                                 Graph.add_edges_from([(device, pump)])
                                             else:
                                                 y += 0.5
-                                                device = connected_device_position[bay][0]
+                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                                 Graph.add_node(device, pos=(x_dev, y))
                                                 Graph.add_edges_from([(device, iterate_sensor)])
 
@@ -193,18 +194,18 @@ class configuration_reader(object):
                                                 # pass
                                         if (line.pumps):
                                             y += 0.5
-                                            pump_id = pump_position[bay][0].get_name()
+                                            pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
                                             pump = line.pumps[pump_id]
                                             # if (pump.get_status()):
                                             Graph.add_node(pump, pos=(x_dev, y))
                                             Graph.add_edges_from([(iterate_sensor, pump)])
                                             y += 0.5
-                                            device = connected_device_position[bay][0]
+                                            device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                             Graph.add_node(device, pos=(x_dev, y))
                                             Graph.add_edges_from([(pump, device)])
                                         else:
                                             y += 0.5
-                                            device = connected_device_position[bay][0]
+                                            device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                             Graph.add_node(device, pos=(x_dev, y))
                                             Graph.add_edges_from([(device, iterate_sensor)])
 
@@ -220,6 +221,7 @@ class configuration_reader(object):
         plt.show()'''
 
         pos = nx.get_node_attributes(Graph, 'pos')
+        plt.figure(1)
         nx.draw(Graph, pos, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        plt.show()
+        # plt.show()
         return None
