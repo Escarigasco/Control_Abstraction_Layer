@@ -22,17 +22,14 @@ class configuration_reader(object):
         system_pumps = self.config_reader.get_system_pumps()
         system_sensors = self.config_reader.get_system_sensors()
         system_valves = self.config_reader.get_system_valves()
-        system_connectors = self.config_reader.get_system_connectors()
         self.system_lines = self.config_reader.get_system_lines()
         self.system_pipes = self.config_reader.get_system_pipes()
         system_connected_devices = self.config_reader.get_connected_devices()
         # self.system_bays = self.config_reader.get_hydraulic_bays()
         system_busbars = self.config_reader.build_busbars(self.system_pipes)
-        sensors_position = self.objtk.where_are_devices(system_sensors)
         connected_device_position = self.objtk.where_are_devices(system_connected_devices)
 
         valves_position = self.objtk.where_are_devices(system_valves)
-        print(valves_position)
         pump_position = self.objtk.where_are_devices(system_pumps)
         line_position = self.objtk.where_are_devices(self.system_lines)
         x_bb = 0
@@ -42,9 +39,7 @@ class configuration_reader(object):
         random_server(system_pumps, system_sensors, system_valves)
 
         for busbar in system_busbars.keys():
-
             y = 0
-            z = 0
             x_bb += 800
             x_v = 0
             busbar_ID = system_busbars[busbar].get_name()
@@ -212,12 +207,6 @@ class configuration_reader(object):
                 else:
                     print("{0} close".format(system_valves[valve]))
                     continue
-        '''nx.draw(Graph, with_labels=True)
-        plt.show()'''
-
-        '''pos = nx.spring_layout(Graph, iterations=10)
-        nx.draw(Graph, pos, font_size=8, with_labels=True, node_size=40)
-        plt.show()'''
 
         pos = nx.get_node_attributes(Graph, 'pos')
         plt.figure(1)

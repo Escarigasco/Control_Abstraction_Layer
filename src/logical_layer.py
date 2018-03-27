@@ -3,9 +3,6 @@ from interface import interface
 from object_tracker import object_tracker
 from path_builder import path_builder
 from path_matcher import path_matcher
-
-from test_rules import trigger
-# from rule_engine import rule_engine
 from configuration_reader import configuration_reader
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
@@ -39,7 +36,7 @@ class logical_layer(object):
         pb = path_builder(self.intf)
         possible_configurations = pb.run(system_input)
         pm = path_matcher(online_configuration, possible_configurations)
-        unique = pm.run()
+        short_list = pm.run()
 
 
 if __name__ == "__main__":

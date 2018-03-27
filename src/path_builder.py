@@ -1,6 +1,5 @@
 from object_tracker import object_tracker
 import networkx as nx
-from networkx.algorithms import isomorphism
 from matplotlib import pyplot as plt
 _COLD_FLOW = 'C'
 _HOT_FLOW = 'H'
@@ -32,7 +31,6 @@ class path_builder(object):
         system_pumps = self.builder.get_system_pumps()
         system_sensors = self.builder.get_system_sensors()
         system_valves = self.builder.get_system_valves()
-        system_connectors = self.builder.get_system_connectors()
         system_lines = self.builder.get_system_lines()
         system_pipes = self.builder.get_system_pipes()
         system_connected_devices = self.builder.get_connected_devices()
@@ -44,10 +42,8 @@ class path_builder(object):
         pump_position = self.objtk.where_are_devices(system_pumps)
         line_position = self.objtk.where_are_devices(system_lines)
         for source in sources:
-            print(connected_device_position[source])
             bays_sources.append(connected_device_position[source])
         for sensor in sensors:
-            print(sensors_position[sensor])
             bays_sensors.append(sensors_position[sensor])
 
         hot_busbars = {}
@@ -58,7 +54,6 @@ class path_builder(object):
         x_dev = 0
 
         connected_valves = self.all_possible_valves(valves_position, bays_sensors, bays_sources)
-        print(connected_valves)
 
         for busbar in system_busbars.keys():
             if (system_busbars[busbar].flow == _HOT_FLOW and system_busbars[busbar].type != _BOOSTER):
@@ -77,18 +72,14 @@ class path_builder(object):
                     x_dev = 0
                     busbar_ID_cold = cold_busbars[cold_busbar].get_name()
 
-                    print(idx)
                     possible_configurations[idx].add_node(hot_busbars[hot_busbar].get_name(), pos=(x_bb, y))
-                    print(hot_busbar)
                     x_bb += 50
                     possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name(), pos=(x_bb, y))
-                    print(cold_busbar)
                     for valve in connected_valves:
                         valve = valve.get_name()  # here you are parsing list of object so to extract the name you have to call a method
                         bay = valves_position[valve]
                         y = 0.5
                         x_v += 20
-                        print(valve)
                         valve_connection = system_valves[valve].get_connection()
 
                         if (valve_connection == busbar_ID_hot):
@@ -98,7 +89,6 @@ class path_builder(object):
                         else:
                             continue
                         if (valve_connection == busbar):
-                            print(valve)
 
                             if (system_valves[valve].get_flow_direction() == _DIRECTION_IN):
                                 possible_configurations[idx].add_node(system_valves[valve].get_name(), pos=(x_v, y))
@@ -154,7 +144,6 @@ class path_builder(object):
                                                     possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
                                                     possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), sensors[sensor].get_name())])
                                                     iterate_sensor = sensors[sensor]
-
 
                                                 # else:
                                                     # pass
@@ -252,12 +241,6 @@ class path_builder(object):
 
                                             # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
                     idx += 1
-        '''nx.draw(possible_configurations[idx], with_labels=True)
-        plt.show()'''
-
-        '''pos = nx.spring_layout(possible_configurations[idx], iterations=10)
-        nx.draw(possible_configurations[idx], pos, font_size=8, with_labels=True, node_size=40)
-        plt.show()'''
 
         pos_0 = nx.get_node_attributes(possible_configurations[0], 'pos')
         pos_1 = nx.get_node_attributes(possible_configurations[1], 'pos')
@@ -265,26 +248,25 @@ class path_builder(object):
         pos_3 = nx.get_node_attributes(possible_configurations[3], 'pos')
 
         plt.figure(2)
+        plt.title('Possible Configuration 0')
         # nx.draw_shell(possible_configurations[0], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         nx.draw(possible_configurations[0], pos_0, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         plt.figure(3)
+        plt.title('Possible Configuration 1')
         nx.draw(possible_configurations[1], pos_1, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         plt.figure(4)
+        plt.title('Possible Configuration 2')
         nx.draw(possible_configurations[2], pos_2, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         plt.figure(5)
-        nx.draw_circular(possible_configurations[3], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        #plt.show()
+        plt.title('Possible Configuration 3')
+        nx.draw(possible_configurations[3], pos_3, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        # plt.show()
         return possible_configurations
-
-
 
     def all_possible_valves(self, valves_position, bays_sensors, bays_sources):
         possible_valves = []
         for bay_sources in bays_sources:
             possible_valves = possible_valves + valves_position[bay_sources]
-            print(possible_valves)
         for bay_sensors in bays_sensors:
             possible_valves = possible_valves + valves_position[bay_sensors]
-            print(possible_valves)
-            # possible_valves = {**valves_position[bay_sensor], **valves_position[bay_source]}
         return possible_valves
