@@ -22,12 +22,11 @@ class path_matcher(object):
             plt.title('Subgraph {0}'.format(i))
             nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
             DiGM = isomorphism.GraphMatcher(extracted_subgraph, self.possible_configurations[i])
-            is_a_match = DiGM.subgraph_is_isomorphic()
+            is_a_match = DiGM.is_isomorphic()
             if (is_a_match):
                 print("Configuration {0} is compatible".format(i))
                 short_list.append(self.possible_configurations[i])
             else:
                 print("Configuration {0} is not achievable".format(i))
 
-        plt.show()
         return short_list

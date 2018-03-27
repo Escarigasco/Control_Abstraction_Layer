@@ -4,6 +4,9 @@ from object_tracker import object_tracker
 from path_builder import path_builder
 from path_matcher import path_matcher
 from configuration_reader import configuration_reader
+import time
+from matplotlib import pyplot as plt
+
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
 
@@ -40,11 +43,14 @@ class logical_layer(object):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     test = logical_layer("Building716", "Switch_Board_1")
-    sensors = ["Sensor_1E8", "Sensor_1E7"]
+    sensors = ["Sensor_1E8"]
     parameters = "Energy"
     setpoints = 50
     sources = ["Source_1HP5"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
     test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    plt.show()

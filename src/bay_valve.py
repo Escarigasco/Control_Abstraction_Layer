@@ -10,7 +10,7 @@ class bay_valve:
         self.connection = connection
         self.flow = flow
         self.flow_direction = direction
-        self.opening_treshold = 20
+        self.opening_treshold = 10
 
     def get_flow_direction(self):
         return self.flow_direction

@@ -7,11 +7,6 @@ class object_tracker(object):
 
     def __init__(self, interface):
         self.intf = interface
-        self.sensor_position = {}
-        self.device_position = {}
-        self.line_position = {}
-        self.valve_position = {}
-        self.pump_position = {}
 
     def where_are_devices(self, devices):
         final_location = "Bay_"
