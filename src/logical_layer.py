@@ -35,17 +35,16 @@ class logical_layer(object):
 
         # builder = rule_engine(self.intf)
         cfg = configuration_reader(self.intf)
-        cfg.run()
+        online_configuration = cfg.run()
         pb = path_builder(self.intf)
         possible_configurations = pb.run(system_input)
-        path_matcher()
-
-
+        pm = path_matcher(online_configuration, possible_configurations)
+        unique = pm.run()
 
 
 if __name__ == "__main__":
     test = logical_layer("Building716", "Switch_Board_1")
-    sensors = ["Sensor_1E8"]
+    sensors = ["Sensor_1E8", "Sensor_1E7"]
     parameters = "Energy"
     setpoints = 50
     sources = ["Source_1HP5"]
