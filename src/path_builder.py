@@ -9,6 +9,7 @@ _DIRECTION_OUT = 'out'
 _FIRST_OF_THE_CLASS = 0
 _BOOSTER = "booster"
 
+
 class path_builder(object):
 
     def __init__(self, interface):
@@ -77,10 +78,10 @@ class path_builder(object):
                     busbar_ID_cold = cold_busbars[cold_busbar].get_name()
 
                     print(idx)
-                    possible_configurations[idx].add_node(hot_busbars[hot_busbar], pos=(x_bb, y))
+                    possible_configurations[idx].add_node(hot_busbars[hot_busbar].get_name(), pos=(x_bb, y))
                     print(hot_busbar)
                     x_bb += 50
-                    possible_configurations[idx].add_node(cold_busbars[cold_busbar], pos=(x_bb, y))
+                    possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name(), pos=(x_bb, y))
                     print(cold_busbar)
                     for valve in connected_valves:
                         valve = valve.get_name()  # here you are parsing list of object so to extract the name you have to call a method
@@ -100,8 +101,8 @@ class path_builder(object):
                             print(valve)
 
                             if (system_valves[valve].get_flow_direction() == _DIRECTION_IN):
-                                possible_configurations[idx].add_node(system_valves[valve], pos=(x_v, y))
-                                possible_configurations[idx].add_edges_from([(system_busbars[busbar], system_valves[valve])])
+                                possible_configurations[idx].add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                                possible_configurations[idx].add_edges_from([(system_busbars[busbar].get_name(), system_valves[valve].get_name())])
                                 if (system_valves[valve].get_flow() == _HOT_FLOW):
                                         lines = line_position[bay]
                                         for line in lines:
@@ -113,8 +114,8 @@ class path_builder(object):
                                                     # if (sensors[sensor].get_status()):
                                                         y += 0.5
 
-                                                        possible_configurations[idx].add_node(sensors[sensor], pos=(x_dev, y))
-                                                        possible_configurations[idx].add_edges_from([(iterate_sensor, sensors[sensor])])
+                                                        possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
+                                                        possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), sensors[sensor].get_name())])
                                                         iterate_sensor = sensors[sensor]
                                                     # else:
                                                         # pass
@@ -124,17 +125,17 @@ class path_builder(object):
                                                     pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
                                                     pump = line.pumps[pump_id]
                                                     # if (pump.get_status()):
-                                                    possible_configurations[idx].add_node(pump, pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(iterate_sensor, pump)])
+                                                    possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), pump.get_name())])
                                                     y += 0.5
                                                     device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(pump, device)])
+                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(pump.get_name(), device.get_name())])
                                                 else:
                                                     y += 0.5
                                                     device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(iterate_sensor, device)])
+                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), device.get_name())])
                                                 # else:  # if the pump is disconnected
                                                 # continue  # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
                                             elif (line.flow_type == _COLD_FLOW):
@@ -150,8 +151,8 @@ class path_builder(object):
                                             for sensor in sensors.keys():
                                                 # if (sensors[sensor].get_status()):
                                                     y += 0.5
-                                                    possible_configurations[idx].add_node(sensors[sensor], pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(iterate_sensor, sensors[sensor])])
+                                                    possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), sensors[sensor].get_name())])
                                                     iterate_sensor = sensors[sensor]
 
 
@@ -163,23 +164,23 @@ class path_builder(object):
                                                 pump_id = pump_position[bay][0].get_name()
                                                 pump = line.pumps[pump_id]
                                                 # if (pump.get_status()):
-                                                possible_configurations[idx].add_node(pump, pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(iterate_sensor, pump)])
+                                                possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), pump.get_name())])
                                                 y += 0.5
                                                 device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(pump, device)])
+                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(pump.get_name(), device.get_name())])
                                             else:
                                                 y += 0.5
                                                 device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(iterate_sensor, device)])
+                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), device.get_name())])
 
                                         # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
 
                             elif (system_valves[valve].get_flow_direction() == _DIRECTION_OUT):
-                                possible_configurations[idx].add_node(system_valves[valve], pos=(x_v, y))
-                                possible_configurations[idx].add_edges_from([(system_valves[valve], system_busbars[busbar])])
+                                possible_configurations[idx].add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                                possible_configurations[idx].add_edges_from([(system_valves[valve].get_name(), system_busbars[busbar].get_name())])
                                 if (system_valves[valve].get_flow() == _HOT_FLOW):
                                         lines = line_position[bay]
                                         for line in lines:
@@ -190,8 +191,8 @@ class path_builder(object):
                                                 for sensor in sensors.keys():
                                                     # if (sensors[sensor].get_status()):
                                                         y += 0.5
-                                                        possible_configurations[idx].add_node(sensors[sensor], pos=(x_dev, y))
-                                                        possible_configurations[idx].add_edges_from([(sensors[sensor], iterate_sensor)])
+                                                        possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
+                                                        possible_configurations[idx].add_edges_from([(sensors[sensor].get_name(), iterate_sensor.get_name())])
                                                         iterate_sensor = sensors[sensor]
                                                     # else:
                                                         # pass
@@ -200,17 +201,17 @@ class path_builder(object):
                                                     pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
                                                     pump = line.pumps[pump_id]
                                                     # if (pump.get_status()):
-                                                    possible_configurations[idx].add_node(pump, pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(pump, iterate_sensor)])
+                                                    possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(pump.get_name(), iterate_sensor.get_name())])
                                                     y += 0.5
                                                     device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(device, pump)])
+                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(device.get_name(), pump.get_name())])
                                                 else:
                                                     y += 0.5
                                                     device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(device, iterate_sensor)])
+                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
                                                 # else: # if the pump is disconnected
                                                 # continue # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
@@ -227,8 +228,8 @@ class path_builder(object):
                                             for sensor in sensors.keys():
                                                 # if (sensors[sensor].get_status()):
                                                     y += 0.5
-                                                    possible_configurations[idx].add_node(sensors[sensor], pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(sensors[sensor], iterate_sensor)])
+                                                    possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(sensors[sensor].get_name(), iterate_sensor.get_name())])
                                                     iterate_sensor = sensors[sensor]
                                                 # else:
                                                     # pass
@@ -237,17 +238,17 @@ class path_builder(object):
                                                 pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
                                                 pump = line.pumps[pump_id]
                                                 # if (pump.get_status()):
-                                                possible_configurations[idx].add_node(pump, pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(iterate_sensor, pump)])
+                                                possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), pump.get_name())])
                                                 y += 0.5
                                                 device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(pump, device)])
+                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(pump.get_name(), device.get_name())])
                                             else:
                                                 y += 0.5
                                                 device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device, pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(device, iterate_sensor)])
+                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
                                             # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
                     idx += 1
@@ -272,7 +273,7 @@ class path_builder(object):
         nx.draw(possible_configurations[2], pos_2, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         plt.figure(5)
         nx.draw_circular(possible_configurations[3], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        plt.show()
+        #plt.show()
         return possible_configurations
 
 
