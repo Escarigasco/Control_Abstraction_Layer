@@ -98,34 +98,23 @@ class path_builder(object):
                                         for line in lines:
                                             if (line.flow_type == _HOT_FLOW):
                                                 x_dev += 50
-                                                sensors = line.line_sensors
+                                                line_devices = {**line.line_sensors, **line.pumps}.values()
+                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
                                                 iterate_sensor = system_valves[valve]
-                                                for sensor in sensors.keys():
+                                                for line_device in sorted_devices:
                                                     # if (sensors[sensor].get_status()):
                                                         y += 0.5
 
-                                                        possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
-                                                        possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), sensors[sensor].get_name())])
-                                                        iterate_sensor = sensors[sensor]
+                                                        possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                        possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), line_device.get_name())])
+                                                        iterate_sensor = line_device
                                                     # else:
                                                         # pass
 
-                                                if (line.pumps):
-                                                    y += 0.5
-                                                    pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
-                                                    pump = line.pumps[pump_id]
-                                                    # if (pump.get_status()):
-                                                    possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), pump.get_name())])
-                                                    y += 0.5
-                                                    device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(pump.get_name(), device.get_name())])
-                                                else:
-                                                    y += 0.5
-                                                    device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), device.get_name())])
+                                                y += 0.5
+                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
+                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), device.get_name())])
                                                 # else:  # if the pump is disconnected
                                                 # continue  # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
                                             elif (line.flow_type == _COLD_FLOW):
@@ -136,34 +125,23 @@ class path_builder(object):
                                     for line in lines:
                                         if (line.flow_type == _COLD_FLOW):
                                             x_dev += 50
-                                            sensors = line.line_sensors
+                                            line_devices = {**line.line_sensors, **line.pumps}.values()
+                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
                                             iterate_sensor = system_valves[valve]
-                                            for sensor in sensors.keys():
+                                            for line_device in sorted_devices:
                                                 # if (sensors[sensor].get_status()):
                                                     y += 0.5
-                                                    possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), sensors[sensor].get_name())])
-                                                    iterate_sensor = sensors[sensor]
 
+                                                    possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), line_device.get_name())])
+                                                    iterate_sensor = line_device
                                                 # else:
                                                     # pass
 
-                                            if (line.pumps):
-                                                y += 0.5
-                                                pump_id = pump_position[bay][0].get_name()
-                                                pump = line.pumps[pump_id]
-                                                # if (pump.get_status()):
-                                                possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), pump.get_name())])
-                                                y += 0.5
-                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(pump.get_name(), device.get_name())])
-                                            else:
-                                                y += 0.5
-                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), device.get_name())])
+                                            y += 0.5
+                                            device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
+                                            possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                            possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), device.get_name())])
 
                                         # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
 
@@ -175,32 +153,23 @@ class path_builder(object):
                                         for line in lines:
                                             if (line.flow_type == _HOT_FLOW):
                                                 x_dev += 50
-                                                sensors = line.line_sensors
+                                                line_devices = {**line.line_sensors, **line.pumps}.values()
+                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
                                                 iterate_sensor = system_valves[valve]
-                                                for sensor in sensors.keys():
+                                                for line_device in sorted_devices:
                                                     # if (sensors[sensor].get_status()):
                                                         y += 0.5
-                                                        possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
-                                                        possible_configurations[idx].add_edges_from([(sensors[sensor].get_name(), iterate_sensor.get_name())])
-                                                        iterate_sensor = sensors[sensor]
+
+                                                        possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                        possible_configurations[idx].add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
+                                                        iterate_sensor = line_device
                                                     # else:
                                                         # pass
-                                                if (line.pumps):
-                                                    y += 0.5
-                                                    pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
-                                                    pump = line.pumps[pump_id]
-                                                    # if (pump.get_status()):
-                                                    possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(pump.get_name(), iterate_sensor.get_name())])
-                                                    y += 0.5
-                                                    device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(device.get_name(), pump.get_name())])
-                                                else:
-                                                    y += 0.5
-                                                    device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
+
+                                                y += 0.5
+                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
+                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
                                                 # else: # if the pump is disconnected
                                                 # continue # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
@@ -212,32 +181,23 @@ class path_builder(object):
                                     for line in lines:
                                         if (line.flow_type == _COLD_FLOW):
                                             x_dev += 50
-                                            sensors = line.line_sensors
+                                            line_devices = {**line.line_sensors, **line.pumps}.values()
+                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
                                             iterate_sensor = system_valves[valve]
-                                            for sensor in sensors.keys():
+                                            for line_device in sorted_devices:
                                                 # if (sensors[sensor].get_status()):
                                                     y += 0.5
-                                                    possible_configurations[idx].add_node(sensors[sensor].get_name(), pos=(x_dev, y))
-                                                    possible_configurations[idx].add_edges_from([(sensors[sensor].get_name(), iterate_sensor.get_name())])
-                                                    iterate_sensor = sensors[sensor]
+
+                                                    possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
+                                                    iterate_sensor = line_device
                                                 # else:
                                                     # pass
-                                            if (line.pumps):
-                                                y += 0.5
-                                                pump_id = pump_position[bay][_FIRST_OF_THE_CLASS].get_name()
-                                                pump = line.pumps[pump_id]
-                                                # if (pump.get_status()):
-                                                possible_configurations[idx].add_node(pump.get_name(), pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), pump.get_name())])
-                                                y += 0.5
-                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(pump.get_name(), device.get_name())])
-                                            else:
-                                                y += 0.5
-                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
-                                                possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
+
+                                            y += 0.5
+                                            device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
+                                            possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                            possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
                                             # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
                     idx += 1
