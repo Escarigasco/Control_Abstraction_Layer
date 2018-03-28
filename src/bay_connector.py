@@ -17,6 +17,7 @@ class bay_connector:
         lines = self.connector.find_all("line")
         devices = self.connector.find_all("connected_device")
 
+        print("bay_connector - is it relevant?")
         for line in lines:
             if (self.output_line == line["type"]):
                 is_output = True
