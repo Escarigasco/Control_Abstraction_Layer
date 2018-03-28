@@ -12,11 +12,9 @@ class bay_connector:
         self.lines_list = {}
         self.connector = connector
         self.output_line = output_line
-        self.connector_sensors_list = {}
         self.connected_devices_list = {}
 
         lines = self.connector.find_all("line")
-        sensors = self.connector.find_all("sensor", position="connector")
         devices = self.connector.find_all("connected_device")
 
         for line in lines:
@@ -28,12 +26,8 @@ class bay_connector:
                 is_output = False
                 self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output)
 
-        for sensor in sensors:
-            self.connector_sensors_list[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], sensor["position"])  # don't pass the soup as is the end of the tree'''
-
         for device in devices:
             self.connected_devices_list[device["id"]] = connected_device(self.ID, device["id"], device["type"], device["rating"])
-
 
     def get_parent(self):
         return self.parent_ID

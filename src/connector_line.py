@@ -14,14 +14,14 @@ class connector_line(object):
         self.pumps = {}
         self.line = line
 
-        sensors = self.line.find_all("sensor", position="inline")
-        pumps = self.line.find_all("pump", position="inline")
+        sensors = self.line.find_all("sensor")
+        pumps = self.line.find_all("pump")
 
         for sensor in sensors:
-            self.line_sensors[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], position="inline")
+            self.line_sensors[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], sensor["line_position"])
 
         for pump in pumps:
-            self.pumps[pump["id"]] = line_pump(self.ID, pump["id"])
+            self.pumps[pump["id"]] = line_pump(self.ID, pump["id"], pump["line_position"])
 
     def get_parent(self):
         return self.parent_ID

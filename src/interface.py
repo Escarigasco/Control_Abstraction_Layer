@@ -24,7 +24,6 @@ class interface(object):
 
             for connector in bay_connectors_list.keys():
                 bay_connector = bay_connectors_list[connector]
-                connector_sensors_lists.update(bay_connector.connector_sensors_list)
                 lines_list = bay_connector.lines_list
 
                 for line in lines_list.keys():
