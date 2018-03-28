@@ -1,12 +1,13 @@
-from object_tracker import object_tracker
-import networkx as nx
 from matplotlib import pyplot as plt
+import networkx as nx
+from object_tracker import object_tracker
 _COLD_FLOW = 'C'
 _HOT_FLOW = 'H'
 _DIRECTION_IN = 'in'
 _DIRECTION_OUT = 'out'
 _FIRST_OF_THE_CLASS = 0
 _BOOSTER = "booster"
+_BOOSTER_BAR = 'B'
 
 
 class path_builder(object):
@@ -18,9 +19,12 @@ class path_builder(object):
     def run(self, input_request):
         sources = input_request['sources']
         sensors = input_request['sensor']
+        boosted = input_request['boosted']
         bays_sensors = []
         bays_sources = []
+        boosted = self.check_sources(sources, boosted)
 
+        # It is hardcoded the number o
         Graph_A = nx.DiGraph()
         Graph_B = nx.DiGraph()
         Graph_C = nx.DiGraph()
@@ -28,18 +32,15 @@ class path_builder(object):
         possible_configurations = [Graph_A, Graph_B, Graph_C, Graph_D]
         idx = 0
 
-        system_pumps = self.builder.get_system_pumps()
         system_sensors = self.builder.get_system_sensors()
         system_valves = self.builder.get_system_valves()
         system_lines = self.builder.get_system_lines()
         system_pipes = self.builder.get_system_pipes()
         system_connected_devices = self.builder.get_connected_devices()
-        # self.system_bays = self.builder.get_hydraulic_bays()
         system_busbars = self.builder.build_busbars(system_pipes)
         sensors_position = self.objtk.where_are_devices(system_sensors)
         connected_device_position = self.objtk.where_are_devices(system_connected_devices)
         valves_position = self.objtk.where_are_devices(system_valves)
-        pump_position = self.objtk.where_are_devices(system_pumps)
         line_position = self.objtk.where_are_devices(system_lines)
         for source in sources:
             bays_sources.append(connected_device_position[source])
@@ -53,8 +54,8 @@ class path_builder(object):
         x_v = 0
         x_dev = 0
 
-        connected_valves = self.all_possible_valves(valves_position, bays_sensors, bays_sources)
-
+        connected_valves = self.all_possible_valves(valves_position, bays_sensors, bays_sources, boosted, connected_device_position)
+        print(connected_valves)
         for busbar in system_busbars.keys():
             if (system_busbars[busbar].flow == _HOT_FLOW and system_busbars[busbar].type != _BOOSTER):
                 hot_busbars[busbar] = system_busbars[busbar]
@@ -71,23 +72,25 @@ class path_builder(object):
                     x_v = 0
                     x_dev = 0
                     busbar_ID_cold = cold_busbars[cold_busbar].get_name()
-
                     possible_configurations[idx].add_node(hot_busbars[hot_busbar].get_name(), pos=(x_bb, y))
                     x_bb += 50
                     possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name(), pos=(x_bb, y))
                     for valve in connected_valves:
                         valve = valve.get_name()  # here you are parsing list of object so to extract the name you have to call a method
                         bay = valves_position[valve]
-                        y = 0.5
-                        x_v += 20
                         valve_connection = system_valves[valve].get_connection()
-
                         if (valve_connection == busbar_ID_hot):
                             busbar = busbar_ID_hot
                         elif (valve_connection == busbar_ID_cold):
                             busbar = busbar_ID_cold
                         else:
-                            continue
+                            busbar = _BOOSTER_BAR
+                            x_bb += 50
+                            if (valve_connection == busbar):
+                                possible_configurations[idx].add_node(system_busbars[busbar].get_name(), pos=(x_bb, 0))
+                                print("yes, i have accessed because I was parsing valve {0}".format(valve))
+                        y = 0.5
+                        x_v += 20
                         if (valve_connection == busbar):
 
                             if (system_valves[valve].get_flow_direction() == _DIRECTION_IN):
@@ -198,7 +201,6 @@ class path_builder(object):
                                             device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                             possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
                                             possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
-
                                             # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
                     idx += 1
 
@@ -223,10 +225,35 @@ class path_builder(object):
         # plt.show()
         return possible_configurations
 
-    def all_possible_valves(self, valves_position, bays_sensors, bays_sources):
+    def all_possible_valves(self, valves_position, bays_sensors, bays_sources, boosted, connected_device_position):
         possible_valves = []
-        for bay_sources in bays_sources:
-            possible_valves = possible_valves + valves_position[bay_sources]
-        for bay_sensors in bays_sensors:
-            possible_valves = possible_valves + valves_position[bay_sensors]
-        return possible_valves
+        booster = 'Source_1BH4'
+        if (boosted == 'N'):
+            for bay_sources in bays_sources:
+                for valve in valves_position[bay_sources]:
+                    if (valve.get_connection() != _BOOSTER_BAR):
+                        possible_valves.append(valve)
+            for bay_sensors in bays_sensors:
+                for valve in valves_position[bay_sensors]:
+                    if (valve.get_connection() != _BOOSTER_BAR):
+                        possible_valves.append(valve)
+            return possible_valves
+        elif (boosted == 'Y'):
+            for bay_sources in bays_sources:
+                for valve in valves_position[bay_sources]:
+                    if ((valve.get_flow() == _COLD_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _HOT_FLOW and valve.get_connection() == _BOOSTER_BAR)):
+                        possible_valves.append(valve)
+            for bay_sensors in bays_sensors:
+                possible_valves = possible_valves + valves_position[bay_sensors]
+            bay_booster = connected_device_position[booster]
+            booster_valves = valves_position[bay_booster]
+            for valve in booster_valves:
+                    if ((valve.get_flow() == _HOT_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _COLD_FLOW and valve.get_connection() == _BOOSTER_BAR)):
+                        possible_valves.append(valve)
+            return possible_valves
+
+    def check_sources(self, sources, boosted):
+        for source in sources:
+            if (source == 'Source_1BH4'):
+                boosted = 'N'
+        return boosted
