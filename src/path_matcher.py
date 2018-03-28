@@ -27,8 +27,8 @@ class path_matcher(object):
                     print("Nodes matches")
                     print("Configuration {0} matches online reading \n".format(i))
                     print("check isomorpishm")
-                    DiGM = isomorphism.GraphMatcher(extracted_subgraph, self.possible_configurations[i])
-                    DiGM.is_isomorphic()
+                    #DiGM = isomorphism.GraphMatcher(extracted_subgraph, self.possible_configurations[i])
+                    #DiGM.is_isomorphic()
                     print("isomorpishm confirmed")
                     short_list.append(self.possible_configurations[i])
                 else:
