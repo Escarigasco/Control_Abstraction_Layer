@@ -25,7 +25,7 @@
                           <sensor id="Sensor_1HT4" variable="T" embedded="Sensor_1E4"  line_position="1"> </sensor>
                       </line>
                       <line id="line_1C4" type="C" >
-                          <pump id="Pump_1C4" position ="inline" line_position=4> </pump>
+                          <pump id="Pump_1C4" position ="inline" line_position="4"> </pump>
                           <sensor id="Sensor_1CT4" variable="T" embedded="Sensor_1E4"  line_position="1"> </sensor>
                           <sensor id="Sensor_1CF4" variable="F" embedded="Sensor_1E4"  line_position="2"> </sensor>
                           <sensor id="Sensor_1E4" variable="Energy"  embedded="No"  line_position="3"> </sensor>
@@ -164,4 +164,5 @@
                     <connected_device id="Sink_1H8" type="flex_house" rating="0"></connected_device>
           </connector>
       </bay>
- </switch_board_building>
+    </switch_board>
+</switch_board_building>

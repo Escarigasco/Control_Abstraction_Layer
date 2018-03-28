@@ -30,7 +30,6 @@ class configuration_reader(object):
         connected_device_position = self.objtk.where_are_devices(system_connected_devices)
 
         valves_position = self.objtk.where_are_devices(system_valves)
-        pump_position = self.objtk.where_are_devices(system_pumps)
         line_position = self.objtk.where_are_devices(self.system_lines)
         x_bb = 0
         y = 0
