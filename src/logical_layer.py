@@ -21,8 +21,8 @@ class logical_layer(object):
         self.intf = interface(self.building_config, self.SwitchID)
         self.objtk = object_tracker(self.intf)
 
-    def run(self, sensors, parameters, setpoints, sources, controlled_device, control_strategy):
-
+    def run(self, sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted):
+        self.boosted = boosted
         self.used_sensors = sensors
         self.parameters = parameters
         self.setpoints = setpoints
@@ -31,7 +31,7 @@ class logical_layer(object):
         self.control_strategy = control_strategy
         system_input = {"sensor": self.used_sensors, "parameter": self.parameters,
                         "setpoint": self.setpoints, "sources": self.used_sources,
-                        "control_strategy": self.control_strategy, "controlled_device": self.controlled_device}
+                        "control_strategy": self.control_strategy, "controlled_device": self.controlled_device, "boosted": self.boosted}
 
         # builder = rule_engine(self.intf)
         cfg = configuration_reader(self.intf)
@@ -45,12 +45,13 @@ class logical_layer(object):
 if __name__ == "__main__":
     start_time = time.time()
     test = logical_layer("Building716", "Switch_Board_1")
-    sensors = ["Sensor_1E8"]
+    sensors = ["Sensor_1E8", "Sensor_1E7"]
     parameters = "Energy"
     setpoints = 50
     sources = ["Source_1HP5"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
-    test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy)
+    boosted = "Y"
+    test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
     plt.show()
