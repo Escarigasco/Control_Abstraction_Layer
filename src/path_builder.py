@@ -72,9 +72,11 @@ class path_builder(object):
                     x_v = 0
                     x_dev = 0
                     busbar_ID_cold = cold_busbars[cold_busbar].get_name()
-                    possible_configurations[idx].add_node(hot_busbars[hot_busbar].get_name(), pos=(x_bb, y))
+                    # possible_configurations[idx].add_node(hot_busbars[hot_busbar].get_name(), pos=(x_bb, y))
+                    possible_configurations[idx].add_node(hot_busbars[hot_busbar].get_name())
                     x_bb += 50
-                    possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name(), pos=(x_bb, y))
+                    # possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name(), pos=(x_bb, y))
+                    possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name())
                     for valve in connected_valves:
                         valve = valve.get_name()  # here you are parsing list of object so to extract the name you have to call a method
                         bay = valves_position[valve]
@@ -87,14 +89,16 @@ class path_builder(object):
                             busbar = _BOOSTER_BAR
                             x_bb += 50
                             if (valve_connection == busbar):
-                                possible_configurations[idx].add_node(system_busbars[busbar].get_name(), pos=(x_bb, 0))
+                                #possible_configurations[idx].add_node(system_busbars[busbar].get_name(), pos=(x_bb, 0))
+                                possible_configurations[idx].add_node(system_busbars[busbar].get_name())
                                 print("yes, i have accessed because I was parsing valve {0}".format(valve))
                         y = 0.5
                         x_v += 20
                         if (valve_connection == busbar):
 
                             if (system_valves[valve].get_flow_direction() == _DIRECTION_IN):
-                                possible_configurations[idx].add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                                # possible_configurations[idx].add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                                possible_configurations[idx].add_node(system_valves[valve].get_name())
                                 possible_configurations[idx].add_edges_from([(system_busbars[busbar].get_name(), system_valves[valve].get_name())])
                                 if (system_valves[valve].get_flow() == _HOT_FLOW):
                                         lines = line_position[bay]
@@ -108,7 +112,8 @@ class path_builder(object):
                                                     # if (sensors[sensor].get_status()):
                                                         y += 0.5
 
-                                                        possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                        # possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                        possible_configurations[idx].add_node(line_device.get_name())
                                                         possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), line_device.get_name())])
                                                         iterate_sensor = line_device
                                                     # else:
@@ -116,7 +121,8 @@ class path_builder(object):
 
                                                 y += 0.5
                                                 device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                # possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_node(device.get_name())
                                                 possible_configurations[idx].add_edges_from([(iterate_sensor.get_name(), device.get_name())])
                                                 # else:  # if the pump is disconnected
                                                 # continue  # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
@@ -149,7 +155,8 @@ class path_builder(object):
                                         # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
 
                             elif (system_valves[valve].get_flow_direction() == _DIRECTION_OUT):
-                                possible_configurations[idx].add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                                # possible_configurations[idx].add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                                possible_configurations[idx].add_node(system_valves[valve].get_name())
                                 possible_configurations[idx].add_edges_from([(system_valves[valve].get_name(), system_busbars[busbar].get_name())])
                                 if (system_valves[valve].get_flow() == _HOT_FLOW):
                                         lines = line_position[bay]
@@ -163,7 +170,8 @@ class path_builder(object):
                                                     # if (sensors[sensor].get_status()):
                                                         y += 0.5
 
-                                                        possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                        # possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                        possible_configurations[idx].add_node(line_device.get_name())
                                                         possible_configurations[idx].add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
                                                         iterate_sensor = line_device
                                                     # else:
@@ -171,7 +179,8 @@ class path_builder(object):
 
                                                 y += 0.5
                                                 device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                # possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                                possible_configurations[idx].add_node(device.get_name())
                                                 possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
                                                 # else: # if the pump is disconnected
@@ -191,7 +200,8 @@ class path_builder(object):
                                                 # if (sensors[sensor].get_status()):
                                                     y += 0.5
 
-                                                    possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    # possible_configurations[idx].add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    possible_configurations[idx].add_node(line_device.get_name())
                                                     possible_configurations[idx].add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
                                                     iterate_sensor = line_device
                                                 # else:
@@ -199,29 +209,34 @@ class path_builder(object):
 
                                             y += 0.5
                                             device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                            possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                            # possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
+                                            possible_configurations[idx].add_node(device.get_name())
                                             possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
-                                            # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
+                                            
                     idx += 1
 
-        pos_0 = nx.get_node_attributes(possible_configurations[0], 'pos')
+        '''pos_0 = nx.get_node_attributes(possible_configurations[0], 'pos')
         pos_1 = nx.get_node_attributes(possible_configurations[1], 'pos')
         pos_2 = nx.get_node_attributes(possible_configurations[2], 'pos')
-        pos_3 = nx.get_node_attributes(possible_configurations[3], 'pos')
+        pos_3 = nx.get_node_attributes(possible_configurations[3], 'pos')'''
 
         plt.figure(2)
         plt.title('Possible Configuration 0')
         # nx.draw_shell(possible_configurations[0], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        nx.draw(possible_configurations[0], pos_0, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        #nx.draw(possible_configurations[0], pos_0, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        nx.draw_kamada_kawai(possible_configurations[0], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         plt.figure(3)
         plt.title('Possible Configuration 1')
-        nx.draw(possible_configurations[1], pos_1, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        #nx.draw(possible_configurations[1], pos_1, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        nx.draw_kamada_kawai(possible_configurations[1], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         plt.figure(4)
         plt.title('Possible Configuration 2')
-        nx.draw(possible_configurations[2], pos_2, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        #nx.draw(possible_configurations[2], pos_2, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        nx.draw_kamada_kawai(possible_configurations[2], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         plt.figure(5)
         plt.title('Possible Configuration 3')
-        nx.draw(possible_configurations[3], pos_3, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        #nx.draw(possible_configurations[3], pos_3, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        nx.draw_kamada_kawai(possible_configurations[3], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         # plt.show()
         return possible_configurations
 

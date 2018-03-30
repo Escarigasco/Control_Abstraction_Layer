@@ -42,14 +42,16 @@ class configuration_reader(object):
             x_bb += 800
             x_v = 0
             busbar_ID = system_busbars[busbar].get_name()
-            Graph.add_node(system_busbars[busbar].get_name(), pos=(x_bb, y))
+            # Graph.add_node(system_busbars[busbar].get_name(), pos=(x_bb, y))
+            Graph.add_node(system_busbars[busbar].get_name())
             for valve in system_valves.keys():
                 y = 0.5
                 x_v += 200
                 bay = valves_position[valve]
                 if (system_valves[valve].get_status()):
                     print("{0} open".format(system_valves[valve]))
-                    Graph.add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                    # Graph.add_node(system_valves[valve].get_name(), pos=(x_v, y))
+                    Graph.add_node(system_valves[valve].get_name())
                     valve_connection = system_valves[valve].get_connection()
                     if (valve_connection == busbar_ID):
                         if (system_valves[valve].get_flow_direction() == _DIRECTION_IN):
@@ -69,7 +71,8 @@ class configuration_reader(object):
                                                 # if (sensors[sensor].get_status()):
                                                     y += 0.5
 
-                                                    Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    # Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    Graph.add_node(line_device.get_name())
                                                     Graph.add_edges_from([(iterate_sensor.get_name(), line_device.get_name())])
                                                     iterate_sensor = line_device
                                                 # else:
@@ -77,7 +80,8 @@ class configuration_reader(object):
 
                                             y += 0.5
                                             device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                            Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                            # Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                            Graph.add_node(device.get_name())
                                             Graph.add_edges_from([(iterate_sensor.get_name(), device.get_name())])
                                             # else:  # if the pump is disconnected
                                             # continue  # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
@@ -96,7 +100,8 @@ class configuration_reader(object):
                                             # if (sensors[sensor].get_status()):
                                                 y += 0.5
 
-                                                Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                # Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                Graph.add_node(line_device.get_name())
                                                 Graph.add_edges_from([(iterate_sensor.get_name(), line_device.get_name())])
                                                 iterate_sensor = line_device
                                             # else:
@@ -104,7 +109,8 @@ class configuration_reader(object):
 
                                         y += 0.5
                                         device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                        Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                        # Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                        Graph.add_node(device.get_name())
                                         Graph.add_edges_from([(iterate_sensor.get_name(), device.get_name())])
 
                                     # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
@@ -124,7 +130,8 @@ class configuration_reader(object):
                                                 # if (sensors[sensor].get_status()):
                                                     y += 0.5
 
-                                                    Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    # Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                    Graph.add_node(line_device.get_name())
                                                     Graph.add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
                                                     iterate_sensor = line_device
                                                 # else:
@@ -132,7 +139,8 @@ class configuration_reader(object):
 
                                             y += 0.5
                                             device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                            Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                            # Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                            Graph.add_node(device.get_name())
                                             Graph.add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
                                             # else: # if the pump is disconnected
@@ -152,7 +160,8 @@ class configuration_reader(object):
                                             # if (sensors[sensor].get_status()):
                                                 y += 0.5
 
-                                                Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                # Graph.add_node(line_device.get_name(), pos=(x_dev, y))
+                                                Graph.add_node(line_device.get_name())
                                                 Graph.add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
                                                 iterate_sensor = line_device
                                             # else:
@@ -160,7 +169,8 @@ class configuration_reader(object):
 
                                         y += 0.5
                                         device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                        Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                        # Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                        Graph.add_node(device.get_name())
                                         Graph.add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
                                     # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
@@ -170,6 +180,7 @@ class configuration_reader(object):
 
         pos = nx.get_node_attributes(Graph, 'pos')
         plt.figure(1)
-        nx.draw(Graph, pos, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        # nx.draw(Graph, pos, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+        nx.draw_kamada_kawai(Graph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         # plt.show()
         return Graph
