@@ -179,7 +179,7 @@ class configuration_reader(object):
                     continue
 
         pos = nx.get_node_attributes(Graph, 'pos')
-        plt.figure(1)
+        plt.figure(0)
         # nx.draw(Graph, pos, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         nx.draw_kamada_kawai(Graph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
         # plt.show()

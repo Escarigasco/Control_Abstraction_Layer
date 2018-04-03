@@ -1,11 +1,10 @@
-from switch_board_building import switch_board_building
+from configuration_reader import configuration_reader
 from interface import interface
+from matplotlib import pyplot as plt
 from object_tracker import object_tracker
 from path_builder import path_builder
-from path_matcher import path_matcher
-from configuration_reader import configuration_reader
+from switch_board_building import switch_board_building
 import time
-from matplotlib import pyplot as plt
 
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
@@ -37,9 +36,7 @@ class logical_layer(object):
         cfg = configuration_reader(self.intf)
         online_configuration = cfg.run()
         pb = path_builder(self.intf)
-        possible_configurations = pb.run(system_input)
-        pm = path_matcher(online_configuration, possible_configurations)
-        short_list = pm.run()
+        unique = pb.run(system_input, online_configuration)
 
 
 if __name__ == "__main__":
@@ -48,10 +45,10 @@ if __name__ == "__main__":
     sensors = ["Sensor_1E8", "Sensor_1E7"]
     parameters = "Energy"
     setpoints = 50
-    sources = ["Source_1HP5"]
+    sources = ["Source_1HP5", "Source_1DH6", "Source_1BH4"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
-    boosted = "Y"
+    boosted = "N"
     test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
     plt.show()

@@ -1,6 +1,8 @@
 from matplotlib import pyplot as plt
 import networkx as nx
 from object_tracker import object_tracker
+from path_matcher import path_matcher
+
 _COLD_FLOW = 'C'
 _HOT_FLOW = 'H'
 _DIRECTION_IN = 'in'
@@ -8,7 +10,7 @@ _DIRECTION_OUT = 'out'
 _FIRST_OF_THE_CLASS = 0
 _BOOSTER = "booster"
 _BOOSTER_BAR = 'B'
-
+_OFFSET_FIGURE = 1
 
 class path_builder(object):
 
@@ -16,7 +18,8 @@ class path_builder(object):
         self.builder = interface
         self.objtk = object_tracker(self.builder)
 
-    def run(self, input_request):
+    def run(self, input_request, online_configuration):
+        pm = path_matcher(online_configuration)
         sources = input_request['sources']
         sensors = input_request['sensor']
         boosted = input_request['boosted']
@@ -55,7 +58,6 @@ class path_builder(object):
         x_dev = 0
 
         connected_valves = self.all_possible_valves(valves_position, bays_sensors, bays_sources, boosted, connected_device_position)
-        print(connected_valves)
         for busbar in system_busbars.keys():
             if (system_busbars[busbar].flow == _HOT_FLOW and system_busbars[busbar].type != _BOOSTER):
                 hot_busbars[busbar] = system_busbars[busbar]
@@ -89,9 +91,9 @@ class path_builder(object):
                             busbar = _BOOSTER_BAR
                             x_bb += 50
                             if (valve_connection == busbar):
-                                #possible_configurations[idx].add_node(system_busbars[busbar].get_name(), pos=(x_bb, 0))
+                                # possible_configurations[idx].add_node(system_busbars[busbar].get_name(), pos=(x_bb, 0))
                                 possible_configurations[idx].add_node(system_busbars[busbar].get_name())
-                                print("yes, i have accessed because I was parsing valve {0}".format(valve))
+                                # print("yes, i have accessed because I was parsing valve {0}".format(valve))
                         y = 0.5
                         x_v += 20
                         if (valve_connection == busbar):
@@ -212,33 +214,17 @@ class path_builder(object):
                                             # possible_configurations[idx].add_node(device.get_name(), pos=(x_dev, y))
                                             possible_configurations[idx].add_node(device.get_name())
                                             possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
-                                            
-                    idx += 1
-
-        '''pos_0 = nx.get_node_attributes(possible_configurations[0], 'pos')
-        pos_1 = nx.get_node_attributes(possible_configurations[1], 'pos')
-        pos_2 = nx.get_node_attributes(possible_configurations[2], 'pos')
-        pos_3 = nx.get_node_attributes(possible_configurations[3], 'pos')'''
-
-        plt.figure(2)
-        plt.title('Possible Configuration 0')
-        # nx.draw_shell(possible_configurations[0], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        #nx.draw(possible_configurations[0], pos_0, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        nx.draw_kamada_kawai(possible_configurations[0], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        plt.figure(3)
-        plt.title('Possible Configuration 1')
-        #nx.draw(possible_configurations[1], pos_1, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        nx.draw_kamada_kawai(possible_configurations[1], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        plt.figure(4)
-        plt.title('Possible Configuration 2')
-        #nx.draw(possible_configurations[2], pos_2, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        nx.draw_kamada_kawai(possible_configurations[2], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        plt.figure(5)
-        plt.title('Possible Configuration 3')
-        #nx.draw(possible_configurations[3], pos_3, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        nx.draw_kamada_kawai(possible_configurations[3], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-        # plt.show()
-        return possible_configurations
+                    is_match = pm.run(possible_configurations[idx], idx)
+                    print(is_match)
+                    if (is_match):
+                        plt.figure(idx + _OFFSET_FIGURE)
+                        nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        return possible_configurations[idx]
+                    else:
+                        print("Configuration {0} did not match match online reading \n".format(idx))
+                        plt.figure(idx + _OFFSET_FIGURE)
+                        nx.draw_kamada_kawai(possible_configurations[0], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        idx += 1
 
     def all_possible_valves(self, valves_position, bays_sensors, bays_sources, boosted, connected_device_position):
         possible_valves = []
