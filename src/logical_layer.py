@@ -1,6 +1,7 @@
 from configuration_reader import configuration_reader
 from interface import interface
 from matplotlib import pyplot as plt
+from message_for_controller import message_for_controller
 from object_tracker import object_tracker
 from path_builder import path_builder
 from switch_board_building import switch_board_building
@@ -37,7 +38,7 @@ class logical_layer(object):
         online_configuration = cfg.run()
         pb = path_builder(self.intf)
         unique = pb.run(system_input, online_configuration)
-
+        message = message_for_controller(unique, system_input)
 
 if __name__ == "__main__":
     start_time = time.time()
@@ -45,10 +46,10 @@ if __name__ == "__main__":
     sensors = ["Sensor_1E8", "Sensor_1E7"]
     parameters = "Energy"
     setpoints = 50
-    sources = ["Source_1HP5", "Source_1DH6", "Source_1BH4"]
+    sources = ["Source_1HP5", "Source_1DH6"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
-    boosted = "N"
+    boosted = "Y"
     test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
     plt.show()

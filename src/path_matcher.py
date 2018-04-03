@@ -22,17 +22,21 @@ class path_matcher(object):
             print("Edges match")
             if (set(extracted_subgraph.nodes) == set(possible_configurations.nodes)):
                 print("Nodes matches")
-                print("Configuration {0} matches online reading \n".format(idx))
-                print("check isomorpishm")
+                print("Configuration {0} matches online reading - it is shown in figure {1} ".format(idx + 1, idx + 1 ))
+                # print("check isomorpishm")
                 # DiGM = isomorphism.GraphMatcher(extracted_subgraph, possible_configurations)
                 # DiGM.is_isomorphic()
-                print("isomorpishm confirmed")
+                print("isomorpishm confirmed \n")
                 plt.figure(idx + _OFFSET_FIGURE)
                 nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                 return True
             else:
+                plt.figure(idx + _OFFSET_FIGURE)
+                nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                 return False
         else:
+            plt.figure(idx + _OFFSET_FIGURE)
+            nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
             return False
 
         '''print("check isomorpishm")
@@ -46,7 +50,4 @@ class path_matcher(object):
 
         # return short_list
 
-
-# Just compare list of nodes and edges?
 # Yes or do it brute force and that's it for some reason it seams to crash using is_isomorphic
-# call this from the path_puilder - pass one builded path at the time, if there is match stop creting additional configurations

@@ -12,6 +12,7 @@ _BOOSTER = "booster"
 _BOOSTER_BAR = 'B'
 _OFFSET_FIGURE = 1
 
+
 class path_builder(object):
 
     def __init__(self, interface):
