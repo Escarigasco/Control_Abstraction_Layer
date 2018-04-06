@@ -3,6 +3,7 @@ import networkx as nx
 from networkx.algorithms import isomorphism
 
 _OFFSET_FIGURE = 6
+_OFFSET_IDX = 1
 
 
 class path_matcher(object):
@@ -22,20 +23,24 @@ class path_matcher(object):
             print("Edges match")
             if (set(extracted_subgraph.nodes) == set(possible_configurations.nodes)):
                 print("Nodes matches")
-                print("Configuration {0} matches online reading - it is shown in figure {1} ".format(idx + 1, idx + 1 ))
-                # print("check isomorpishm")
+                print("Configuration {0} matches online reading - it is shown in figure {1} ".format(idx + _OFFSET_IDX, idx + _OFFSET_IDX))
+                print("check isomorpishm")
                 # DiGM = isomorphism.GraphMatcher(extracted_subgraph, possible_configurations)
-                # DiGM.is_isomorphic()
+                nx.is_isomorphic(extracted_subgraph, possible_configurations) #, node_match=[extracted_subgraph.nodes, possible_configurations.nodes])
                 print("isomorpishm confirmed \n")
+
                 plt.figure(idx + _OFFSET_FIGURE)
+                plt.title('Connected Subgraph of Online Configuration')
                 nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                 return True
             else:
                 plt.figure(idx + _OFFSET_FIGURE)
+                plt.title('Disconnected Subgraph of Online Configuration')
                 nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                 return False
         else:
             plt.figure(idx + _OFFSET_FIGURE)
+            plt.title('Disconnected Subgraph of Online Configuration')
             nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
             return False
 

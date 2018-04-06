@@ -21,15 +21,15 @@ class logical_layer(object):
         self.intf = interface(self.building_config, self.SwitchID)
         self.objtk = object_tracker(self.intf)
 
-    def run(self, sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted):
+    def run(self, sinks, parameters, setpoints, sources, controlled_device, control_strategy, boosted):
         self.boosted = boosted
-        self.used_sensors = sensors
+        self.used_sinks = sinks
         self.parameters = parameters
         self.setpoints = setpoints
         self.used_sources = sources
         self.controlled_device = controlled_device
         self.control_strategy = control_strategy
-        system_input = {"sensor": self.used_sensors, "parameter": self.parameters,
+        system_input = {"sinks": self.used_sinks, "parameter": self.parameters,
                         "setpoint": self.setpoints, "sources": self.used_sources,
                         "control_strategy": self.control_strategy, "controlled_device": self.controlled_device, "boosted": self.boosted}
 
@@ -38,18 +38,20 @@ class logical_layer(object):
         online_configuration = cfg.run()
         pb = path_builder(self.intf)
         unique = pb.run(system_input, online_configuration)
+        # print(unique.nodes)
         message = message_for_controller(unique, system_input)
+
 
 if __name__ == "__main__":
     start_time = time.time()
     test = logical_layer("Building716", "Switch_Board_1")
-    sensors = ["Sensor_1E8", "Sensor_1E7"]
+    sinks = ["Sink_1H7",  "Sink_1H8"]
     parameters = "Energy"
     setpoints = 50
     sources = ["Source_1HP5", "Source_1DH6"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
     boosted = "Y"
-    test.run(sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
+    test.run(sinks, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
     plt.show()
