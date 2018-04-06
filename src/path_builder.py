@@ -206,6 +206,7 @@ class path_builder(object):
                         plt.title('Matched Configuratiion')
                         nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                         return possible_configurations[idx]
+
                     else:
                         print("Configuration {0} did not match match online reading \n".format(idx))
                         plt.figure(idx + _OFFSET_FIGURE)

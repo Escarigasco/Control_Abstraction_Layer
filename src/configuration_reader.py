@@ -22,15 +22,15 @@ class configuration_reader(object):
         system_pumps = self.config_reader.get_system_pumps()
         system_sensors = self.config_reader.get_system_sensors()
         system_valves = self.config_reader.get_system_valves()
-        self.system_lines = self.config_reader.get_system_lines()
-        self.system_pipes = self.config_reader.get_system_pipes()
+        system_lines = self.config_reader.get_system_lines()
+        system_pipes = self.config_reader.get_system_pipes()
         system_connected_devices = self.config_reader.get_connected_devices()
         # self.system_bays = self.config_reader.get_hydraulic_bays()
-        system_busbars = self.config_reader.build_busbars(self.system_pipes)
+        system_busbars = self.config_reader.build_busbars(system_pipes)
         connected_device_position = self.objtk.where_are_devices(system_connected_devices)
 
         valves_position = self.objtk.where_are_devices(system_valves)
-        line_position = self.objtk.where_are_devices(self.system_lines)
+        line_position = self.objtk.where_are_devices(system_lines)
 
         random_server(system_pumps, system_sensors, system_valves)
 

@@ -26,7 +26,7 @@ class path_matcher(object):
                 print("Configuration {0} matches online reading - it is shown in figure {1} ".format(idx + _OFFSET_IDX, idx + _OFFSET_IDX))
                 print("check isomorpishm")
                 # DiGM = isomorphism.GraphMatcher(extracted_subgraph, possible_configurations)
-                nx.is_isomorphic(extracted_subgraph, possible_configurations) #, node_match=[extracted_subgraph.nodes, possible_configurations.nodes])
+                nx.is_isomorphic(extracted_subgraph, possible_configurations)
                 print("isomorpishm confirmed \n")
 
                 plt.figure(idx + _OFFSET_FIGURE)
