@@ -1,71 +1,146 @@
 from pyknow import *
+
 import networkx as nx
 from networkx.algorithms import isomorphism
 from matplotlib import pyplot as plt
+#from enum import IntFlag, auto
+from aenum import Enum, Flag, IntFlag
+import re
 
 
-class Light(Fact):
-    """Info about the traffic light."""
+class Parameter(Flag):
+
+    _init_ = 'value string'
+
+    ENERGY = 1, 'energy'
+    TEMPERATURE = 2, 'temperature'
+    PRESSURE = 3, 'pressure'
+
+    def __str__(self):
+        return self.string
+
+    @classmethod
+    def _missing_value_(cls, value):
+        for member in cls:
+            if member.string == value:
+                return member
+
+
+class Location(Flag):
+    _init_ = 'value string'
+
+    SOURCE = 1, 'Source'
+    SINK = 2, 'Sink'
+    BOOSTER = 3, 'Booster'
+    ALL = 4, 'All'
+
+    def __str__(self):
+        return self.string
+
+    @classmethod
+    def _missing_value_(cls, value):
+        for member in cls:
+            if member.string == value:
+                return member
+
+
+class Color(Flag):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+
+
+class Size(Flag):
+    L = 1
+    M = 2
+    S = 3
+    ALL = 4
+
+
+class Shirt(Fact):
+    """Info about the Sensor"""
     pass
 
 
-class Busbar(Fact):
-    """Info about the traffic light."""
+class Sensors(Fact):
+    """Info about the Sensor"""
     pass
 
 
-class Valve(Fact):
-    """Info about the traffic light."""
+class Pumps(Fact):
+    """Info about the Sensor"""
     pass
 
 
-class RobotCrossStreet(KnowledgeEngine):
-
-    def __init__(self, graph):
-        self.graph = graph
+class Shirt_Configurator(KnowledgeEngine):
+    def __init__(self):
         super().__init__()
+        self.idx = 0
 
-    @Rule(Busbar(busbar='device' << W(), ID='1H'),
-          #Busbar(ID='1H'),
-          Valve(valve='valve' << W(), connection='1H', status=1))
-    def select_busbar(self, device, valve):
-        self.graph.add_edges_from([(device.get_name(), valve.get_name())])
+    @Rule(Sensors(color=Color.GREEN, variable='shirt' << W(), size=Size.ALL))  # , colour_list='cl' << W(), size='sl' << W()))
+    def cautious(self, shirt):
+        self.idx += 1
+        print("Fire Rule 1")
+        shirt.colour = Color.GREEN
+        shirt.size = Size.L | Size.M
+        print(self.facts)
+        self.modify(self.facts[self.idx], size=shirt.size)
+        print(self.facts)
+        print("Exit Rule 1")
+
+    @Rule(Sensors(color=Color.GREEN, variable='shirt' << W(), size=Size.M | Size.L))  # , colour_list='cl' << W(), size='sl' << W()))
+    def check_size(self, shirt):
+        self.idx += 1
+        print("Fire Rule 2")
+        print(self.facts)
+        shirt.size = Size.ALL
+        self.modify(self.facts[self.idx], size=shirt.size)
+        print(self.facts)
+        print("Exit Rule 2")
+
+    @Rule(Sensors(param=Parameter.ENERGY, var='sensor' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
+    def check_parameter(self, sensor):
+        sensor.variable = str(Parameter.ENERGY)
+        print("it is ok")
+        print(sensor.variable)
+
+    @Rule(Pumps(sinks=P(lambda sink: sink >= 2), loc=Location.ALL, var='pump' << W()))   # , colour_list='cl' << W(), size='sl' << W()))
+    def use_sink_pump(self, pump):
+        self.idx += 1
+        pump.location = str(Location.SINK)
+        pump.n_sources = 0
+        self.modify(self.facts[self.idx], sources=pump.n_sources, loc=Location.SINK)
+        print("we use the pump in the sinks")
+
+    @Rule(Pumps(sinks=P(lambda sink: sink < 2), loc=Location.ALL, var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
+    def use_source_pump(self, pump):
+        self.idx += 1
+        pump.location = str(Location.SOURCE)
+        pump.n_sinks = 0
+        self.modify(self.facts[self.idx], sinks=pump.n_sinks, loc=Location.SOURCE)
+        print("we use the pump in the source")
+
+    @Rule(Pumps(loc=Location.SOURCE, boost='Y', var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
+    def use_booster_pump(self, pump):
+        self.idx += 1
+        pump.location = str(Location.BOOSTER)
+        pump.n_sinks = 0
+        pump.n_sources = 0
+        self.modify(self.facts[self.idx], sources=pump.n_sources, loc=Location.BOOSTER)
+        print("we use the pump in the booster")
+
+class Pump(object):
+    pass
 
 
-
-
-    @Rule(Light(variable='test_object' << W()), salience=1)
-    def test_name(self, test_object):
-        print("ciaone")
-        if (test_object.size == 'L'):
-            print(test_object.get_colour())
-
-    @Rule(Light(color='green'))
-    def green_light(self):
-        print("Walk")
-
-
-    @Rule(Light(color='red'))
-    def red_light(self):
-        print("Don't walk")
-
-    @Rule('light' << Light(color=L('yellow') | L('blinking-yellow')))
-    def cautious(self, light):
-        print("Be cautious because light is", light["color"])
+class Sensor(object):
+    pass
 
 
 class shirt(object):
+
     def __init__(self):
         self.name = "maietta"
-        self.colour = "green"
-        self.size = "L"
-
-    def set_colour(self, colour):
-        self.colour = colour
-        print(self.colour)
-
-    def get_colour(self):
-        return(self.colour)
 
     def __repr__(self):
         return "{0}".format(self.name)
@@ -76,43 +151,36 @@ class shirt(object):
 
 class rule_engine(object):
 
-    def __init__(self, interface):
-        print("I am here")
-        self.interface = interface
-
-    def run(self):
-        Graph = nx.DiGraph()
-        engine = RobotCrossStreet(Graph)
+    def run(self, system_input):
+        '''parameter = 'energy'
+        for n in Parameter:
+            print(str(n))
+            if (str(n) == parameter):
+                test = n
+                print(test)'''
+        n_sources = len(system_input['sources'])
+        n_sinks = len(system_input['sinks'])
+        booster = system_input['boosted']
+        #   x = Parameter.ENERGY | Parameter.PRESSURE
+        #   print(x)
+        engine = Shirt_Configurator()
         engine.reset()
-        system_bays = self.interface.get_hydraulic_bays()
-        system_pumps = self.interface.get_system_pumps()
-        system_sensors = self.interface.get_system_sensors()
-        system_valves = self.interface.get_system_valves()
-        system_connectors = self.interface.get_system_connectors()
-        system_lines = self.interface.get_system_lines()
-        system_pipes = self.interface.get_system_pipes()
-        system_connected_devices = self.interface.get_connected_devices()
-        system_bays = self.interface.get_hydraulic_bays()
-        system_busbars = self.interface.build_busbars(system_pipes)
-
-        for busbar in system_busbars.keys():
-            engine.declare(Busbar(busbar=system_busbars[busbar], ID=system_busbars[busbar].get_name()))
-            Graph.add_node(busbar)
-        for valve in system_valves.keys():
-            engine.declare(Valve(valve=system_valves[valve], connection=system_valves[valve].get_connection(), status=system_valves[valve].get_status()))
-            Graph.add_node(valve)
-
-
-        newshirt = shirt()
-        oldshirt = shirt()
-        oldshirt.set_colour("lilla")
-
-
-        color = 'green'
-        engine.declare(Light(color=color))
-        engine.declare(Light(variable=newshirt))
-        engine.declare(Light(variable=oldshirt))
-
+        # newshirt = shirt()
+        # color = Color.GREEN
+        # size = Size.ALL
+        pump = Pump()
+        sens = Sensor()
+        pump.location = Location.ALL
+        pump.n_sources = n_sources
+        pump.n_sinks = n_sinks
+        # engine.declare(Sensor(color=color, variable=newshirt, size=size))  # , colour_list=list_colours, size=list_size))
+        #engine.declare(Sensors(param=test, var=sens))
+        engine.declare(Pumps(sources=n_sources, sinks=n_sinks, boost=booster, loc=Location.ALL, var=pump))
         engine.run()
-        nx.draw(Graph, with_labels=True)
-        plt.show()
+        # print(newshirt.colour)
+        # print(newshirt.size)
+        return pump
+
+if __name__ == "__main__":
+        test = rule_engine()
+        test.run()
