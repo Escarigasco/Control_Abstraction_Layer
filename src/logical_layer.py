@@ -6,7 +6,7 @@ from object_tracker import object_tracker
 from path_builder import path_builder
 from switch_board_building import switch_board_building
 import time
-
+_BOOSTER_NAME = "Source_1BH4"
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
 
@@ -28,6 +28,7 @@ class logical_layer(object):
         self.used_sources = sources
         self.controlled_device = controlled_device
         self.control_strategy = control_strategy
+        self.check_sources()
         system_input = {"sinks": self.used_sinks, "parameter": self.parameters,
                         "setpoint": self.setpoints, "sources": self.used_sources,
                         "control_strategy": self.control_strategy, "controlled_device": self.controlled_device, "boosted": self.boosted}
@@ -41,6 +42,11 @@ class logical_layer(object):
             return
         message = message_for_controller(unique, system_input, self.intf)
 
+    def check_sources(self):
+        for source in self.used_sources:
+            if (source == _BOOSTER_NAME):
+                self.boosted = 'N'
+
 
 if __name__ == "__main__":
     start_time = time.time()
@@ -51,7 +57,7 @@ if __name__ == "__main__":
     sources = ["Source_1HP5"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
-    boosted = "N"
+    boosted = "Y"
     test.run(sinks, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
-    plt.show()
+    # plt.show()

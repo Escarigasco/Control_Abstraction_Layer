@@ -28,7 +28,7 @@ class path_builder(object):
         boosted = input_request['boosted']
         bays_sources = []
         bays_sinks = []
-        boosted = self.check_sources(sources, boosted)
+
 
         # It is hardcoded the number o
         Graph_A = nx.DiGraph()
@@ -239,9 +239,3 @@ class path_builder(object):
                     if ((valve.get_flow() == _HOT_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _COLD_FLOW and valve.get_connection() == _BOOSTER_BAR)):
                         possible_valves.append(valve)
             return possible_valves
-
-    def check_sources(self, sources, boosted):
-        for source in sources:
-            if (source == _BOOSTER_NAME):
-                boosted = 'N'
-        return boosted
