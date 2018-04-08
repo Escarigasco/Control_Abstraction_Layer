@@ -4,7 +4,7 @@ import networkx as nx
 from networkx.algorithms import isomorphism
 from matplotlib import pyplot as plt
 #from enum import IntFlag, auto
-from aenum import Enum, Flag, IntFlag
+from aenum import Enum, Flag, IntFlag, auto
 import re
 
 
@@ -12,7 +12,7 @@ class Parameter(Flag):
 
     _init_ = 'value string'
 
-    ENERGY = 1, 'energy'
+    ENERGY = auto(), 'energy'
     TEMPERATURE = 2, 'temperature'
     PRESSURE = 3, 'pressure'
 
@@ -29,10 +29,14 @@ class Parameter(Flag):
 class Location(Flag):
     _init_ = 'value string'
 
-    SOURCE = 1, 'Source'
-    SINK = 2, 'Sink'
-    BOOSTER = 3, 'Booster'
-    ALL = 4, 'All'
+    '''SOURCE = auto() # , 'Source'
+    SINK = auto() # , 'Sink'
+    BOOSTER = auto() # , 'Booster'
+    ALL = SOURCE | SINK | BOOSTER'''
+
+    SOURCE = 1, 'source'
+    SINK = 2, 'sink'
+    BOOSTER = 3, 'booster'
 
     def __str__(self):
         return self.string
@@ -55,6 +59,7 @@ class Size(Flag):
     M = 2
     S = 3
     ALL = 4
+
 
 
 class Shirt(Fact):
@@ -104,33 +109,36 @@ class Shirt_Configurator(KnowledgeEngine):
         print("it is ok")
         print(sensor.variable)
 
-    @Rule(Pumps(sinks=P(lambda sink: sink >= 2), loc=Location.ALL, var='pump' << W()))   # , colour_list='cl' << W(), size='sl' << W()))
+    @Rule(Pumps(sinks=P(lambda sink: sink >= 2),sources=P(lambda source: source > 0), var='pump' << W()))   # , colour_list='cl' << W(), size='sl' << W()))
     def use_sink_pump(self, pump):
         self.idx += 1
         pump.location = str(Location.SINK)
         pump.n_sources = 0
-        self.modify(self.facts[self.idx], sources=pump.n_sources, loc=Location.SINK)
+        self.modify(self.facts[self.idx], sources=pump.n_sources, loc=pump.location)
         print("we use the pump in the sinks")
 
-    @Rule(Pumps(sinks=P(lambda sink: sink < 2), loc=Location.ALL, var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
+    @Rule(Pumps(sinks=P(lambda sink: (sink < 2)and(sink > 0)), sources=P(lambda source: source > 0), var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
     def use_source_pump(self, pump):
         self.idx += 1
-        pump.location = str(Location.SOURCE)
+        pump.location = str(Location.SOURCE), str(Location.BOOSTER)
         pump.n_sinks = 0
         self.modify(self.facts[self.idx], sinks=pump.n_sinks, loc=Location.SOURCE)
         print("we use the pump in the source")
 
-    @Rule(Pumps(loc=Location.SOURCE, boost='Y', var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
+    @Rule(Pumps(loc=Location.SOURCE, sources=P(lambda source: source > 0), boost='Y', var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
     def use_booster_pump(self, pump):
         self.idx += 1
         pump.location = str(Location.BOOSTER)
         pump.n_sinks = 0
         pump.n_sources = 0
-        self.modify(self.facts[self.idx], sources=pump.n_sources, loc=Location.BOOSTER)
+        self.modify(self.facts[self.idx], sources=pump.n_sources, loc=pump.location)
         print("we use the pump in the booster")
 
+
 class Pump(object):
-    pass
+    def __init__(self):
+        self.location = []
+
 
 
 class Sensor(object):
@@ -161,24 +169,16 @@ class rule_engine(object):
         n_sources = len(system_input['sources'])
         n_sinks = len(system_input['sinks'])
         booster = system_input['boosted']
-        #   x = Parameter.ENERGY | Parameter.PRESSURE
-        #   print(x)
         engine = Shirt_Configurator()
         engine.reset()
-        # newshirt = shirt()
-        # color = Color.GREEN
-        # size = Size.ALL
         pump = Pump()
         sens = Sensor()
-        pump.location = Location.ALL
+        # pump.location = Location.ALL
         pump.n_sources = n_sources
         pump.n_sinks = n_sinks
-        # engine.declare(Sensor(color=color, variable=newshirt, size=size))  # , colour_list=list_colours, size=list_size))
-        #engine.declare(Sensors(param=test, var=sens))
-        engine.declare(Pumps(sources=n_sources, sinks=n_sinks, boost=booster, loc=Location.ALL, var=pump))
+        engine.declare(Pumps(sources=n_sources, sinks=n_sinks, boost=booster, var=pump))
         engine.run()
-        # print(newshirt.colour)
-        # print(newshirt.size)
+
         return pump
 
 if __name__ == "__main__":
