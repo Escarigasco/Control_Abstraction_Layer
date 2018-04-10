@@ -1,70 +1,13 @@
+from flags import Flags
 from pyknow import *
-
-import networkx as nx
-from networkx.algorithms import isomorphism
-from matplotlib import pyplot as plt
-#from enum import IntFlag, auto
-from aenum import Enum, Flag, IntFlag, auto
-import re
+_FIRST_OF_CLASS = 1
 
 
-class Parameter(Flag):
+class Location(Flags):
 
-    _init_ = 'value string'
-
-    ENERGY = auto(), 'energy'
-    TEMPERATURE = 2, 'temperature'
-    PRESSURE = 3, 'pressure'
-
-    def __str__(self):
-        return self.string
-
-    @classmethod
-    def _missing_value_(cls, value):
-        for member in cls:
-            if member.string == value:
-                return member
-
-
-class Location(Flag):
-    _init_ = 'value string'
-
-    '''SOURCE = auto() # , 'Source'
-    SINK = auto() # , 'Sink'
-    BOOSTER = auto() # , 'Booster'
-    ALL = SOURCE | SINK | BOOSTER'''
-
-    SOURCE = 1, 'source'
-    SINK = 2, 'sink'
-    BOOSTER = 3, 'booster'
-
-    def __str__(self):
-        return self.string
-
-    @classmethod
-    def _missing_value_(cls, value):
-        for member in cls:
-            if member.string == value:
-                return member
-
-
-class Color(Flag):
-    RED = 1
-    GREEN = 2
-    BLUE = 3
-
-
-class Size(Flag):
-    L = 1
-    M = 2
-    S = 3
-    ALL = 4
-
-
-
-class Shirt(Fact):
-    """Info about the Sensor"""
-    pass
+    SOURCE = ['source']
+    SINK = ['sink']
+    BOOSTER = ['booster']
 
 
 class Sensors(Fact):
@@ -77,59 +20,32 @@ class Pumps(Fact):
     pass
 
 
-class Shirt_Configurator(KnowledgeEngine):
+class Pump_Configurator(KnowledgeEngine):
     def __init__(self):
         super().__init__()
         self.idx = 0
 
-    @Rule(Sensors(color=Color.GREEN, variable='shirt' << W(), size=Size.ALL))  # , colour_list='cl' << W(), size='sl' << W()))
-    def cautious(self, shirt):
-        self.idx += 1
-        print("Fire Rule 1")
-        shirt.colour = Color.GREEN
-        shirt.size = Size.L | Size.M
-        print(self.facts)
-        self.modify(self.facts[self.idx], size=shirt.size)
-        print(self.facts)
-        print("Exit Rule 1")
-
-    @Rule(Sensors(color=Color.GREEN, variable='shirt' << W(), size=Size.M | Size.L))  # , colour_list='cl' << W(), size='sl' << W()))
-    def check_size(self, shirt):
-        self.idx += 1
-        print("Fire Rule 2")
-        print(self.facts)
-        shirt.size = Size.ALL
-        self.modify(self.facts[self.idx], size=shirt.size)
-        print(self.facts)
-        print("Exit Rule 2")
-
-    @Rule(Sensors(param=Parameter.ENERGY, var='sensor' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
-    def check_parameter(self, sensor):
-        sensor.variable = str(Parameter.ENERGY)
-        print("it is ok")
-        print(sensor.variable)
-
-    @Rule(Pumps(sinks=P(lambda sink: sink >= 2),sources=P(lambda source: source > 0), var='pump' << W()))   # , colour_list='cl' << W(), size='sl' << W()))
+    @Rule(Pumps(sinks=P(lambda sink: sink >= 2), loc=Location.__all_flags__, var='pump' << W()), salience=3)
     def use_sink_pump(self, pump):
         self.idx += 1
-        pump.location = str(Location.SINK)
+        pump.location = Location.__all_flags__ & Location.SINK
         pump.n_sources = 0
         self.modify(self.facts[self.idx], sources=pump.n_sources, loc=pump.location)
         print("we use the pump in the sinks")
 
-    @Rule(Pumps(sinks=P(lambda sink: (sink < 2)and(sink > 0)), sources=P(lambda source: source > 0), var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
+    @Rule(Pumps(sources=P(lambda source: source > 0), loc=Location.__all_flags__, var='pump' << W()))
     def use_source_pump(self, pump):
         self.idx += 1
-        pump.location = str(Location.SOURCE), str(Location.BOOSTER)
+        pump.location = Location.__all_flags__ ^ Location.SINK
+        Location.ALL_SOURCES = pump.location
         pump.n_sinks = 0
-        self.modify(self.facts[self.idx], sinks=pump.n_sinks, loc=Location.SOURCE)
+        self.modify(self.facts[self.idx], sinks=pump.n_sinks, loc=pump.location)
         print("we use the pump in the source")
 
-    @Rule(Pumps(loc=Location.SOURCE, sources=P(lambda source: source > 0), boost='Y', var='pump' << W()))  # , colour_list='cl' << W(), size='sl' << W()))
+    @Rule(Pumps(loc=Location.__all_flags__ ^ Location.SINK, boost='Y', var='pump' << W()))
     def use_booster_pump(self, pump):
         self.idx += 1
-        pump.location = str(Location.BOOSTER)
-        pump.n_sinks = 0
+        pump.location = Location.ALL_SOURCES & Location.BOOSTER
         pump.n_sources = 0
         self.modify(self.facts[self.idx], sources=pump.n_sources, loc=pump.location)
         print("we use the pump in the booster")
@@ -140,21 +56,8 @@ class Pump(object):
         self.location = []
 
 
-
 class Sensor(object):
     pass
-
-
-class shirt(object):
-
-    def __init__(self):
-        self.name = "maietta"
-
-    def __repr__(self):
-        return "{0}".format(self.name)
-
-    def __str__(self):
-        return "{0}".format(self.name)
 
 
 class rule_engine(object):
@@ -169,17 +72,24 @@ class rule_engine(object):
         n_sources = len(system_input['sources'])
         n_sinks = len(system_input['sinks'])
         booster = system_input['boosted']
-        engine = Shirt_Configurator()
+        engine = Pump_Configurator()
         engine.reset()
         pump = Pump()
         sens = Sensor()
-        # pump.location = Location.ALL
+        pump.location = Location.__all_flags__
         pump.n_sources = n_sources
         pump.n_sinks = n_sinks
-        engine.declare(Pumps(sources=n_sources, sinks=n_sinks, boost=booster, var=pump))
+        engine.declare(Pumps(sources=n_sources, sinks=n_sinks, boost=booster, loc=pump.location, var=pump))
         engine.run()
 
         return pump
+
+    '''def build_solution_space(self, space):
+        solution_space = space(_FIRST_OF_CLASS)
+        for n in Location:
+            solution_space = solution_space | n
+        space.ALL = solution_space
+        return solution_space'''
 
 if __name__ == "__main__":
         test = rule_engine()

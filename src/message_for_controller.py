@@ -55,9 +55,11 @@ class message_for_controller(object):
 # sensor -
         def pump_selector(self, ideal_pump, pumps):
             actuators_pumps = []
+            locations = []
+            for location in ideal_pump.location:
+                locations.append(location.data)
             for pump in pumps:
                 print(pump.location)
-                print(str(ideal_pump.location))
-                if (pump.location in str(ideal_pump.location)):
+                if (pump.location in locations):
                     actuators_pumps.append(pump)
             return actuators_pumps
