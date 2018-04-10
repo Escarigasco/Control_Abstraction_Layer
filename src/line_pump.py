@@ -4,10 +4,11 @@
 class line_pump:
     'Class for Pump definition and properties'
 
-    def __init__(self, parent_ID, ID, position):
+    def __init__(self, parent_ID, ID, position, connection):
         self.parent_ID = parent_ID
         self.ID = ID
         self.position = int(position)
+        self.location = connection
 
     def get_name(self):
         return self.ID
