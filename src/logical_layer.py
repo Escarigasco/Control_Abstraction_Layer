@@ -20,7 +20,7 @@ class logical_layer(object):
         self.intf = interface(self.building_config, self.SwitchID)
         self.objtk = object_tracker(self.intf)
 
-    def run(self, sinks, parameters, setpoints, sources, controlled_device, control_strategy, boosted):
+    def run(self, sinks, sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted):
         self.boosted = boosted
         self.used_sinks = sinks
         self.parameters = parameters
@@ -28,9 +28,10 @@ class logical_layer(object):
         self.used_sources = sources
         self.controlled_device = controlled_device
         self.control_strategy = control_strategy
+        self.sensors = sensors
         self.check_sources()
-        system_input = {"sinks": self.used_sinks, "parameter": self.parameters,
-                        "setpoint": self.setpoints, "sources": self.used_sources,
+        system_input = {"sinks": self.used_sinks, "sensors": self.sensors, "parameters": self.parameters,
+                        "setpoints": self.setpoints, "sources": self.used_sources,
                         "control_strategy": self.control_strategy, "controlled_device": self.controlled_device, "boosted": self.boosted}
 
         # builder = rule_engine(self.intf)
@@ -40,8 +41,9 @@ class logical_layer(object):
         unique = pb.run(system_input, online_configuration)
         if unique is None:
             return
-        message = message_for_controller(unique, system_input, self.intf)
-
+        mssgr = message_for_controller()
+        message = mssgr.run(unique, system_input, self.intf)
+        print(message)
     def check_sources(self):
         for source in self.used_sources:
             if (source == _BOOSTER_NAME):
@@ -51,13 +53,14 @@ class logical_layer(object):
 if __name__ == "__main__":
     start_time = time.time()
     test = logical_layer("Building716", "Switch_Board_1")
-    sinks = ["Sink_1H7", "Sink_1H8" ]
+    sinks = ["Sink_1H7"]
+    sources = ["Source_1HP5"]
+    boosted = "Y"
+    sensors = ["Sensor_1E8"]
     parameters = "Energy"
     setpoints = 50
-    sources = ["Source_1HP5"]
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
-    boosted = "Y"
-    test.run(sinks, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
+    test.run(sinks, sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
-    # plt.show()
+    #plt.show()

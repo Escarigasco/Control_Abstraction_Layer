@@ -73,10 +73,12 @@ class path_builder(object):
 
                     # possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name(), pos=(x_bb, y))
                     possible_configurations[idx].add_node(cold_busbars[cold_busbar].get_name())
+
                     for valve in connected_valves:
                         valve = valve.get_name()  # here you are parsing list of object so to extract the name you have to call a method
                         bay = valves_position[valve]
                         valve_connection = system_valves[valve].get_connection()
+
                         if (valve_connection == busbar_ID_hot):
                             busbar = busbar_ID_hot
                         elif (valve_connection == busbar_ID_cold):

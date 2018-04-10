@@ -5,7 +5,7 @@ from enum import IntFlag, auto
 
 class message_for_controller(object):
 
-        def __init__(self, unique, system_input, interface):
+        def run(self, unique, system_input, interface):
             system_valves = interface.get_system_valves()
             system_lines = interface.get_system_lines()
             system_pipes = interface.get_system_pipes()
@@ -17,6 +17,7 @@ class message_for_controller(object):
             object_nodes = {}
             sensors = []
             pumps = []
+            message = {}
 
             nodes = list(unique.nodes)
             for node in nodes:
@@ -43,9 +44,11 @@ class message_for_controller(object):
                     print("{0}\n".format(successor))
                     node = successor
                 break'''
-            # while(1):
-                # node = unique.successors(node)
 
+            message = {"actuators": act_pumps, "sensors": system_input['sensors'],
+                       "parameters": system_input['parameters'], "setpoints": system_input['setpoints']}
+
+            return message
 
 # deliver only the list of relevant component returning a dictionary stating the actuator and the feedback signal e.g. for the first use case will be pump x sensor and that's i
 # where to decide the components to be used? if I do it here I won't take into account the posibility that a sensor/pump could be dead and replaced by another
