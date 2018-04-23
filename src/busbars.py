@@ -1,4 +1,4 @@
-# Class for busbars
+# Class for busbars - type and flow specified according to the type of the constituting pipes
 _FIRST_OF_THE_CLASS = 0
 
 

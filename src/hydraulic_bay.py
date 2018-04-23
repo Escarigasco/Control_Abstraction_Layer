@@ -1,4 +1,8 @@
-# Bay Class
+# Bay Class is abstraction of each macro section of the switch board -it is core of the system, everything is referred to the bays when it comes to locations.
+# based on the connected devices the pipes in and the pipes out are defined
+# from here also the connectors are defined
+
+
 from pipeline import pipeline
 from bay_connector import bay_connector
 

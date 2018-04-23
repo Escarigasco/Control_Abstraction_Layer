@@ -44,6 +44,7 @@ class logical_layer(object):
         mssgr = message_for_controller()
         message = mssgr.run(unique, system_input, self.intf)
         print(message)
+        
     def check_sources(self):
         for source in self.used_sources:
             if (source == _BOOSTER_NAME):
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     test = logical_layer("Building716", "Switch_Board_1")
     sinks = ["Sink_1H7"]
     sources = ["Source_1HP5"]
-    boosted = "Y"
+    boosted = "N"
     sensors = ["Sensor_1E8"]
     parameters = "Energy"
     setpoints = 50

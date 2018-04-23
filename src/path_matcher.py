@@ -1,3 +1,5 @@
+# Class that implement the iso_morphic algorithm to check the compatibility of the online configuration with the user inputs
+
 from matplotlib import pyplot as plt
 import networkx as nx
 from networkx.algorithms import isomorphism
@@ -43,16 +45,3 @@ class path_matcher(object):
             plt.title('Disconnected Subgraph of Online Configuration')
             nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
             return False
-
-        '''print("check isomorpishm")
-        DiGM = isomorphism.GraphMatcher(extracted_subgraph, self.possible_configurations[i])
-        is_a_match = DiGM.is_isomorphic()
-        if (is_a_match):
-            print("Configuration {0} is compatible \n".format(i))
-            short_list.append(self.possible_configurations[i])
-        else:
-            print("Configuration {0} is not achievable \n".format(i))'''
-
-        # return short_list
-
-# Yes or do it brute force and that's it for some reason it seams to crash using is_isomorphic

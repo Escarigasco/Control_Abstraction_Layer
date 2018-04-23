@@ -7,7 +7,7 @@ class line_pump:
     def __init__(self, parent_ID, ID, position, connection):
         self.parent_ID = parent_ID
         self.ID = ID
-        self.position = int(position)
+        self.position = int(position)  # this tells you where is in the line
         self.location = connection
 
     def get_name(self):

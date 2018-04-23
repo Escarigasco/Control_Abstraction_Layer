@@ -8,7 +8,7 @@ class system_sensor:
         self.ID = ID
         self.variable = controlled_variable  # Temp, Flow, etc..
         self.device_embedded = device_embedded  # if it belongs to larger sensor
-        self.position = int(position)  # is in the pipe or in the connector or anywhere else - redundant with parent_ID?
+        self.position = int(position)  # is in the pipe or in the connector or anywhere else 
 
         # print(self.ID)
     def set_bay(self, bay_ID):

@@ -1,3 +1,8 @@
+#  Class to create the all possible configuration - bays with relevant sinks and sources are identified -> valves connected to this bays are extracted.
+#  the algorithm is of the type - for each hotbus bar, for each cold busbar, for each indentified valve connected to the bus bar and the relevant bay, if the flow entering the valve goes in/out to the connected device, if this flow is cold/hot,
+#  then you know which connector line -> add all devices of the line -> add the connected device of the bay the valve in exam is connected
+#  the method is necessary to extract the relevant valve based on the inputs
+
 from matplotlib import pyplot as plt
 import networkx as nx
 from object_tracker import object_tracker
@@ -29,9 +34,7 @@ class path_builder(object):
         bays_sources = []
         bays_sinks = []
 
-
-        # It is hardcoded the number o
-        Graph_A = nx.DiGraph()
+        # It is hardcoded the number of graph
         Graph_B = nx.DiGraph()
         Graph_C = nx.DiGraph()
         Graph_D = nx.DiGraph()
@@ -103,7 +106,7 @@ class path_builder(object):
                                             if (line.flow_type == _HOT_FLOW):
 
                                                 line_devices = {**line.line_sensors, **line.pumps}.values()
-                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                                 iterate_sensor = system_valves[valve]
                                                 for line_device in sorted_devices:
                                                     # if (sensors[sensor].get_status()):
@@ -130,7 +133,7 @@ class path_builder(object):
                                         if (line.flow_type == _COLD_FLOW):
 
                                             line_devices = {**line.line_sensors, **line.pumps}.values()
-                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                             iterate_sensor = system_valves[valve]
                                             for line_device in sorted_devices:
                                                 # if (sensors[sensor].get_status()):
@@ -157,7 +160,7 @@ class path_builder(object):
                                             if (line.flow_type == _HOT_FLOW):
 
                                                 line_devices = {**line.line_sensors, **line.pumps}.values()
-                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                                 iterate_sensor = system_valves[valve]
                                                 for line_device in sorted_devices:
                                                     # if (sensors[sensor].get_status()):
@@ -185,7 +188,7 @@ class path_builder(object):
                                         if (line.flow_type == _COLD_FLOW):
 
                                             line_devices = {**line.line_sensors, **line.pumps}.values()
-                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                             iterate_sensor = system_valves[valve]
                                             for line_device in sorted_devices:
                                                 # if (sensors[sensor].get_status()):
@@ -202,7 +205,6 @@ class path_builder(object):
                                             possible_configurations[idx].add_node(device.get_name())
                                             possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
                     is_match = pm.run(possible_configurations[idx], idx)
-                    print(is_match)
                     if (is_match):
                         plt.figure(idx + _OFFSET_FIGURE)
                         plt.title('Matched Configuratiion')

@@ -1,3 +1,8 @@
+#  Class to read the online configuration - the random server will be replaced with a status reader.
+#  the algorithm is of the type - for each bus bar, for each valve connected to the bus bar, if the flow entering the valve goes in/out to the connected device, if this flow is cold/hot,
+#  then you know which connector line -> add all devices of the line -> add the connected device of the bay the valve in exam is connected
+# if a valve is off the algo goes to the next one leaving one branch open
+
 from object_tracker import object_tracker
 from random_server import random_server
 import networkx as nx
@@ -56,7 +61,7 @@ class configuration_reader(object):
                                         if (line.flow_type == _HOT_FLOW):
 
                                             line_devices = {**line.line_sensors, **line.pumps}.values()
-                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                             iterate_sensor = system_valves[valve]
                                             for line_device in sorted_devices:
                                                 # if (sensors[sensor].get_status()):
@@ -82,7 +87,7 @@ class configuration_reader(object):
                                     if (line.flow_type == _COLD_FLOW):
 
                                         line_devices = {**line.line_sensors, **line.pumps}.values()
-                                        sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                        sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                         iterate_sensor = system_valves[valve]
                                         for line_device in sorted_devices:
                                             # if (sensors[sensor].get_status()):
@@ -109,7 +114,7 @@ class configuration_reader(object):
                                         if (line.flow_type == _HOT_FLOW):
 
                                             line_devices = {**line.line_sensors, **line.pumps}.values()
-                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                            sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                             iterate_sensor = system_valves[valve]
                                             for line_device in sorted_devices:
                                                 # if (sensors[sensor].get_status()):
@@ -136,7 +141,7 @@ class configuration_reader(object):
                                     if (line.flow_type == _COLD_FLOW):
 
                                         line_devices = {**line.line_sensors, **line.pumps}.values()
-                                        sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)
+                                        sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                         iterate_sensor = system_valves[valve]
                                         for line_device in sorted_devices:
                                             # if (sensors[sensor].get_status()):

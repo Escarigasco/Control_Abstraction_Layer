@@ -1,3 +1,8 @@
+# rule engine to decide the pump to be used for governing the system
+# it can potentially been used to select the best sensor for the parameter to be monitored
+# even though pyKnow is meant to be action based, here is reformulate to be constriction based utilizing the enumerator to define the domain (space of solutions)
+# -> utilizing the bitwise operation typical of the enumerator
+
 from flags import Flags
 from pyknow import *
 _FIRST_OF_CLASS = 1
@@ -16,7 +21,7 @@ class Sensors(Fact):
 
 
 class Pumps(Fact):
-    """Info about the Sensor"""
+    """Info about the Pump"""
     pass
 
 
@@ -63,12 +68,6 @@ class Sensor(object):
 class rule_engine(object):
 
     def run(self, system_input):
-        '''parameter = 'energy'
-        for n in Parameter:
-            print(str(n))
-            if (str(n) == parameter):
-                test = n
-                print(test)'''
         n_sources = len(system_input['sources'])
         n_sinks = len(system_input['sinks'])
         booster = system_input['boosted']
@@ -81,15 +80,8 @@ class rule_engine(object):
         pump.n_sinks = n_sinks
         engine.declare(Pumps(sources=n_sources, sinks=n_sinks, boost=booster, loc=pump.location, var=pump))
         engine.run()
-
         return pump
 
-    '''def build_solution_space(self, space):
-        solution_space = space(_FIRST_OF_CLASS)
-        for n in Location:
-            solution_space = solution_space | n
-        space.ALL = solution_space
-        return solution_space'''
 
 if __name__ == "__main__":
         test = rule_engine()

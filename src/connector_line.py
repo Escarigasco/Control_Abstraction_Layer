@@ -1,4 +1,5 @@
-# Line Class
+# Line Class - all pumps and sensors are now embedded in the line
+
 from system_sensor import system_sensor
 from line_pump import line_pump
 

@@ -1,3 +1,5 @@
+# Interface to specify the configuration and launch the logical layer
+
 import sys
 import getopt
 from logical_layer import logical_layer

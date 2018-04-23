@@ -1,4 +1,5 @@
-# Pipeline Class
+# Pipeline Class that generates the embedded valves
+
 from bay_valve import bay_valve
 
 
