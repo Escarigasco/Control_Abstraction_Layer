@@ -35,6 +35,7 @@ class path_builder(object):
         bays_sinks = []
 
         # It is hardcoded the number of graph
+        Graph_A = nx.DiGraph()
         Graph_B = nx.DiGraph()
         Graph_C = nx.DiGraph()
         Graph_D = nx.DiGraph()

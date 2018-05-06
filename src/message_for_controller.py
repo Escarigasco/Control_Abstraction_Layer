@@ -1,15 +1,17 @@
 # Class that prepare the message for the controller and select the pump to be used to govern the system
 
-from rule_engine import rule_engine
+import pickle
 import re
-from enum import IntFlag, auto
+from rule_engine import rule_engine
+import socket
 
 
 class message_for_controller(object):
 
         def run(self, unique, system_input, interface):
+            HOST = 'localhost'    # The remote host
+            PORT = 50008              # The same port as used by the server
             system_valves = interface.get_system_valves()
-            system_lines = interface.get_system_lines()
             system_pipes = interface.get_system_pipes()
             system_pumps = interface.get_system_pumps()
             system_sensors = interface.get_system_sensors()
@@ -19,7 +21,6 @@ class message_for_controller(object):
             object_nodes = {}
             sensors = []
             pumps = []
-            message = {}
 
             nodes = list(unique.nodes)
             for node in nodes:
@@ -47,10 +48,18 @@ class message_for_controller(object):
                     node = successor
                 break'''
 
-            message = {"actuators": act_pumps, "sensors": system_input['sensors'],
-                       "parameters": system_input['parameters'], "setpoints": system_input['setpoints']}
+            input_for_controller = {"Gain": 1, "Kp": 2.58, "Ki": 2.58, "Kd": 0, "Circulator": act_pumps, "Circulator_mode": "constant m", "Actuator": act_pumps, "Setpoint": system_input['setpoints'], "Feedback": system_input['sensors']}
+            if (len(system_input["sinks"]) == 1 & len(system_input["sources"]) == 1):
+                message_serialized = pickle.dumps(input_for_controller)
+                print(message_serialized)
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((HOST, PORT))
+                    s.sendall(message_serialized)
+                    #data = s.recv(1024)
+                    #print('Received', repr(data))
+                s.close()
 
-            return message
+            return input_for_controller
 
 # deliver only the list of relevant component returning a dictionary stating the actuator and the feedback signal e.g. for the first use case will be pump x sensor and that's i
 # where to decide the components to be used? if I do it here I won't take into account the posibility that a sensor/pump could be dead and replaced by another

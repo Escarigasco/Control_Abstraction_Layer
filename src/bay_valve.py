@@ -32,6 +32,7 @@ class bay_valve:
             self.status = 1
         else:
             self.status = 0
+        print(self.ID, self.status)
 
     def get_status(self):
         return self.status

@@ -43,8 +43,9 @@ class logical_layer(object):
             return
         mssgr = message_for_controller()
         message = mssgr.run(unique, system_input, self.intf)
-        print(message)
         
+
+
     def check_sources(self):
         for source in self.used_sources:
             if (source == _BOOSTER_NAME):
@@ -64,4 +65,4 @@ if __name__ == "__main__":
     control_strategy = "flow"
     test.run(sinks, sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
-    #plt.show()
+    plt.show()

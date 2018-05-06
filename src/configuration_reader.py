@@ -103,7 +103,9 @@ class configuration_reader(object):
                                         Graph.add_node(device.get_name())
                                         Graph.add_edges_from([(iterate_sensor.get_name(), device.get_name())])
 
-                                    # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
+                                    #elif (line.flow_type == _HOT_FLOW):
+                                        #pass
+                                        # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
 
                         elif (system_valves[valve].get_flow_direction() == _DIRECTION_OUT):
 
@@ -150,7 +152,9 @@ class configuration_reader(object):
                                                 Graph.add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
                                                 iterate_sensor = line_device
                                             # else:
-                                                # pass
+
+                                    #elif (line.flow_type == _HOT_FLOW):
+                                        #pass            # pass
 
                                         device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
                                         Graph.add_node(device.get_name())
