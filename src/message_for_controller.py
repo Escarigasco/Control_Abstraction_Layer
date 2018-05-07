@@ -48,8 +48,9 @@ class message_for_controller(object):
                     node = successor
                 break'''
 
-            input_for_controller = {"Gain": 1, "Kp": 2.58, "Ki": 2.58, "Kd": 0, "Circulator": act_pumps, "Circulator_mode": "constant m", "Actuator": act_pumps, "Setpoint": system_input['setpoints'], "Feedback": system_input['sensors']}
-            if (len(system_input["sinks"]) == 1 & len(system_input["sources"]) == 1):
+            input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": act_pumps, "circulator_mode": "constant m", "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
+            
+            if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                 message_serialized = pickle.dumps(input_for_controller)
                 print(message_serialized)
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
