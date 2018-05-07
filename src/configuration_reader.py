@@ -5,6 +5,7 @@
 
 from object_tracker import object_tracker
 from random_server import random_server
+from random_server import current_status_reader
 import networkx as nx
 from matplotlib import pyplot as plt
 _COLD_FLOW = 'C'
@@ -37,7 +38,8 @@ class configuration_reader(object):
         valves_position = self.objtk.where_are_devices(system_valves)
         line_position = self.objtk.where_are_devices(system_lines)
 
-        random_server(system_pumps, system_sensors, system_valves)
+        # random_server(system_pumps, system_sensors, system_valves)
+        current_status_reader(system_pumps, system_sensors, system_valves)
 
         for busbar in system_busbars.keys():
 
