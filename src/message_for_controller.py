@@ -48,9 +48,9 @@ class message_for_controller(object):
                 break'''
 
             input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": act_pumps,
-                                    "circulator_mode": "constant m", "actuator": act_pumps,
+                                    "circulator_mode": "PUMP_MODE_CONSTANT_FLOW", "actuator": act_pumps,
                                     "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
-
+            '''
             if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                 message_serialized = pickle.dumps(input_for_controller)
 
@@ -59,6 +59,7 @@ class message_for_controller(object):
                     s.sendall(message_serialized)
 
                 s.close()
+                '''
 
             return input_for_controller
 
