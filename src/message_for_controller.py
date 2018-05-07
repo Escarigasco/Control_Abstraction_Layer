@@ -1,5 +1,4 @@
 # Class that prepare the message for the controller and select the pump to be used to govern the system
-
 import pickle
 import re
 from rule_engine import rule_engine
@@ -48,16 +47,17 @@ class message_for_controller(object):
                     node = successor
                 break'''
 
-            input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": act_pumps, "circulator_mode": "constant m", "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
-            
+            input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": act_pumps,
+                                    "circulator_mode": "constant m", "actuator": act_pumps,
+                                    "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
+
             if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                 message_serialized = pickle.dumps(input_for_controller)
-                print(message_serialized)
+
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.connect((HOST, PORT))
                     s.sendall(message_serialized)
-                    #data = s.recv(1024)
-                    #print('Received', repr(data))
+
                 s.close()
 
             return input_for_controller
@@ -74,5 +74,5 @@ class message_for_controller(object):
                 locations.append(location.data)
             for pump in pumps:
                 if (pump.location in locations):
-                    actuators_pumps.append(pump)
+                    actuators_pumps.append(pump.get_name())
             return actuators_pumps

@@ -14,10 +14,13 @@ class controller(object):
         return value
 
     def PID_controller(self, inputs, thread_ID):
-        print("Control Thread {0} started".format(thread_ID))
+        print("Control Process {0} started".format(thread_ID))
         print(thread_ID)
         inputs = pickle.loads(inputs)
+
         print(inputs)
+        max = 100
+        min = 0
         error = []
         time_response = []
         kp = inputs["kp"]
@@ -45,9 +48,9 @@ class controller(object):
 
                 output = (kp * error_value) + (ki * integral) + (kd * derivative)  # Calculate the output, pwm.
 
-                if (output > 100):
+                if (output > max):
                     output = 100  # Limit the output to maximum 255.
-                elif (output < 1):
+                elif (output < min):
                     output = 1
 
                 error.append(error_value)
