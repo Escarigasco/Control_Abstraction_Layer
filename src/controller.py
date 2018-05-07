@@ -4,7 +4,10 @@
 import _thread
 import pickle
 import sys
+import syslab
 import time
+_BUILDING_NAME = "716-h1"
+_CONTROL_TIME = 1
 
 
 class controller(object):
@@ -17,8 +20,8 @@ class controller(object):
         print("Control Process {0} started".format(thread_ID))
         print(thread_ID)
         inputs = pickle.loads(inputs)
-
         print(inputs)
+
         max = 100
         min = 0
         error = []
@@ -29,17 +32,18 @@ class controller(object):
         gain = inputs["gain"]
         circulators = inputs["circulator"]
         circulator_mode = inputs["circulator_mode"]
+        feedback = inputs["feedback"]
         integral = 0
         pre_error = 0
-        # INTERFACE = SWITCHBOARD_PYTHON_API()
+        # interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         #for n in len(circulators):
             #print(n)
-            # INTERFACE.SET_CIRCULATOR_MODE(circulators[n], circulator_mode[n])
+            # interface.setPumpMode(circulators[n], circulator_mode[n])
         while(1):
             try:
                 print("Control Thread {0} running".format(thread_ID))
-                time.sleep((thread_ID + 2))
-                feedback_value = 5  # INTERFACE.read_feedback("SENSOR")                    # Get the feedback value
+                time.sleep(_CONTROL_TIME)
+                feedback_value = 5  # interface.getThermalPower(feedback)                    # Get the feedback value
                 setpoint = inputs["setpoint"]                         # Get the set value
 
                 error_value = gain * (setpoint - feedback_value)       # Calculate the error
@@ -47,7 +51,7 @@ class controller(object):
                 derivative = error_value - pre_error           # Calculate derivative
 
                 output = (kp * error_value) + (ki * integral) + (kd * derivative)  # Calculate the output, pwm.
-
+                # interface.setPumpSetpoint(circulators)
                 if (output > max):
                     output = 100  # Limit the output to maximum 255.
                 elif (output < min):
@@ -56,8 +60,7 @@ class controller(object):
                 error.append(error_value)
                 time_response.append(feedback_value)  # Save as previous error.
             except (KeyboardInterrupt, SystemExit, Exception):
-                print("Thread Stopped")
-                _thread.exit()
+                print("Process Error. Stopped")
                 sys.exit()
 
 
