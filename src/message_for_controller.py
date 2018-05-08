@@ -1,4 +1,5 @@
 # Class that prepare the message for the controller and select the pump to be used to govern the system
+import configparser
 import pickle
 import re
 from rule_engine import rule_engine
@@ -20,6 +21,8 @@ class message_for_controller(object):
             object_nodes = {}
             sensors = []
             pumps = []
+            config = configparser.ConfigParser()
+            config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
 
             nodes = list(unique.nodes)
             for node in nodes:
@@ -47,9 +50,12 @@ class message_for_controller(object):
                     node = successor
                 break'''
 
-            input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": act_pumps,
-                                    "circulator_mode": "PUMP_MODE_CONSTANT_FLOW", "actuator": act_pumps,
-                                    "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
+
+            input_for_controller = {"gain": config.get("Constant_Energy_Valve_Actuating", "gain"), "kp": config.get("Constant_Energy_Valve_Actuating", "kp"),
+                                    "ki": config.get("Constant_Energy_Valve_Actuating", "ki"), "kd": config.get("Constant_Energy_Valve_Actuating", "kd"),
+                                    "circulator": act_pumps, "circulator_mode": config.get("Constant_Energy_Valve_Actuating", "circulator_mode"),
+                                    "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
+            print(input_for_controller)
             '''
             if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                 message_serialized = pickle.dumps(input_for_controller)
