@@ -1,0 +1,8 @@
+[Constant_Energy_Valve_Actuating]
+gain = 1
+kp = 2.58
+ki = 2.58
+kd = 0
+circulator_mode = PRESSURE_MODE_CONSTANT_PRESSURE
+
+ 
