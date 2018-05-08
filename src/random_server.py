@@ -5,7 +5,8 @@ _BUILDING_NAME = "716-h1"
 
 
 class random_server(object):
-    def __init__(self, pumps, sensors, valves):
+
+    def run(self, pumps, sensors, valves):
         min_operating = 0
         max_operating = 100
         step = max_operating * 0.5
