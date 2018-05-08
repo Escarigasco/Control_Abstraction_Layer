@@ -1,7 +1,6 @@
 # import SWITCHBOARD_PYTHON_API
 # remember that additional gain can be added by multiplying the error by a constant
 # you could initialize this controller as a class when you initialize the logical layer and then call the method that start the thread every time you need it
-import _thread
 import pickle
 import sys
 import syslab
@@ -35,10 +34,13 @@ class controller(object):
         feedback = inputs["feedback"]
         integral = 0
         pre_error = 0
-        # interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
-        #for n in len(circulators):
-            #print(n)
-            # interface.setPumpMode(circulators[n], circulator_mode[n])
+        windup_corrector = 0
+        actuator_signal = 0
+        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        # interface.setPumpMode(circulators[n], circulator_mode[n])
+        # for n in len(circulators):
+            # print(n)
+
         while(1):
             try:
                 print("Control Thread {0} running".format(thread_ID))
@@ -47,22 +49,31 @@ class controller(object):
                 setpoint = inputs["setpoint"]                         # Get the set value
 
                 error_value = gain * (setpoint - feedback_value)       # Calculate the error
-                integral = integral + error_value              # Calculate integral
+                integral = (integral + error_value) - windup_corrector              # Calculate integral
                 derivative = error_value - pre_error           # Calculate derivative
 
-                output = (kp * error_value) + (ki * integral) + (kd * derivative)  # Calculate the output, pwm.
+                controller_output = (kp * error_value) + (ki * integral) + (kd * derivative)  # Calculate the controller_output, pwm.
                 # interface.setPumpSetpoint(circulators)
-                if (output > max):
-                    output = 100  # Limit the output to maximum 255.
-                elif (output < min):
-                    output = 1
+                windup_corrector = self.controller_wind_up(actuator_signal, controller_output, ki)
+
+                if (controller_output > max):
+                    actuator_signal = 100  # Limit the controller_output to maximum 255.
+                elif (controller_output < min):
+                    actuator_signal = 1
+                else:
+                    actuator_signal = controller_output
 
                 error.append(error_value)
                 time_response.append(feedback_value)  # Save as previous error.
+
             except (KeyboardInterrupt, SystemExit, Exception):
                 print("Process Error. Stopped")
                 sys.exit()
 
+    def controller_wind_up(self, actuator_signal, controller_output, ki):
+        error_saturation = actuator_signal - controller_output
+        windup_corrector = error_saturation / ki
+        return windup_corrector
 
 if __name__ == "__main__":
     test = controller()
