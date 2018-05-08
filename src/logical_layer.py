@@ -6,6 +6,10 @@ from object_tracker import object_tracker
 from path_builder import path_builder
 from switch_board_building import switch_board_building
 import time
+import threading
+import queue
+from multiprocessing import Process, Pipe
+
 _BOOSTER_NAME = "Source_1BH4"
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
@@ -19,6 +23,27 @@ class logical_layer(object):
         self.building_config = switch_board_building(self.buildingID)
         self.intf = interface(self.building_config, self.SwitchID)
         self.objtk = object_tracker(self.intf)
+
+
+
+
+
+        #self.work_q = queue.Queue()     # first create your "work object"
+        #self.q_lock = threading.Lock()
+        #cfg = configuration_reader(self.intf, self.work_q, self.q_lock)  # after instantiate like this your Thread
+
+        #cfg.setDaemon(True)  # this is to join the thread with the main
+        #cfg.start()
+
+        cfg = configuration_reader(self.intf)
+        self.main_end, self.cfg_end = Pipe()
+        online_reader = Process(target=cfg.run, args=(self.cfg_end,))
+        online_reader.daemon = True
+        online_reader.start()
+        #online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+
+
+        #plt.show()
 
     def run(self, sinks, sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted):
         self.boosted = boosted
@@ -35,15 +60,30 @@ class logical_layer(object):
                         "control_strategy": self.control_strategy, "controlled_device": self.controlled_device, "boosted": self.boosted}
 
         # builder = rule_engine(self.intf)
-        cfg = configuration_reader(self.intf)
-        online_configuration = cfg.run()
-        pb = path_builder(self.intf)
-        unique = pb.run(system_input, online_configuration)
-        if unique is None:
-            return
-        mssgr = message_for_controller()
-        message = mssgr.run(unique, system_input, self.intf)
-        
+        # cfg = configuration_reader(self.intf)
+        # online_configuration = cfg.run()
+        print("I am here")
+        while True:
+            time.sleep(10)
+            if self.main_end.recv():
+                online_configuration = self.main_end.recv()
+                pb = path_builder(self.intf)
+                unique = pb.run(system_input, online_configuration)
+                if unique is None:
+                    return
+                mssgr = message_for_controller()
+                message = mssgr.run(unique, system_input, self.intf)
+                break
+            '''with self.q_lock:
+                if not self.work_q.empty():
+                        online_configuration = self.work_q.get()
+                        pb = path_builder(self.intf)
+                        unique = pb.run(system_input, online_configuration)
+                        if unique is None:
+                            return
+                        mssgr = message_for_controller()
+                        message = mssgr.run(unique, system_input, self.intf)
+                        break'''
 
 
     def check_sources(self):
@@ -63,6 +103,8 @@ if __name__ == "__main__":
     setpoints = 50
     controlled_device = "Pump_1H5"
     control_strategy = "flow"
+    #while True:
+        #input("Press [enter] to continue.")
     test.run(sinks, sensors, parameters, setpoints, sources, controlled_device, control_strategy, boosted)
     print("--- %s seconds ---" % (time.time() - start_time))
     plt.show()
