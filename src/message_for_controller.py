@@ -14,6 +14,8 @@ class message_for_controller(object):
 
         def run(self, unique, system_input, interface):
 
+
+
             system_valves = interface.get_system_valves()
             system_pipes = interface.get_system_pipes()
             system_pumps = interface.get_system_pumps()
@@ -53,11 +55,12 @@ class message_for_controller(object):
                     print("{0}\n".format(successor))
                     node = successor
                 break'''
+            feedback_sensors = self.name_translator(system_input["sensors"])
 
             input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_name, "gain"), "kp": config.get(controller_name, "kp"),
                                     "ki": config.get(controller_name, "ki"), "kd": config.get(controller_name, "kd"),
                                     "circulator": act_pumps, "circulator_mode": config.get(controller_name, "circulator_mode"),
-                                    "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
+                                    "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors}
             print(input_for_controller)
 
             if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
@@ -89,6 +92,22 @@ class message_for_controller(object):
 # pump - if one sink use the pump of source, if there is booster use the booster
 #       - if two sinks always use both pumps of each sink
 # sensor -
+
+        def name_translator(self, sensors):
+            translated_sensors = []
+            sensors_name = {
+                'Sensor_1HT4': "Bay_4", 'Sensor_1CT4': "Bay_4", 'Sensor_1CF4': "Bay_4", 'Sensor_1E4': "Bay_4",
+                'Sensor_1HT5': "Bay_5", 'Sensor_1CT5': "Bay_5", 'Sensor_1CF5': "Bay_5", 'Sensor_1E5': "Bay_5",
+                'Sensor_1HT6': "Bay_6", 'Sensor_1CT6': "Bay_6", 'Sensor_1CF6': "Bay_6", 'Sensor_1E6': "Bay_6",
+                'Sensor_1HT7': "Bay_7", 'Sensor_1CT7': "Bay_7", 'Sensor_1CF7': "Bay_7", 'Sensor_1E7': "Bay_7",
+                'Sensor_1HT8': "Bay_8", 'Sensor_1CT8': "Bay_8", 'Sensor_1CF8': "Bay_8", 'Sensor_1E8': "Bay_8"}
+            for sensor in sensors:
+                translated_sensors.append(sensors_name[sensor])
+                print(translated_sensors)
+            return translated_sensors
+
+
+
         def pump_selector(self, ideal_pump, pumps):
             actuators_pumps = []
             locations = []
