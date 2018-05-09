@@ -50,6 +50,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                             s.shutdown(socket.SHUT_RDWR)
                             s.close()
                             sys.exit()
+                            
         except KeyboardInterrupt:
             s.shutdown(socket.SHUT_RDWR) # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
             s.close()

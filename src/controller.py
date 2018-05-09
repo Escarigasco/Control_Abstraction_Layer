@@ -5,8 +5,9 @@ import pickle
 import sys
 import syslab
 import time
+import signal
 _BUILDING_NAME = "716-h1"
-_CONTROL_TIME = 1
+_CONTROL_TIME = 2
 
 
 class controller(object):
@@ -16,6 +17,7 @@ class controller(object):
         return value
 
     def PID_controller(self, inputs, thread_ID):
+
         print("Control Process {0} started".format(thread_ID))
         print("I am process", thread_ID)
         inputs = pickle.loads(inputs)
@@ -31,13 +33,14 @@ class controller(object):
         gain = float(inputs["gain"])
         circulators = inputs["circulator"]
         circulator_mode = inputs["circulator_mode"]
-        feedback = inputs["feedback"]
+        feedback_sensor = inputs["feedback_sensor"]
         setpoint = float(inputs["setpoint"])
         integral = 0
         pre_error = 0
         windup_corrector = 0
         actuator_signal = 0
-        # interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        shut_down_signal = 0
         # interface.setPumpMode(circulators[n], circulator_mode[n])
         # for n in len(circulators):
             # print(n)
@@ -46,7 +49,10 @@ class controller(object):
             try:
                 print("Control Thread {0} running".format(thread_ID))
                 time.sleep(_CONTROL_TIME)
-                feedback_value = 5  # interface.getThermalPower(feedback)                    # Get the feedback value
+                feedback_value = interface.getThermalPower(feedback_sensor).value
+                print(feedback_value)
+                print(interface.getThermalPower(feedback_sensor))
+                #feedback_value = 5  # interface.getThermalPower(feedback)                    # Get the feedback value
                                         # Get the set value
 
                 error_value = gain * (setpoint - feedback_value)       # Calculate the error
@@ -63,11 +69,11 @@ class controller(object):
                     actuator_signal = 1
                 else:
                     actuator_signal = controller_output
-
+                print(actuator_signal)
                 # interface.setPumpSetpoint(circulators, actuator_signal)
                 error.append(error_value)
                 time_response.append(feedback_value)  # Save as previous error.
-
+                signal.signal(signal.SIGTERM, self.signal_term_handler)
             except (KeyboardInterrupt, SystemExit, Exception):
 
                 # interface.interface.setPumpSetpoint(circulators, shut_down_signal)
@@ -80,6 +86,9 @@ class controller(object):
         windup_corrector = error_saturation / ki
         return windup_corrector
 
+    def signal_term_handler(signal, frame):
+        print('got SIGTERM')
+        sys.exit(0)
 
 if __name__ == "__main__":
     test = controller()
