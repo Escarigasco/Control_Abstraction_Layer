@@ -16,7 +16,7 @@ _FIRST_OF_THE_CLASS = 0
 _BOOSTER = "booster"
 _BOOSTER_NAME = "Source_1BH4"
 _BOOSTER_BAR = "B"
-_OFFSET_FIGURE = 1
+_OFFSET_FIGURE = 2
 
 
 class path_builder(object):
@@ -26,9 +26,9 @@ class path_builder(object):
         self.objtk = object_tracker(self.builder)
 
     def run(self, input_request, online_configuration):
+
         pm = path_matcher(online_configuration)
         sources = input_request['sources']
-
         sinks = input_request['sinks']
         boosted = input_request['boosted']
         bays_sources = []
@@ -207,16 +207,19 @@ class path_builder(object):
                                             possible_configurations[idx].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
                     is_match = pm.run(possible_configurations[idx], idx)
                     if (is_match):
-                        plt.figure(idx + _OFFSET_FIGURE)
-                        plt.title('Matched Configuratiion')
-                        nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+
+                        #plt.figure(idx + _OFFSET_FIGURE)
+                        #plt.clf()
+                        #plt.title('Matched Configuratiion')
+                        #nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                         return possible_configurations[idx]
 
                     else:
                         print("Configuration {0} did not match match online reading \n".format(idx))
-                        plt.figure(idx + _OFFSET_FIGURE)
-                        plt.title('Not Compatible Configuratiion')
-                        nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+
+                        #plt.figure(idx + _OFFSET_FIGURE)
+                        #plt.title('Not Compatible Configuratiion')
+                        #nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                         idx += 1
 
     def all_possible_valves(self, valves_position, bays_sinks, bays_sources, boosted, connected_device_position):
