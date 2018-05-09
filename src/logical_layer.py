@@ -61,18 +61,19 @@ class logical_layer(object):
         # cfg = configuration_reader(self.intf)
         # online_configuration = cfg.run()
 
+        time.sleep(10)
         while True:
             try:
-                #time.sleep(10)
-                if self.main_end.recv():
 
+                if self.main_end.recv():
                     # plt.close()
                     plt.close('all')
                     online_configuration = self.main_end.recv()
                     unique = pb.run(system_input, online_configuration)
 
                     if (unique is not None):  # if there is a matching between user input and online configuration
-                        if (system_input != system_previous_input):
+                        if (not self.process_started):
+                        #if (system_input != system_previous_input):
                             print("how many messagessssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss")
                             mssgr.run(unique, system_input, self.intf)
                             self.process_started = True
@@ -107,11 +108,11 @@ if __name__ == "__main__":
     start_time = time.time()
     test = logical_layer("Building716", "Switch_Board_1")
     sinks = ["Sink_1H7"]
-    sources = ["Source_1HP5"]
+    sources = ["Source_1BH4"]
     boosted = "N"
-    sensors = ["Sensor_1E8"]
+    sensors = ["Sensor_1E7"]
     parameters = "Energy"
-    setpoints = 50
+    setpoints = 20
     controlled_device = "Pump_1H5"
     controller_name = "Constant_Energy_Pump_Actuating"
 
