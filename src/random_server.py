@@ -16,7 +16,7 @@ class random_server(object):
 
 
 class current_status_reader(object):
-    def __init__(self, pumps, sensors, valves):
+    def run(self, pumps, sensors, valves):
             interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
 
             valves_name_translator = {
