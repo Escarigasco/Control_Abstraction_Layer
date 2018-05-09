@@ -8,15 +8,19 @@ import socket
 
 class message_for_controller(object):
 
+        def __init__(self):
+            self.HOST = 'localhost'    # The remote host
+            self.PORT = 50008              # The same port as used by the server
+
         def run(self, unique, system_input, interface):
-            HOST = 'localhost'    # The remote host
-            PORT = 50008              # The same port as used by the server
+
             system_valves = interface.get_system_valves()
             system_pipes = interface.get_system_pipes()
             system_pumps = interface.get_system_pumps()
             system_sensors = interface.get_system_sensors()
             system_busbars = interface.build_busbars(system_pipes)
             system_connected_devices = interface.get_connected_devices()
+            controller_name = system_input["controller_name"]
             system_components = {**system_sensors, **system_busbars, **system_valves, **system_connected_devices, **system_valves, **system_pumps}
             object_nodes = {}
             sensors = []
@@ -50,24 +54,35 @@ class message_for_controller(object):
                     node = successor
                 break'''
 
-
-            input_for_controller = {"gain": config.get("Constant_Energy_Valve_Actuating", "gain"), "kp": config.get("Constant_Energy_Valve_Actuating", "kp"),
-                                    "ki": config.get("Constant_Energy_Valve_Actuating", "ki"), "kd": config.get("Constant_Energy_Valve_Actuating", "kd"),
-                                    "circulator": act_pumps, "circulator_mode": config.get("Constant_Energy_Valve_Actuating", "circulator_mode"),
+            input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_name, "gain"), "kp": config.get(controller_name, "kp"),
+                                    "ki": config.get(controller_name, "ki"), "kd": config.get(controller_name, "kd"),
+                                    "circulator": act_pumps, "circulator_mode": config.get(controller_name, "circulator_mode"),
                                     "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback": system_input['sensors']}
             print(input_for_controller)
-            '''
+
             if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                 message_serialized = pickle.dumps(input_for_controller)
 
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((HOST, PORT))
+                    s.connect((self.HOST, self.PORT))
                     s.sendall(message_serialized)
 
                 s.close()
-                '''
 
-            return input_for_controller
+        def kill(self, system_input):
+            input_for_controller = {"controller_name": "Constant_Energy_Pump_Actuating", "kill": 'Y'}
+            print(input_for_controller)
+
+            if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
+                message_serialized = pickle.dumps(input_for_controller)
+
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((self.HOST, self.PORT))
+                    s.sendall(message_serialized)
+
+                s.close()
+
+
 
 # deliver only the list of relevant component returning a dictionary stating the actuator and the feedback signal e.g. for the first use case will be pump x sensor and that's i
 # where to decide the components to be used? if I do it here I won't take into account the posibility that a sensor/pump could be dead and replaced by another
