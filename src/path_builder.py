@@ -208,18 +208,21 @@ class path_builder(object):
                     is_match = pm.run(possible_configurations[idx], idx)
                     if (is_match):
 
-                        #plt.figure(idx + _OFFSET_FIGURE)
-                        #plt.clf()
-                        #plt.title('Matched Configuratiion')
-                        #nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        plt.figure(idx + _OFFSET_FIGURE)
+                        plt.clf()
+                        plt.title('Matched Configuration')
+                        nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        plt.pause(0.001)
                         return possible_configurations[idx]
 
                     else:
                         print("Configuration {0} did not match match online reading \n".format(idx))
 
-                        #plt.figure(idx + _OFFSET_FIGURE)
-                        #plt.title('Not Compatible Configuratiion')
-                        #nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        plt.figure(idx + _OFFSET_FIGURE)
+                        plt.clf()
+                        plt.title('Not Compatible Configuratiion')
+                        nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        plt.pause(0.001)
                         idx += 1
 
     def all_possible_valves(self, valves_position, bays_sinks, bays_sources, boosted, connected_device_position):
