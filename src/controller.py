@@ -17,26 +17,27 @@ class controller(object):
 
     def PID_controller(self, inputs, thread_ID):
         print("Control Process {0} started".format(thread_ID))
-        print(thread_ID)
+        print("I am process", thread_ID)
         inputs = pickle.loads(inputs)
         print(inputs)
-
+        self.thread_ID = thread_ID
         max = 100
         min = 0
         error = []
         time_response = []
-        kp = inputs["kp"]
-        kd = inputs["ki"]
-        ki = inputs["kd"]
-        gain = inputs["gain"]
+        kp = float(inputs["kp"])
+        kd = float(inputs["kd"])
+        ki = float(inputs["ki"])
+        gain = float(inputs["gain"])
         circulators = inputs["circulator"]
         circulator_mode = inputs["circulator_mode"]
         feedback = inputs["feedback"]
+        setpoint = float(inputs["setpoint"])
         integral = 0
         pre_error = 0
         windup_corrector = 0
         actuator_signal = 0
-        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        # interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         # interface.setPumpMode(circulators[n], circulator_mode[n])
         # for n in len(circulators):
             # print(n)
@@ -46,14 +47,14 @@ class controller(object):
                 print("Control Thread {0} running".format(thread_ID))
                 time.sleep(_CONTROL_TIME)
                 feedback_value = 5  # interface.getThermalPower(feedback)                    # Get the feedback value
-                setpoint = inputs["setpoint"]                         # Get the set value
+                                        # Get the set value
 
                 error_value = gain * (setpoint - feedback_value)       # Calculate the error
                 integral = (integral + error_value) - windup_corrector              # Calculate integral
                 derivative = error_value - pre_error           # Calculate derivative
 
                 controller_output = (kp * error_value) + (ki * integral) + (kd * derivative)  # Calculate the controller_output, pwm.
-                # interface.setPumpSetpoint(circulators)
+
                 windup_corrector = self.controller_wind_up(actuator_signal, controller_output, ki)
 
                 if (controller_output > max):
@@ -63,10 +64,14 @@ class controller(object):
                 else:
                     actuator_signal = controller_output
 
+                # interface.setPumpSetpoint(circulators, actuator_signal)
                 error.append(error_value)
                 time_response.append(feedback_value)  # Save as previous error.
 
             except (KeyboardInterrupt, SystemExit, Exception):
+
+                # interface.interface.setPumpSetpoint(circulators, shut_down_signal)
+                print("Circulators is now at zero flow")
                 print("Process Error. Stopped")
                 sys.exit()
 
@@ -75,7 +80,9 @@ class controller(object):
         windup_corrector = error_saturation / ki
         return windup_corrector
 
+
 if __name__ == "__main__":
     test = controller()
     input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": "Pump", "circulator_mode": "constant m", "actuator": "pump", "setpoint": 50, "feedback": 'sensors'}
-    test.PID_controller(input_for_controller)
+    inputs = pickle.dumps(input_for_controller)
+    test.PID_controller(inputs, "test_controller")
