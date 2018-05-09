@@ -44,18 +44,18 @@ class configuration_reader(object):
         connected_device_position = self.objtk.where_are_devices(system_connected_devices)
         valves_position = self.objtk.where_are_devices(system_valves)
         line_position = self.objtk.where_are_devices(system_lines)
-        cold_start = 0
+        cold_start = 1
 
-        rs = random_server()
-        #ro = current_status_reader()
+        #rs = random_server()
+        ro = current_status_reader()
 
         plt.ion()
         plt.show()
         while True:
             try:
                 '''you could just be checking the valves as list of strings between the old and the new before running the new graph builder - check if you want to improve performance'''
-                rs.run(system_pumps, system_sensors, system_valves)
-                #ro.run(system_pumps, system_sensors, system_valves)
+                #rs.run(system_pumps, system_sensors, system_valves)
+                ro.run(system_pumps, system_sensors, system_valves)
 
                 time.sleep(5)
 
@@ -187,9 +187,15 @@ class configuration_reader(object):
 
                 print(not nx.is_isomorphic(self.UpdatedGraph, self.Graph))
                 # if not (set(self.UpdatedGraph.nodes) == set(self.Graph.nodes)):
+                if (cold_start):
+                    print("cold staaaaaaaaaaaaaaaaaaaaaaart")
+                    pipe_end.send(self.Graph)
+                    print(self.Graph.nodes())
+                    cold_start = 0
+                #if (not self.UpdatedGraph.nodes() == self.Graph.nodes()):
                 if (not nx.is_isomorphic(self.UpdatedGraph, self.Graph)):
                     self.UpdatedGraph.clear()
-                    print("I am updating")
+                    print("I am updatingggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
                     plt.clf()
                     plt.title('Online Configuration')
                     self.UpdatedGraph = nx.union(self.Graph, self.UpdatedGraph)
@@ -197,9 +203,11 @@ class configuration_reader(object):
                     nx.draw_kamada_kawai(self.UpdatedGraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                     plt.pause(0.001)
                     pipe_end.send(self.UpdatedGraph)
+                    print(self.UpdatedGraph.nodes())
 
-                #if (cold_start):
-                    #pipe_end.send(self.UpdatedGraph)
+
+
+
 
             except (KeyboardInterrupt, SystemExit, Exception):
                 #print("Online reader Thread Stopped")
