@@ -17,9 +17,9 @@ class path_matcher(object):
         plt.show()
 
     def run(self, possible_configurations, idx):
-        short_list = []
+
         print("I start computing")
-        
+
         print("try extracting subgraph")
         extracted_subgraph = self.online_configuration.subgraph(possible_configurations.nodes)
         print("subgraph extracted")
@@ -33,24 +33,24 @@ class path_matcher(object):
                 nx.is_isomorphic(extracted_subgraph, possible_configurations)
                 print("isomorpishm confirmed \n")
 
-                plt.figure(idx + _OFFSET_FIGURE)
+                '''plt.figure(idx + _OFFSET_FIGURE)
                 #plt.figure()
                 plt.clf()
                 plt.title('Connected Subgraph of Online Configuration')
                 nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-                plt.pause(0.001)
+                plt.pause(0.001)'''
                 return True
             else:
-                plt.figure(idx + _OFFSET_FIGURE)
+                '''plt.figure(idx + _OFFSET_FIGURE)
                 plt.clf()
                 plt.title('Disconnected Subgraph of Online Configuration')
                 nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-                plt.pause(0.001)
+                plt.pause(0.001)'''
                 return False
         else:
-            plt.figure(idx + _OFFSET_FIGURE)
+            '''plt.figure(idx + _OFFSET_FIGURE)
             plt.clf()
             plt.title('Disconnected Subgraph of Online Configuration')
             nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-            plt.pause(0.001)
+            plt.pause(0.001)'''
             return False
