@@ -10,8 +10,8 @@ class bay_valve:
         self.connection = connection
         self.flow = flow
         self.flow_direction = direction
-        self.opening_threshold = 0.1
-        #self.opening_threshold = 20
+        #self.opening_threshold = 0.1
+        self.opening_threshold = 20
 
     def get_flow_direction(self):
         return self.flow_direction
@@ -29,13 +29,7 @@ class bay_valve:
         return self.parent_ID
 
     def set_status(self, status):
-        try:
-            if (status > self.opening_threshold):
-                self.status = 1
-            else:
-                self.status = 0
-        except Exception:
-            self.status = 0
+            self.status = status
             #print(self.ID, self.status)
 
     def get_status(self):

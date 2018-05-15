@@ -2,7 +2,9 @@ import random
 import syslab
 import time
 _BUILDING_NAME = "716-h1"
-
+_ACTIVE = 1
+_ACTIVE_VALVE = 0.1
+_INACTIVE = 0
 
 class random_server(object):
 
@@ -10,8 +12,13 @@ class random_server(object):
         min_operating = 0
         max_operating = 100
         for valve in valves.keys():
-            setpoint = random.randint(min_operating, max_operating)
-            valves[valve].set_status(setpoint)
+            random = random.randint(min_operating, max_operating)
+            if (random > 10):
+                valves[valve].set_status(random)
+        for sensor in sensors.keys():
+            random = random.randint(min_operating, max_operating)
+            if (random > 10):
+                sensors[sensor].set_status(random)
 
 
 class current_status_reader(object):
@@ -32,16 +39,17 @@ class current_status_reader(object):
                 'Pump_1H7': "Bay_7",
                 'Pump_1H8': "Bay_8"}
 
-            sensors_name = {
-                'Sensor_1HT4': "Bay_4", 'Sensor_1CT4': "Bay_4", 'Sensor_1CF4': "Bay_4", 'Sensor_1E4': "Bay_4",
-                'Sensor_1HT5': "Bay_5", 'Sensor_1CT5': "Bay_5", 'Sensor_1CF5': "Bay_5", 'Sensor_1E5': "Bay_5",
-                'Sensor_1HT6': "Bay_6", 'Sensor_1CT6': "Bay_6", 'Sensor_1CF6': "Bay_6", 'Sensor_1E6': "Bay_6",
-                'Sensor_1HT7': "Bay_7", 'Sensor_1CT7': "Bay_7", 'Sensor_1CF7': "Bay_7", 'Sensor_1E7': "Bay_7",
-                'Sensor_1HT8': "Bay_8", 'Sensor_1CT8': "Bay_8", 'Sensor_1CF8': "Bay_8", 'Sensor_1E8': "Bay_8"}
+            
 
             for valve in valves.keys():
                 #time.sleep(0.1)
                 opening = interface.getValvePosition(valves_name_translator[valve])
                 print(valve)
                 print(opening.value)
-                valves[valve].set_status(opening.value)
+                try:
+                    if (opening.value > _ACTIVE_VALVE):
+                        valves[valve].set_status(_ACTIVE)
+                    else:
+                        valves[valve].set_status(_INACTIVE)
+                except Exception:
+                    valves[valve].set_status(_INACTIVE)
