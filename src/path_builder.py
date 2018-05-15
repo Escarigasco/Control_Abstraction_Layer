@@ -213,6 +213,7 @@ class path_builder(object):
                         plt.title('Matched Configuration')
                         nx.draw_kamada_kawai(possible_configurations[idx], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                         plt.pause(0.001)
+
                         return possible_configurations[idx]
 
                     else:
