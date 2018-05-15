@@ -30,7 +30,7 @@ class configuration_reader(object):
         #self._stop_event = threading.Event()
         # system_bays = self.config_reader.get_hydraulic_bays()
 
-    def run(self, pipe_end):
+    def run(self, worker_q):
         self.Graph = nx.DiGraph()
         self.UpdatedGraph = nx.DiGraph()
         system_pumps = self.config_reader.get_system_pumps()
@@ -45,6 +45,8 @@ class configuration_reader(object):
         valves_position = self.objtk.where_are_devices(system_valves)
         line_position = self.objtk.where_are_devices(system_lines)
         cold_start = 1
+        valve_status_online = []
+        valve_status_previous = []
 
         #rs = random_server()
         ro = current_status_reader()
@@ -52,33 +54,68 @@ class configuration_reader(object):
         plt.ion()
         plt.show()
         while True:
-            try:
+            #try:
                 '''you could just be checking the valves as list of strings between the old and the new before running the new graph builder - check if you want to improve performance'''
                 #rs.run(system_pumps, system_sensors, system_valves)
                 ro.run(system_pumps, system_sensors, system_valves)
+                time.sleep(1)
+                print(system_valves)
+                valve_status_online = []
+                for valve in system_valves.values():
+                    valve_status_online.append(valve.get_status())
+                print(valve_status_online != valve_status_previous)
+                if (valve_status_online != valve_status_previous):
+                    valve_status_previous = valve_status_online
+                    print(valve_status_online)
+                    print(valve_status_previous)
+                    print("Am I enteringggggggggggggggggggggggggggggggggggg")
 
-                time.sleep(5)
+                    for busbar in system_busbars.keys():
 
-                for busbar in system_busbars.keys():
+                        busbar_ID = system_busbars[busbar].get_name()
+                        self.Graph.add_node(system_busbars[busbar].get_name())
+                        for valve in system_valves.keys():
 
-                    busbar_ID = system_busbars[busbar].get_name()
-                    self.Graph.add_node(system_busbars[busbar].get_name())
-                    for valve in system_valves.keys():
+                            bay = valves_position[valve]
+                            if (system_valves[valve].get_status()):
+                                print("{0} open".format(system_valves[valve]))
+                                self.Graph.add_node(system_valves[valve].get_name())
+                                valve_connection = system_valves[valve].get_connection()
+                                if (valve_connection == busbar_ID):
+                                    if (system_valves[valve].get_flow_direction() == _DIRECTION_IN):
 
-                        bay = valves_position[valve]
-                        if (system_valves[valve].get_status()):
-                            print("{0} open".format(system_valves[valve]))
-                            self.Graph.add_node(system_valves[valve].get_name())
-                            valve_connection = system_valves[valve].get_connection()
-                            if (valve_connection == busbar_ID):
-                                if (system_valves[valve].get_flow_direction() == _DIRECTION_IN):
+                                        self.Graph.add_edges_from([(system_busbars[busbar].get_name(), system_valves[valve].get_name())])
+                                        if (system_valves[valve].get_flow() == _HOT_FLOW):
 
-                                    self.Graph.add_edges_from([(system_busbars[busbar].get_name(), system_valves[valve].get_name())])
-                                    if (system_valves[valve].get_flow() == _HOT_FLOW):
+                                                lines = line_position[bay]
+                                                for line in lines:
+                                                    if (line.flow_type == _HOT_FLOW):
 
+                                                        line_devices = {**line.line_sensors, **line.pumps}.values()
+                                                        sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
+                                                        iterate_sensor = system_valves[valve]
+                                                        for line_device in sorted_devices:
+                                                            # if (sensors[sensor].get_status()):
+
+                                                                self.Graph.add_node(line_device.get_name())
+                                                                self.Graph.add_edges_from([(iterate_sensor.get_name(), line_device.get_name())])
+                                                                iterate_sensor = line_device
+                                                            # else:
+                                                                # pass
+
+                                                        device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
+
+                                                        self.Graph.add_node(device.get_name())
+                                                        self.Graph.add_edges_from([(iterate_sensor.get_name(), device.get_name())])
+                                                        # else:  # if the pump is disconnected
+                                                        # continue  # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
+                                                    elif (line.flow_type == _COLD_FLOW):
+                                                        pass
+
+                                        elif (system_valves[valve].get_flow() == _COLD_FLOW):
                                             lines = line_position[bay]
                                             for line in lines:
-                                                if (line.flow_type == _HOT_FLOW):
+                                                if (line.flow_type == _COLD_FLOW):
 
                                                     line_devices = {**line.line_sensors, **line.pumps}.values()
                                                     sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
@@ -93,47 +130,48 @@ class configuration_reader(object):
                                                             # pass
 
                                                     device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-
+                                                    #self.Graph.add_node(device.get_name(), pos=(x_dev, y))
                                                     self.Graph.add_node(device.get_name())
                                                     self.Graph.add_edges_from([(iterate_sensor.get_name(), device.get_name())])
-                                                    # else:  # if the pump is disconnected
-                                                    # continue  # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
-                                                elif (line.flow_type == _COLD_FLOW):
-                                                    pass
 
-                                    elif (system_valves[valve].get_flow() == _COLD_FLOW):
-                                        lines = line_position[bay]
-                                        for line in lines:
-                                            if (line.flow_type == _COLD_FLOW):
+                                                #elif (line.flow_type == _HOT_FLOW):
+                                                    #pass
+                                                    # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
 
-                                                line_devices = {**line.line_sensors, **line.pumps}.values()
-                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
-                                                iterate_sensor = system_valves[valve]
-                                                for line_device in sorted_devices:
-                                                    # if (sensors[sensor].get_status()):
+                                    elif (system_valves[valve].get_flow_direction() == _DIRECTION_OUT):
 
-                                                        self.Graph.add_node(line_device.get_name())
-                                                        self.Graph.add_edges_from([(iterate_sensor.get_name(), line_device.get_name())])
-                                                        iterate_sensor = line_device
-                                                    # else:
-                                                        # pass
+                                        self.Graph.add_edges_from([(system_valves[valve].get_name(), system_busbars[busbar].get_name())])
+                                        if (system_valves[valve].get_flow() == _HOT_FLOW):
+                                                lines = line_position[bay]
+                                                for line in lines:
+                                                    if (line.flow_type == _HOT_FLOW):
 
-                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                #self.Graph.add_node(device.get_name(), pos=(x_dev, y))
-                                                self.Graph.add_node(device.get_name())
-                                                self.Graph.add_edges_from([(iterate_sensor.get_name(), device.get_name())])
+                                                        line_devices = {**line.line_sensors, **line.pumps}.values()
+                                                        sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
+                                                        iterate_sensor = system_valves[valve]
+                                                        for line_device in sorted_devices:
+                                                            # if (sensors[sensor].get_status()):
 
-                                            #elif (line.flow_type == _HOT_FLOW):
-                                                #pass
-                                                # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
+                                                                self.Graph.add_node(line_device.get_name())
+                                                                self.Graph.add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
+                                                                iterate_sensor = line_device
+                                                            # else:
+                                                                # pass
 
-                                elif (system_valves[valve].get_flow_direction() == _DIRECTION_OUT):
+                                                        device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
+                                                        #self.Graph.add_node(device.get_name(), pos=(x_dev, y))
+                                                        self.Graph.add_node(device.get_name())
+                                                        self.Graph.add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
-                                    self.Graph.add_edges_from([(system_valves[valve].get_name(), system_busbars[busbar].get_name())])
-                                    if (system_valves[valve].get_flow() == _HOT_FLOW):
+                                                        # else: # if the pump is disconnected
+                                                        # continue # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
+                                                    elif (line.flow_type == _COLD_FLOW):
+                                                        pass
+
+                                        elif (system_valves[valve].get_flow() == _COLD_FLOW):
                                             lines = line_position[bay]
                                             for line in lines:
-                                                if (line.flow_type == _HOT_FLOW):
+                                                if (line.flow_type == _COLD_FLOW):
 
                                                     line_devices = {**line.line_sensors, **line.pumps}.values()
                                                     sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
@@ -145,77 +183,47 @@ class configuration_reader(object):
                                                             self.Graph.add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
                                                             iterate_sensor = line_device
                                                         # else:
-                                                            # pass
+
+                                                #elif (line.flow_type == _HOT_FLOW):
+                                                    #pass            # pass
 
                                                     device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                    #self.Graph.add_node(device.get_name(), pos=(x_dev, y))
                                                     self.Graph.add_node(device.get_name())
                                                     self.Graph.add_edges_from([(device.get_name(), iterate_sensor.get_name())])
 
-                                                    # else: # if the pump is disconnected
-                                                    # continue # if i want to make fail the loop because if you can't poll it could be anything and you can't control with unknown variables around + insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
-                                                elif (line.flow_type == _COLD_FLOW):
-                                                    pass
+                                                # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
+                            else:
+                                print("{0} close".format(system_valves[valve]))
+                                continue
 
-                                    elif (system_valves[valve].get_flow() == _COLD_FLOW):
-                                        lines = line_position[bay]
-                                        for line in lines:
-                                            if (line.flow_type == _COLD_FLOW):
+                    print(not nx.is_isomorphic(self.UpdatedGraph, self.Graph))
+                    if (cold_start):
+                        print("cold staaaaaaaaaaaaaaaaaaaaaaart")
+                        #worker_q.send(self.Graph)
+                        worker_q.put(self.Graph)
+                        #self.Graph.clear()
+                        cold_start = 0
+                    #if (not self.UpdatedGraph.nodes() == self.Graph.nodes()):
+                    if (not nx.is_isomorphic(self.UpdatedGraph, self.Graph)):
+                        self.UpdatedGraph.clear()
+                        print("I am updatingggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
+                        plt.clf()
+                        plt.title('Online Configuration')
+                        self.UpdatedGraph = nx.union(self.UpdatedGraph, self.Graph)
+                        self.Graph.clear()
+                        nx.draw_kamada_kawai(self.UpdatedGraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        plt.pause(0.001)
+                        #worker_q.send(self.UpdatedGraph)
+                        worker_q.put(self.UpdatedGraph)
+                        print(self.UpdatedGraph.nodes())
 
-                                                line_devices = {**line.line_sensors, **line.pumps}.values()
-                                                sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
-                                                iterate_sensor = system_valves[valve]
-                                                for line_device in sorted_devices:
-                                                    # if (sensors[sensor].get_status()):
-
-                                                        self.Graph.add_node(line_device.get_name())
-                                                        self.Graph.add_edges_from([(line_device.get_name(), iterate_sensor.get_name())])
-                                                        iterate_sensor = line_device
-                                                    # else:
-
-                                            #elif (line.flow_type == _HOT_FLOW):
-                                                #pass            # pass
-
-                                                device = connected_device_position[bay][_FIRST_OF_THE_CLASS]
-                                                self.Graph.add_node(device.get_name())
-                                                self.Graph.add_edges_from([(device.get_name(), iterate_sensor.get_name())])
-
-                                            # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
-                        else:
-                            print("{0} close".format(system_valves[valve]))
-                            continue
-
-                print(not nx.is_isomorphic(self.UpdatedGraph, self.Graph))
-                # if not (set(self.UpdatedGraph.nodes) == set(self.Graph.nodes)):
-                if (cold_start):
-                    print("cold staaaaaaaaaaaaaaaaaaaaaaart")
-                    pipe_end.send(self.Graph)
-                    print(self.Graph.nodes())
-                    cold_start = 0
-                #if (not self.UpdatedGraph.nodes() == self.Graph.nodes()):
-                if (not nx.is_isomorphic(self.UpdatedGraph, self.Graph)):
-                    self.UpdatedGraph.clear()
-                    print("I am updatingggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
-                    plt.clf()
-                    plt.title('Online Configuration')
-                    self.UpdatedGraph = nx.union(self.Graph, self.UpdatedGraph)
-                    self.Graph.clear()
-                    nx.draw_kamada_kawai(self.UpdatedGraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-                    plt.pause(0.001)
-                    pipe_end.send(self.UpdatedGraph)
-                    print(self.UpdatedGraph.nodes())
-
-
-
-
-
-            except (KeyboardInterrupt, SystemExit, Exception):
+            #except (KeyboardInterrupt, SystemExit, Exception):
                 #print("Online reader Thread Stopped")
-                print("Process Error. Stopped")
-                pipe_end.close()
-                sys.exit()
-                #self._stop_event.set()
-            print(self.UpdatedGraph.nodes())
-            print(self.Graph.nodes())
+            #    print("Process Error. Stopped")
+            #    worker_q.close()
+            #    sys.exit()
+
+        #print(self.UpdatedGraph.nodes())
+        #print(self.Graph.nodes())
             # plt.show()
         #returnself.Graph
