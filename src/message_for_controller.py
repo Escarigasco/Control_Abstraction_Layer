@@ -63,28 +63,33 @@ class message_for_controller(object):
                                     "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors}
             print(input_for_controller)
 
-            if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                message_serialized = pickle.dumps(input_for_controller)
+            try:
+                if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
+                    message_serialized = pickle.dumps(input_for_controller)
 
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((self.HOST, self.PORT))
-                    s.sendall(message_serialized)
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.connect((self.HOST, self.PORT))
+                        s.sendall(message_serialized)
 
-                s.close()
+                    s.close()
+            except Exception:
+                print("Message sending failed")
+                pass
 
         def kill(self, system_input):
             input_for_controller = {"controller_name": "Constant_Energy_Pump_Actuating", "kill": 'Y'}
             print(input_for_controller)
+            try:
+                if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
+                    message_serialized = pickle.dumps(input_for_controller)
 
-            if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                message_serialized = pickle.dumps(input_for_controller)
-
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((self.HOST, self.PORT))
-                    s.sendall(message_serialized)
-
-                s.close()
-
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.connect((self.HOST, self.PORT))
+                        s.sendall(message_serialized)
+                    s.close()
+            except Exception:
+                print("Message sending failed")
+                pass
 
 
 # deliver only the list of relevant component returning a dictionary stating the actuator and the feedback signal e.g. for the first use case will be pump x sensor and that's i
