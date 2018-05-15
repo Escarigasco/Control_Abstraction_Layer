@@ -8,7 +8,7 @@ from switch_board_building import switch_board_building
 import time
 import threading
 import queue
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, Queue
 import sys
 
 _BOOSTER_NAME = "Source_1BH4"
@@ -34,7 +34,9 @@ class logical_layer(object):
 
         cfg = configuration_reader(self.intf)
         self.main_end, self.cfg_end = Pipe()
-        self.online_reader = Process(target=cfg.run, args=(self.cfg_end,))
+        self.work_q = Queue()
+        #self.online_reader = Process(target=cfg.run, args=(self.cfg_end,))
+        self.online_reader = Process(target=cfg.run, args=(self.work_q,))
         self.online_reader.daemon = True
         self.online_reader.start()
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
@@ -61,15 +63,18 @@ class logical_layer(object):
         # cfg = configuration_reader(self.intf)
         # online_configuration = cfg.run()
 
-        time.sleep(10)
         while True:
             try:
 
-                if self.main_end.recv():
+                #if self.main_end.recv():
+                if not self.work_q.empty():
                     # plt.close()
                     plt.close('all')
-                    online_configuration = self.main_end.recv()
+                    #online_configuration = self.main_end.recv()
+                    online_configuration = self.work_q.get()
                     unique = pb.run(system_input, online_configuration)
+                    print(unique)
+                    print("tu che sei diversooooooooooooooooooooooooooooooooooooooo")
 
                     if (unique is not None):  # if there is a matching between user input and online configuration
                         if (not self.process_started):
@@ -113,7 +118,7 @@ if __name__ == "__main__":
     sensors = ["Sensor_1E7"]
     parameters = "Energy"
     setpoints = 20
-    controlled_device = "Pump_1H5"
+    controlled_device = "Pump_1H7"
     controller_name = "Constant_Energy_Pump_Actuating"
 
     test.run(sinks, sensors, parameters, setpoints, sources, controlled_device, boosted, controller_name)
