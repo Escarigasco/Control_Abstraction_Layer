@@ -10,6 +10,7 @@ import time
 _BUILDING_NAME = "716-h1"
 _CONTROL_TIME = 2
 _MULTIPLIER = 1000000
+_OFF = "OFF"
 
 class controller(object):
 
@@ -41,7 +42,7 @@ class controller(object):
         pre_error = 0
         windup_corrector = 0
         actuator_signal = 0
-        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
         # interface.setPumpMode(circulators[n], circulator_mode[n])
         # for n in len(circulators):
@@ -51,10 +52,10 @@ class controller(object):
             try:
                 print("Control Thread {0} running".format(process_ID))
                 time.sleep(_CONTROL_TIME)
-                feedback_value = interface.getThermalPower(feedback_sensor).value
+                #feedback_value = interface.getThermalPower(feedback_sensor).value
 
                 #print(feedback_value)
-                print(interface.getThermalPower(feedback_sensor))
+                #print(interface.getThermalPower(feedback_sensor))
                 feedback_value = 0
                 error_value = gain * (setpoint - feedback_value)       # Calculate the error
                 integral = (integral + error_value) - windup_corrector              # Calculate integral
@@ -80,6 +81,7 @@ class controller(object):
                 time_response.append(feedback_value)  # Save as previous error.
                 signal.signal(signal.SIGTERM, self.signal_term_handler)
             except (KeyboardInterrupt, Exception, SystemExit):
+                # interface.setPumpMode(circulators, _OFF)
                 CompositMess = CM(actuator_signal, time.time() * _MULTIPLIER)
                 # interface.setPumpSetpoint(circulators, CompositMess)
                 print("Circulators is now at zero flow")

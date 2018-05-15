@@ -30,6 +30,7 @@ class configuration_reader(object):
         #self._stop_event = threading.Event()
         # system_bays = self.config_reader.get_hydraulic_bays()
 
+
     def run(self, worker_q):
         self.Graph = nx.DiGraph()
         self.UpdatedGraph = nx.DiGraph()
@@ -50,9 +51,9 @@ class configuration_reader(object):
 
         #rs = random_server()
         ro = current_status_reader()
-
         plt.ion()
         plt.show()
+
         while True:
             #try:
                 '''you could just be checking the valves as list of strings between the old and the new before running the new graph builder - check if you want to improve performance'''
@@ -215,7 +216,7 @@ class configuration_reader(object):
                         plt.pause(0.001)
                         #worker_q.send(self.UpdatedGraph)
                         worker_q.put(self.UpdatedGraph)
-                        print(self.UpdatedGraph.nodes())
+                        #print(self.UpdatedGraph.nodes())
 
             #except (KeyboardInterrupt, SystemExit, Exception):
                 #print("Online reader Thread Stopped")
