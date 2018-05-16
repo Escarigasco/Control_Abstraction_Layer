@@ -6,23 +6,20 @@ _ACTIVE = 1
 _ACTIVE_VALVE = 0.1
 _INACTIVE = 0
 
-class random_server(object):
 
-    def run(self, pumps, sensors, valves):
+class current_status_reader(object):
+
+    def run_random(self, pumps, sensors, valves):
         min_operating = 0
         max_operating = 100
         for valve in valves.keys():
-            random = random.randint(min_operating, max_operating)
-            if (random > 10):
-                valves[valve].set_status(random)
-        for sensor in sensors.keys():
-            random = random.randint(min_operating, max_operating)
-            if (random > 10):
-                sensors[sensor].set_status(random)
+            random_gen = random.randint(min_operating, max_operating)
+            if (random_gen > 10):
+                valves[valve].set_status(_ACTIVE)
+            else:
+                valves[valve].set_status(_INACTIVE)
 
-
-class current_status_reader(object):
-    def run(self, pumps, sensors, valves):
+    def run_online(self, pumps, sensors, valves):
             interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
 
             valves_name_translator = {
@@ -31,15 +28,6 @@ class current_status_reader(object):
                 'Valve_2C6': "Bay_6L-Busbar_1R", 'Valve_1C6': "Bay_6L-Busbar_2R", 'Valve_1B6': "Bay_6H-Busbar_B", 'Valve_2H6': "Bay_6H-Busbar_1F", 'Valve_1H6': "Bay_6H-Busbar_2F", 'Valve_2B6': "Bay_6L-Busbar_B",
                 'Valve_2H7': "Bay_7H-Busbar_1F", 'Valve_1H7': "Bay_7H-Busbar_2F", 'Valve_2C7': "Bay_7L-Busbar_1R", 'Valve_1C7': "Bay_7L-Busbar_2R",
                 'Valve_2H8': "Bay_8H-Busbar_1F", 'Valve_1H8': "Bay_8H-Busbar_2F", 'Valve_2C8': "Bay_8L-Busbar_1R", 'Valve_1C8': "Bay_8L-Busbar_2R"}
-
-            pump_name_translator = {
-                'Pump_1C4': "Bay_4",
-                'Pump_1H5': "Bay_5",
-                'Pump_1H6': "Bay_6",
-                'Pump_1H7': "Bay_7",
-                'Pump_1H8': "Bay_8"}
-
-            
 
             for valve in valves.keys():
                 #time.sleep(0.1)
