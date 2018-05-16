@@ -4,7 +4,6 @@
 # if a valve is off the algo goes to the next one leaving one branch open
 import threading
 from object_tracker import object_tracker
-from random_server import random_server
 from random_server import current_status_reader
 import networkx as nx
 import time
@@ -49,7 +48,6 @@ class configuration_reader(object):
         valve_status_online = []
         valve_status_previous = []
 
-        #rs = random_server()
         ro = current_status_reader()
         plt.ion()
         plt.show()
@@ -57,19 +55,19 @@ class configuration_reader(object):
         while True:
             #try:
                 '''you could just be checking the valves as list of strings between the old and the new before running the new graph builder - check if you want to improve performance'''
-                #rs.run(system_pumps, system_sensors, system_valves)
-                ro.run(system_pumps, system_sensors, system_valves)
+                ro.run_random(system_pumps, system_sensors, system_valves)
+                #ro.run_online(system_pumps, system_sensors, system_valves)
                 time.sleep(1)
-                print(system_valves)
+
                 valve_status_online = []
                 for valve in system_valves.values():
                     valve_status_online.append(valve.get_status())
-                print(valve_status_online != valve_status_previous)
+
                 if (valve_status_online != valve_status_previous):
                     valve_status_previous = valve_status_online
-                    print(valve_status_online)
-                    print(valve_status_previous)
-                    print("Am I enteringggggggggggggggggggggggggggggggggggg")
+                    #print(valve_status_online)
+                    #print(valve_status_previous)
+                    #print("Am I enteringggggggggggggggggggggggggggggggggggg")
 
                     for busbar in system_busbars.keys():
 
@@ -79,7 +77,7 @@ class configuration_reader(object):
 
                             bay = valves_position[valve]
                             if (system_valves[valve].get_status()):
-                                print("{0} open".format(system_valves[valve]))
+                                #print("{0} open".format(system_valves[valve]))
                                 self.Graph.add_node(system_valves[valve].get_name())
                                 valve_connection = system_valves[valve].get_connection()
                                 if (valve_connection == busbar_ID):
@@ -194,12 +192,12 @@ class configuration_reader(object):
 
                                                 # insert sensor(for the sensors the order doesn't matter) + insert device -- define methods to do this to increase readibility
                             else:
-                                print("{0} close".format(system_valves[valve]))
+                                #print("{0} close".format(system_valves[valve]))
                                 continue
 
-                    print(not nx.is_isomorphic(self.UpdatedGraph, self.Graph))
+                    #print(not nx.is_isomorphic(self.UpdatedGraph, self.Graph))
                     if (cold_start):
-                        print("cold staaaaaaaaaaaaaaaaaaaaaaart")
+                        #print("cold staaaaaaaaaaaaaaaaaaaaaaart")
                         #worker_q.send(self.Graph)
                         worker_q.put(self.Graph)
                         #self.Graph.clear()
@@ -207,7 +205,7 @@ class configuration_reader(object):
                     #if (not self.UpdatedGraph.nodes() == self.Graph.nodes()):
                     if (not nx.is_isomorphic(self.UpdatedGraph, self.Graph)):
                         self.UpdatedGraph.clear()
-                        print("I am updatingggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
+                        #print("I am updatingggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
                         plt.clf()
                         plt.title('Online Configuration')
                         self.UpdatedGraph = nx.union(self.UpdatedGraph, self.Graph)
