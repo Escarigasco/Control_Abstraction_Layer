@@ -1,7 +1,7 @@
 # Class that prepare the message for the controller and select the pump to be used to govern the system
+from components_status import components_status
 import configparser
 import pickle
-import re
 from rule_engine import rule_engine
 import socket
 import sys
@@ -10,6 +10,7 @@ import time
 _ACTIVE = 1
 _INACTIVE = 0
 _BUILDING_NAME = "716-h1"
+
 
 class message_for_controller(object):
 
@@ -25,44 +26,33 @@ class message_for_controller(object):
             system_sensors = interface.get_system_sensors()
             system_busbars = interface.build_busbars(system_pipes)
             system_connected_devices = interface.get_connected_devices()
-            controller_name = system_input["controller_name"]
             system_components = {**system_sensors, **system_busbars, **system_valves, **system_connected_devices, **system_valves, **system_pumps}
-            object_nodes = {}
-            sensors = []
-            available_sensors = []
-            pumps = []
+            unique_nodes = {}
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
-            interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+
+            #interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
+            interface_syslab = 0
+
+
 
             nodes = list(unique.nodes)
             for node in nodes:
-                object_nodes[node] = system_components[node]
+                unique_nodes[node] = system_components[node]
 
-            self.sensor_evaluation(system_sensors, interface)
-            for node in object_nodes.keys():
-                s_name = 'Sensor'
-                if (re.match(s_name, node)):
-                    sensors.append(object_nodes[node])
-                    print(object_nodes[node])
-                    if ((object_nodes[node].status == _ACTIVE)):
-                        available_sensors.append(object_nodes[node])
-                p_name = 'Pump'
-                if (re.match(p_name, node)):
-                    pumps.append(object_nodes[node])
+            c_status = components_status()
+            available_components = c_status.run(interface, interface_syslab, unique_nodes)
 
-            print(available_sensors)
             #sys.exit()
+
             engine = rule_engine()
-            ideal_pump = engine.run(system_input)
-            act_pumps = self.pump_selector(ideal_pump, pumps)
+            ideal_pump = engine.run(system_input, available_components)
+
+            sys.exit()
+            '''act_pumps = self.pump_selector(ideal_pump, pumps)
             print(act_pumps)
 
-            '''while(1):
-                for successor in list(unique.successors(node)):
-                    print("{0}\n".format(successor))
-                    node = successor
-                break'''
+
             feedback_sensors = self.name_translator(system_input["sensors"])
 
             input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_name, "gain"), "kp": config.get(controller_name, "kp"),
@@ -81,7 +71,7 @@ class message_for_controller(object):
                     s.close()
             except Exception:
                 print("Message sending failed")
-                pass
+                pass'''
 
         def kill(self, system_input):
             input_for_controller = {"controller_name": "Constant_Energy_Pump_Actuating", "kill": 'Y'}
@@ -128,23 +118,3 @@ class message_for_controller(object):
                 if (pump.location in locations):
                     actuators_pumps.append(pump.get_name())
             return actuators_pumps
-
-        def sensor_evaluation(self, sensors, interface):
-
-            sensors_name_translator = {
-                'Sensor_1HT4': interface.getFwdTemperature("Bay_4"), 'Sensor_1CT4': interface.getBackTemperature("Bay_4"), 'Sensor_1CF4': interface.getFlow("Bay_4"), 'Sensor_1E4': interface.getThermalPower("Bay_4"),
-                'Sensor_1HT5': interface.getFwdTemperature("Bay_5"), 'Sensor_1CT5': interface.getBackTemperature("Bay_5"), 'Sensor_1CF5': interface.getFlow("Bay_5"), 'Sensor_1E5': interface.getThermalPower("Bay_5"),
-                'Sensor_1HT6': interface.getFwdTemperature("Bay_6"), 'Sensor_1CT6': interface.getBackTemperature("Bay_6"), 'Sensor_1CF6': interface.getFlow("Bay_6"), 'Sensor_1E6': interface.getThermalPower("Bay_6"),
-                'Sensor_1HT7': interface.getFwdTemperature("Bay_7"), 'Sensor_1CT7': interface.getBackTemperature("Bay_7"), 'Sensor_1CF7': interface.getFlow("Bay_7"), 'Sensor_1E7': interface.getThermalPower("Bay_7"),
-                'Sensor_1HT8': interface.getFwdTemperature("Bay_8"), 'Sensor_1CT8': interface.getBackTemperature("Bay_8"), 'Sensor_1CF8': interface.getFlow("Bay_8"), 'Sensor_1E8': interface.getThermalPower("Bay_8")}
-
-            for sensor in sensors_name_translator.keys():
-                #time.sleep(0.1)
-                status = sensors_name_translator[sensor].value
-                print(sensor)
-                print(status)
-                if (status != "NaN"):
-                    sensors[sensor].set_status(_ACTIVE)
-                    print(sensors[sensor].status)
-                else:
-                    sensors[sensor].set_status(_INACTIVE)
