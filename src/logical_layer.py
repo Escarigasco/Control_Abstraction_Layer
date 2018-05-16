@@ -39,23 +39,19 @@ class logical_layer(object):
         self.online_reader = Process(target=cfg.run, args=(self.work_q,))
         self.online_reader.daemon = True
         self.online_reader.start()
+        #self.online_reader.join()
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
-    def run(self, sinks, sensors, parameters, setpoints, sources, controlled_device, boosted, controller_name):
-        self.boosted = boosted
+    def run(self, sinks, sources, boosted, parameters, setpoints):
         self.used_sinks = sinks
+        self.used_sources = sources
+        self.boosted = boosted
         self.parameters = parameters
         self.setpoints = setpoints
-        self.used_sources = sources
-        self.controlled_device = controlled_device
-        self.sensors = sensors
-        self.controller_name = controller_name
         self.check_sources()
         self.process_started = False
-        system_previous_input = {}
-        system_input = {"sinks": self.used_sinks, "sensors": self.sensors, "parameters": self.parameters,
-                        "setpoints": self.setpoints, "sources": self.used_sources,
-                        "controlled_device": self.controlled_device, "boosted": self.boosted, "controller_name": self.controller_name}
+        system_input = {"sinks": self.used_sinks, "sources": self.used_sources, "boosted": self.boosted,
+                        "parameters": self.parameters, "setpoints": self.setpoints}
         pb = path_builder(self.intf)
         mssgr = message_for_controller()
         # plt.close('all')
@@ -65,7 +61,6 @@ class logical_layer(object):
 
         while True:
             try:
-
                 #if self.main_end.recv():
                 if not self.work_q.empty():
                     # plt.close()
@@ -78,11 +73,9 @@ class logical_layer(object):
 
                     if (unique is not None):  # if there is a matching between user input and online configuration
                         if (not self.process_started):
-                        #if (system_input != system_previous_input):
                             print("how many messagessssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss")
                             mssgr.run(unique, system_input, self.intf)
                             self.process_started = True
-                            system_previous_input = system_input
                     else:
                         if (self.process_started):
                             print("when I am hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee?")
@@ -115,11 +108,11 @@ if __name__ == "__main__":
     sinks = ["Sink_1H7"]
     sources = ["Source_1BH4"]
     boosted = "N"
-    sensors = ["Sensor_1E7"]
+    #sensors = ["Sensor_1E7"]
     parameters = "Energy"
     setpoints = 20
-    controlled_device = "Pump_1H7"
-    controller_name = "Constant_Energy_Pump_Actuating"
+    #controlled_device = "Pump_1H7"
+    #controller_name = "Constant_Energy_Pump_Actuating"
 
-    test.run(sinks, sensors, parameters, setpoints, sources, controlled_device, boosted, controller_name)
+    test.run(sinks, sources, boosted, parameters, setpoints)
     print("--- %s seconds ---" % (time.time() - start_time))
