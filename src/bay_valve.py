@@ -1,17 +1,23 @@
 # Valve Class
+from random import choice
 
 
-class bay_valve:
+class bay_valve(object):
     'Class for Valve definition and properties'
 
-    def __init__(self, parent_ID, ID, connection, flow, direction):
+    def __init__(self, parent_ID, ID, connection, flow, direction, connected_dev, status=None):
         self.parent_ID = parent_ID
         self.ID = ID
         self.connection = connection
         self.flow = flow
         self.flow_direction = direction
+        self.location = connected_dev
+
         #self.opening_threshold = 0.1
         self.opening_threshold = 20
+        if status is None:
+            status = choice(["NaN", 1])
+        self.status = status
 
     def get_flow_direction(self):
         return self.flow_direction

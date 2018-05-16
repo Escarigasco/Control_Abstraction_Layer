@@ -7,7 +7,7 @@ from line_pump import line_pump
 class connector_line(object):
     'Class for switch board definition and properties'
 
-    def __init__(self, parent_ID, ID, line, flow_type, is_return, connection):
+    def __init__(self, parent_ID, ID, line, flow_type, is_return, connected_dev):
         self.parent_ID = parent_ID
         self.ID = ID
         self.flow_type = flow_type
@@ -19,10 +19,10 @@ class connector_line(object):
         pumps = self.line.find_all("pump")
 
         for sensor in sensors:
-            self.line_sensors[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], sensor["line_position"])
+            self.line_sensors[sensor["id"]] = system_sensor(self.ID, sensor["id"], sensor["variable"], sensor["embedded"], sensor["line_position"], connected_dev)
 
         for pump in pumps:
-            self.pumps[pump["id"]] = line_pump(self.ID, pump["id"], pump["line_position"], connection)
+            self.pumps[pump["id"]] = line_pump(self.ID, pump["id"], pump["line_position"], connected_dev)
 
     def get_parent(self):
         return self.parent_ID

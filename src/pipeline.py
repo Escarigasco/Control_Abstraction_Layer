@@ -6,7 +6,7 @@ from bay_valve import bay_valve
 class pipeline(object):
     'Class for Pipeline definition and properties'
 
-    def __init__(self, parent_ID, ID, pipe, busbar, type, direction):
+    def __init__(self, parent_ID, ID, pipe, busbar, type, direction, connected_dev):
         self.parent_ID = parent_ID
         self.ID = ID
         self.pipe = pipe
@@ -18,7 +18,7 @@ class pipeline(object):
         valves = self.pipe.find_all("valve")     # find valves
 
         for valve in valves:
-            self.valves_list[valve["id"]] = bay_valve(self.ID, valve["id"], valve["connection"], valve["flow"], self.direction)  # creates valves
+            self.valves_list[valve["id"]] = bay_valve(self.ID, valve["id"], valve["connection"], valve["flow"], self.direction, connected_dev)  # creates valves
 
     def get_parent(self):
         return self.parent_ID

@@ -9,7 +9,7 @@ from connected_device import connected_device
 
 class bay_connector:
 
-    def __init__(self, parent_ID, ID, connector, output_line, connection):
+    def __init__(self, parent_ID, ID, connector, output_line, connected_dev):
         self.parent_ID = parent_ID
         self.ID = ID
         self.lines_list = {}
@@ -24,11 +24,11 @@ class bay_connector:
         for line in lines:
             if (self.output_line == line["type"]):
                 is_output = True
-                self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output, connection)
+                self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output, connected_dev)
 
             else:
                 is_output = False
-                self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output, connection)
+                self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output, connected_dev)
 
         for device in devices:
             self.connected_devices_list[device["id"]] = connected_device(self.ID, device["id"], device["type"], device["rating"])

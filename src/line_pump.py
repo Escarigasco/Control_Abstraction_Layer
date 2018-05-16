@@ -1,14 +1,19 @@
 # Pump Class
+from random import choice
 
 
 class line_pump:
     'Class for Pump definition and properties'
 
-    def __init__(self, parent_ID, ID, position, connection):
+    def __init__(self, parent_ID, ID, position, connected_dev, status=None):
         self.parent_ID = parent_ID
         self.ID = ID
         self.position = int(position)  # this tells you where is in the line
-        self.location = connection
+        self.location = connected_dev
+
+        if status is None:
+            status = choice(["NaN", 1])
+        self.status = status
 
     def get_name(self):
         return self.ID
