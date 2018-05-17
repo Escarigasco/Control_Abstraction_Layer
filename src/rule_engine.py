@@ -72,7 +72,7 @@ class Pump_Configurator(KnowledgeEngine):
     @DefFacts()
     def first(self):
         yield Actuator_facts(actuator_type=Actuator_type.__all_flags__)
-        yield Pump_facts(pump_type=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__)
+        yield Pump_facts(pump_mode=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__)
         yield Sensors_facts(sensor_location=Location.__all_flags__, sensor_number=Number.__no_flags__)
         yield Actuator_facts(obj=self.actuator)
         yield Pump_facts(obj=self.pump)
@@ -88,12 +88,12 @@ class Pump_Configurator(KnowledgeEngine):
     def actuator_selector_valve(self, actuator, pump):
         print("Actuator selection")
         actuator.type = actuator.type & Actuator_type.VALVE
-        pump.type = pump.type & Pump_Mode.CONSTANT_PRESSURE
+        pump.mode = pump.mode & Pump_Mode.CONSTANT_PRESSURE
         pump.location = pump.location ^ Location.SINK
         actuator.location = Location.SINK  # to be change in reality
         actuator.number = _SECOND_BEST
         self.declare(Actuator_facts(actuator_type=actuator.type, actuator_location=actuator.location))
-        self.declare(Pump_facts(pump_type=pump.type, pump_location=pump.location))
+        self.declare(Pump_facts(pump_mode=pump.mode, pump_location=pump.location))
         self.retract(_ALL_FLAGS_ACTUATOR_TYPE)
         print(self.facts)
 
@@ -107,20 +107,20 @@ class Pump_Configurator(KnowledgeEngine):
           Actuator_facts(obj=MATCH.actuator),
           Actuator_facts(actuator_type=Actuator_type.__all_flags__),
           Pump_facts(obj=MATCH.pump),
-          Pump_facts(pump_type=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__))
+          Pump_facts(pump_mode=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__))
     def actuator_selector_pump(self, actuator, pump):
         print("Actuator selection when pump is selected")
         actuator.type = actuator.type & Actuator_type.PUMP
-        pump.type = pump.type & Pump_Mode.CONSTANT_FLOW
+        pump.mode = pump.mode & Pump_Mode.CONSTANT_FLOW
         pump.location = Location.SINK
         actuator.location = pump.location
         actuator.number = _SECOND_BEST
-        self.declare(Pump_facts(pump_type=pump.type, pump_location=pump.location))
+        self.declare(Pump_facts(pump_mode=pump.mode, pump_location=pump.location))
         self.declare(Actuator_facts(actuator_type=actuator.type, actuator_location=actuator.location))
         self.retract(_ALL_FLAGS_ACTUATOR_TYPE)
         self.retract(_ALL_FLAGS_PUMP_LOCATION_MODE)
 
-    @Rule(Pump_facts(pump_type=Pump_Mode.CONSTANT_FLOW),
+    @Rule(Pump_facts(pump_mode=Pump_Mode.CONSTANT_FLOW),
           Actuator_facts(pumps_sources=P(lambda pumps_sources: pumps_sources == 1)),
           Actuator_facts(pumps_sinks=P(lambda pumps_sinks: 1 >= pumps_sinks >= 0)),
           Actuator_facts(obj=MATCH.actuator),
@@ -146,7 +146,7 @@ class Pump_Configurator(KnowledgeEngine):
 class Pump(object):
     def __init__(self):
         self.location = Location.__all_flags__
-        self.type = Pump_Mode.__all_flags__
+        self.mode = Pump_Mode.__all_flags__
 
 
 class Sensor(object):
@@ -189,14 +189,17 @@ class rule_engine(object):
         # engine.declare(Sensors(loc=sensor.location, obj=sensor))
         engine.run()
 
-        print("the pump runs in ", engine.pump.type)
+        print("the pump runs in ", engine.pump.mode)
         print("the pump is in ", engine.pump.location)
         print("the actuator is the ", engine.actuator.type)
         print("the actuator/s are located in ", engine.actuator.location)
         print("the actuator needed are ", engine.actuator.number)
         print("the sensor/s are located in ", engine.sensor.location)
         print("the sensors needed are ", engine.sensor.number)
-        return "ciao"
+        ideal_components = {"Ideal_Pump": engine.pump,
+                            "Ideal_Actuator": engine.actuator,
+                            "Ideal_Sensor": engine.sensor}
+        return ideal_components
 
 
 if __name__ == "__main__":
@@ -208,7 +211,7 @@ if __name__ == "__main__":
                                 "Sensors_active": ["Sensor_1E4", "Sensor_1E7"],
                                 "Valves_active": ["Valve_1H4", "Valve_1C4", "Valve_1H7", "Valve_1C7", "Valve_1H8", "Valve_1C8"],
                                 "Pumps_in_sources": 1,
-                                "Pumps_in_sinks": 0,
+                                "Pumps_in_sinks": 1,
                                 "Sensors_in_sources": 1,
                                 "Sensors_in_sinks": 1,
                                 "Valves_in_sources": 2,
