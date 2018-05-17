@@ -1,17 +1,20 @@
 import re
+import syslab
 _ACTIVE = 1
 _INACTIVE = 0
+_BUILDING_NAME = "716-h1"
 
 
 class components_status(object):
 
-    def run(self, interface, interface_syslab, unique_nodes):
+    def run(self, interface, unique_nodes):
 
         sensors = []
         pumps = []
         valves = []
         active_components = {}
-
+        interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        interface = 0
         for node in unique_nodes.keys():
             s_name = 'Sensor'
             if (re.match(s_name, node)):
@@ -25,9 +28,9 @@ class components_status(object):
             if (re.match(v_name, node)):
                 valves.append(unique_nodes[node])
 
-        #self.sensor_evaluation(sensors, interface_syslab)
-        #self.pumps_evaluation(pumps, interface_syslab)
-        #self.valves_evaluation(valves, interface_syslab)
+        self.sensor_evaluation(sensors, interface_syslab)
+        self.pumps_evaluation(pumps, interface_syslab)
+        self.valves_evaluation(valves, interface_syslab)
 
         active_components = {"Pumps_active": [pump for pump in pumps if pump.status == _ACTIVE],
                              "Sensors_active": [sensor for sensor in sensors if sensor.status == _ACTIVE],
