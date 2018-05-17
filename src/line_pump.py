@@ -10,9 +10,10 @@ class line_pump:
         self.ID = ID
         self.position = int(position)  # this tells you where is in the line
         self.location = connected_dev
+        self.type = "Pump"
 
         if status is None:
-            status = choice(["NaN", 1])
+            status = choice([ 1, 1, 1])
         self.status = status
 
     def get_name(self):

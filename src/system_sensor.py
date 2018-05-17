@@ -14,7 +14,7 @@ class system_sensor:
 
 
         if status is None:
-            status = choice(["NaN", 1])
+            status = choice([ 1, 1, 1])
         self.status = status
         # print(self.ID)
 

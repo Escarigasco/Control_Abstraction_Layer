@@ -12,11 +12,12 @@ class bay_valve(object):
         self.flow = flow
         self.flow_direction = direction
         self.location = connected_dev
+        self.type = "Valve"
 
         #self.opening_threshold = 0.1
         self.opening_threshold = 20
         if status is None:
-            status = choice(["NaN", 1])
+            status = choice([1, 1, 1])
         self.status = status
 
     def get_flow_direction(self):
