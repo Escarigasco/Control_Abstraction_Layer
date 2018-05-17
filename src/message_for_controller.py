@@ -39,27 +39,30 @@ class message_for_controller(object):
 
             c_status = components_status()
             available_components = c_status.run(interface, unique_nodes)
-            engine = rule_engine()
-            ideal_components = engine.run(system_input, available_components)
-            act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
-            print(act_circulator)
-            actuators = self.actuator_selector(ideal_components["Ideal_Actuator"], available_components["Valves_active"], available_components["Pumps_active"])
-            print(actuators)
-            feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
-            print(feedback_sensors)
-            act_circulator["pumps"] = self.circulator_name_translator(act_circulator["pumps"])
-            print(act_circulator)
-            feedback_sensors["sensors"] = self.sensors_name_translator(feedback_sensors["sensors"])
-            print(feedback_sensors)
-            actuators["actuators"] = self.actuators_name_translator(actuators["actuators"])
-            print(actuators)
-            self.controller_name = act_circulator["mode"]
+            try:
+                engine = rule_engine()
+                ideal_components = engine.run(system_input, available_components)
+                act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
+                print(act_circulator)
+                actuators = self.actuator_selector(ideal_components["Ideal_Actuator"], available_components["Valves_active"], available_components["Pumps_active"])
+                print(actuators)
+                feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
+                print(feedback_sensors)
+                act_circulator["pumps"] = self.circulator_name_translator(act_circulator["pumps"])
+                print(act_circulator)
+                feedback_sensors["sensors"] = self.sensors_name_translator(feedback_sensors["sensors"])
+                print(feedback_sensors)
+                actuators["actuators"] = self.actuators_name_translator(actuators["actuators"])
+                print(actuators)
+                self.controller_name = act_circulator["mode"]
 
-            input_for_controller = {"controller_name": self.controller_name, "kill": 'N', "gain": config.get(self.controller_name, "gain"), "kp": config.get(self.controller_name, "kp"),
-                                    "ki": config.get(self.controller_name, "ki"), "kd": config.get(self.controller_name, "kd"),
-                                    "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
-                                    "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
-            print(input_for_controller)
+                input_for_controller = {"controller_name": self.controller_name, "kill": 'N', "gain": config.get(self.controller_name, "gain"), "kp": config.get(self.controller_name, "kp"),
+                                        "ki": config.get(self.controller_name, "ki"), "kd": config.get(self.controller_name, "kd"),
+                                        "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
+                                        "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
+                print(input_for_controller)
+            except Exception:
+                return
             #sys.exit()
 
             try:

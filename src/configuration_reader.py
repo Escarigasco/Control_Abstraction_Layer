@@ -55,8 +55,8 @@ class configuration_reader(object):
         while True:
             #try:
                 '''you could just be checking the valves as list of strings between the old and the new before running the new graph builder - check if you want to improve performance'''
-                ro.run_random(system_pumps, system_sensors, system_valves)
-                #ro.run_online(system_pumps, system_sensors, system_valves)
+                #ro.run_random(system_pumps, system_sensors, system_valves)
+                ro.run_online(system_pumps, system_sensors, system_valves)
                 time.sleep(1)
 
                 valve_status_online = []

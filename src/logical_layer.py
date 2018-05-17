@@ -110,7 +110,7 @@ if __name__ == "__main__":
     boosted = "N"
     #sensors = ["Sensor_1E7"]
     parameters = "Energy"
-    setpoints = 20
+    setpoints = 2
     #controlled_device = "Pump_1H7"
     #controller_name = "Constant_Energy_Pump_Actuating"
 

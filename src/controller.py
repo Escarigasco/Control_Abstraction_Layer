@@ -69,7 +69,7 @@ class controller(object):
                 controller_output_percentage = self.pump_setpoint_converter(controller_output)
 
                 if (controller_output_percentage > max):
-                    actuator_signal = 100  # Limit the controller_output to maximum 255.
+                    actuator_signal = 100  # Limit the controller_output to maximum 100.
                 elif (controller_output_percentage < min):
                     actuator_signal = 1
                 else:
@@ -82,7 +82,7 @@ class controller(object):
                 time_response.append(feedback_value)  # Save as previous error.
                 signal.signal(signal.SIGTERM, self.signal_term_handler)
             except (KeyboardInterrupt, Exception, SystemExit):
-                # interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF)
+                # interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
                 CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
                 # interface.setPumpSetpoint(actuators[_FIRST_OF_CLASS], CompositMess)
                 print("Circulators is now at zero flow")
@@ -101,7 +101,7 @@ class controller(object):
         #sys.exit(0)
 
     def pump_setpoint_converter(self, volume_flow):
-        pump_max_volume_flow = 10
+        pump_max_volume_flow = 10 # this is correct
         volume_flow_in_percent = 100 * (volume_flow / pump_max_volume_flow)
         return volume_flow_in_percent
 

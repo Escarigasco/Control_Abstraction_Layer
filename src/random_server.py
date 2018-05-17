@@ -32,8 +32,8 @@ class current_status_reader(object):
             for valve in valves.keys():
                 #time.sleep(0.1)
                 opening = interface.getValvePosition(valves_name_translator[valve])
-                print(valve)
-                print(opening.value)
+                #print(valve)
+                #print(opening.value)
                 try:
                     if (opening.value > _ACTIVE_VALVE):
                         valves[valve].set_status(_ACTIVE)
