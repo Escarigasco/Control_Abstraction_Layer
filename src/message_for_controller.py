@@ -10,6 +10,7 @@ import time
 _ACTIVE = 1
 _INACTIVE = 0
 _BUILDING_NAME = "716-h1"
+_FIRST_OF_CLASS = 1
 
 
 class message_for_controller(object):
@@ -34,32 +35,31 @@ class message_for_controller(object):
             #interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
             interface_syslab = 0
 
-
-
             nodes = list(unique.nodes)
             for node in nodes:
                 unique_nodes[node] = system_components[node]
 
             c_status = components_status()
             available_components = c_status.run(interface, interface_syslab, unique_nodes)
-
-            #sys.exit()
-
             engine = rule_engine()
-            ideal_pump = engine.run(system_input, available_components)
+            ideal_components = engine.run(system_input, available_components)
+            act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
+            print(act_circulator)
+            actuators = self.actuator_selector(ideal_components["Ideal_Actuator"], available_components["Valves_active"], available_components["Pumps_active"])
+            print(actuators)
+            feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
+            print(feedback_sensors)
+            feedback_sensors = self.name_translator(feedback_sensors["sensors"])
+            controller_name = act_circulator["mode"]
 
-            sys.exit()
-            '''act_pumps = self.pump_selector(ideal_pump, pumps)
-            print(act_pumps)
-
-
-            feedback_sensors = self.name_translator(system_input["sensors"])
 
             input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_name, "gain"), "kp": config.get(controller_name, "kp"),
                                     "ki": config.get(controller_name, "ki"), "kd": config.get(controller_name, "kd"),
-                                    "circulator": act_pumps, "circulator_mode": config.get(controller_name, "circulator_mode"),
-                                    "actuator": act_pumps, "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors}
-
+                                    "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
+                                    "actuator": actuators, "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors}
+            print(input_for_controller)
+            sys.exit()
+            '''
             try:
                 if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     message_serialized = pickle.dumps(input_for_controller)
@@ -105,16 +105,39 @@ class message_for_controller(object):
                 'Sensor_1HT8': "Bay_8", 'Sensor_1CT8': "Bay_8", 'Sensor_1CF8': "Bay_8", 'Sensor_1E8': "Bay_8"}
             for sensor in sensors:
                 translated_sensors.append(sensors_name[sensor])
-                print(translated_sensors)
             return translated_sensors
 
         def pump_selector(self, ideal_pump, pumps):
-            actuators_pumps = []
+            circulation_pumps = []
             locations = []
             for location in ideal_pump.location:
-                print(ideal_pump.location)
                 locations.append(location.data)
             for pump in pumps:
                 if (pump.location in locations):
-                    actuators_pumps.append(pump.get_name())
-            return actuators_pumps
+                    circulation_pumps.append(pump.get_name())
+            pumps_mode = {"pumps": circulation_pumps, "mode": ideal_pump.mode.data}
+            return pumps_mode
+
+        def sensor_selector(self, ideal_sensor, sensors, variable):
+            feedback_sensors = []
+            locations = []
+            for location in ideal_sensor.location:
+                locations.append(location.data)
+            for sensor in sensors:
+                if ((sensor.location in locations) & (sensor.variable == variable)):
+                    feedback_sensors.append(sensor.get_name())
+            sensors_feed = {"sensors": feedback_sensors}
+            return sensors_feed
+
+        '''this method is missing the discrimination -- which valve of the rule engine'''
+        def actuator_selector(self, ideal_actuator, valves, pumps):
+            actuators = valves + pumps
+            active_actuators = []
+            locations = []
+            for location in ideal_actuator.location:
+                locations.append(location.data)
+            for actuator in actuators:
+                if ((actuator.type == ideal_actuator.type.data) & (actuator.location in locations)):
+                    active_actuators.append(actuator.get_name())
+            acts = {"actuators": active_actuators}
+            return acts
