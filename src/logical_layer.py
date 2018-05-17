@@ -116,3 +116,6 @@ if __name__ == "__main__":
 
     test.run(sinks, sources, boosted, parameters, setpoints)
     print("--- %s seconds ---" % (time.time() - start_time))
+
+
+'''From Test Rig to Online uncomment interface from configuration_reader.py, components_status.py, controller.py'''
