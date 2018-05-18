@@ -24,7 +24,10 @@ CRUCIAL TO BE DETERMINED FOR FUTURE PROGRESSES:
                       In case of user input specification by name, the removed items can be removed by the
                       relevant lists of the active_components dictionary in message_for_controller.py before
                       the rule engine elaboration, careful to recalculate the number of element_sources/sinks
-                      
+                      THE EASIEST AND SMARTEST WAY TO DO THIS IS THAT THE UPPER LAYER MAKE FIRST A SCREEN OF THE STUFF THAT DOESN'T WORK SO THE LOGICAL LAYER DOESN'T
+                      NEED TO CHECK THE STATUS OF COMPONENTS BUT BUILD THE CONTROLLER BASED ON SOME COMPONENTS CONSTRAINS
+  - recommendation/preferences for the implementation - it can pass by TCP (always connected, is it stable?), pipe(as per the two process of the Logical Layer), or file in folder(typica_check is there is a file then ->)
+
 -> Decision over NaN and 0, this is quite relevant - Decision over contactor (future work, this is a non trivial operation as you need motor protection plus contactor, need of space and heavely recabling - need
    to run cables + extensions behind pipes to bring stuff in a control cabin next to the PLC - integration in PLC(if enough DO/DI) + Syslab Poll)
 
@@ -57,3 +60,7 @@ CRUCIAL TO BE DETERMINED FOR FUTURE PROGRESSES:
    with another parameter that say "calculate energy or whatever" --> they are all multiplication so you don't need to keep track of the order
 
    -> Necessary to enable all sensors all around the system to build up redundancy - this may be missing in Java too.
+
+COMMENTS ON EXISTING COMPONENTS:
+-> multiprocessing instead of Multithreading, only if you read Tue stuff
+-> are LL and PL too decoupled with the TCP or not robust enough? Let's say that this decoupling allows access to the PL from outside
