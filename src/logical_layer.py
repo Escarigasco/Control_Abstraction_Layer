@@ -68,17 +68,17 @@ class logical_layer(object):
                     #online_configuration = self.main_end.recv()
                     online_configuration = self.work_q.get()
                     unique = pb.run(system_input, online_configuration)
-                    print(unique)
-                    print("tu che sei diversooooooooooooooooooooooooooooooooooooooo")
+                    
+
 
                     if (unique is not None):  # if there is a matching between user input and online configuration
                         if (not self.process_started):
-                            print("how many messagessssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss")
+                            print("Preparing Message")
                             mssgr.run(unique, system_input, self.intf)
                             self.process_started = True
                     else:
                         if (self.process_started):
-                            print("when I am hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee?")
+                            print("Kill started process")
                             mssgr.kill(system_input)
                             self.process_started = False
             except KeyboardInterrupt:

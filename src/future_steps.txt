@@ -24,6 +24,9 @@ CRUCIAL TO BE DETERMINED FOR FUTURE PROGRESSES:
                       In case of user input specification by name, the removed items can be removed by the
                       relevant lists of the active_components dictionary in message_for_controller.py before
                       the rule engine elaboration, careful to recalculate the number of element_sources/sinks
+                      
+-> Decision over NaN and 0, this is quite relevant - Decision over contactor (future work, this is a non trivial operation as you need motor protection plus contactor, need of space and heavely recabling - need
+   to run cables + extensions behind pipes to bring stuff in a control cabin next to the PLC - integration in PLC(if enough DO/DI) + Syslab Poll)
 
 -> How the system will handle requests in terms of - what happen if:
   - we switch the configuration of the system with the same user input (e.g. we move the same experiment from busbars 1H-1C to 2H-2C), should the controller

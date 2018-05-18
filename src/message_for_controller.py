@@ -5,10 +5,8 @@ import pickle
 from rule_engine import rule_engine
 import socket
 import sys
-
 import time
-_ACTIVE = 1
-_INACTIVE = 0
+
 _FIRST_OF_CLASS = 1
 
 
@@ -31,12 +29,12 @@ class message_for_controller(object):
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
 
-
-
             nodes = list(unique.nodes)
             for node in nodes:
                 unique_nodes[node] = system_components[node]
 
+            print(nodes)
+            #sys.exit()
             c_status = components_status()
             available_components = c_status.run(interface, unique_nodes)
             try:
@@ -54,10 +52,11 @@ class message_for_controller(object):
                 print(feedback_sensors)
                 actuators["actuators"] = self.actuators_name_translator(actuators["actuators"])
                 print(actuators)
+                controller_mode = act_circulator["mode"]
                 self.controller_name = act_circulator["mode"]
 
-                input_for_controller = {"controller_name": self.controller_name, "kill": 'N', "gain": config.get(self.controller_name, "gain"), "kp": config.get(self.controller_name, "kp"),
-                                        "ki": config.get(self.controller_name, "ki"), "kd": config.get(self.controller_name, "kd"),
+                input_for_controller = {"controller_name": self.controller_name, "kill": 'N', "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
+                                        "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
                                         "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
                                         "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
                 print(input_for_controller)
@@ -141,9 +140,6 @@ class message_for_controller(object):
                 translated_circulator.append(circulators_name[circulator])
             return translated_circulator
 
-
-
-
         def pump_selector(self, ideal_pump, pumps):
             circulation_pumps = []
             locations = []
@@ -174,7 +170,7 @@ class message_for_controller(object):
             for location in ideal_actuator.location:
                 locations.append(location.data)
             for actuator in actuators:
-                if ((actuator.type == ideal_actuator.type.data) & (actuator.location in locations)):
+                if ((actuator.object_type == ideal_actuator.type.data) & (actuator.location in locations)):
                     active_actuators.append(actuator.get_name())
             acts = {"actuators": active_actuators}
             return acts
