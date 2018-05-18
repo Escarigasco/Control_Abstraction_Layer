@@ -12,7 +12,7 @@ class bay_valve(object):
         self.flow = flow
         self.flow_direction = direction
         self.location = connected_dev
-        self.type = "Valve"
+        self.object_type = "Valve"
 
         #self.opening_threshold = 0.1
         self.opening_threshold = 20

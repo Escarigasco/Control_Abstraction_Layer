@@ -9,6 +9,7 @@ class connected_device:
         self.ID = ID
         self.type = type_device
         self.rated_power = float(rated_power)
+        self.object_type = "connected_device"
 
     def get_rated_power(self):
         return self.rated_power

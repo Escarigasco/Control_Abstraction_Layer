@@ -11,6 +11,7 @@ class system_sensor:
         self.device_embedded = device_embedded  # if it belongs to larger sensor
         self.position = int(position)  # is in the pipe or in the connector or anywhere else
         self.location = connected_dev
+        self.object_type = "Sensor"
 
 
         if status is None:

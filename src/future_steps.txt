@@ -1,0 +1,56 @@
+
+
+
+
+
+API:
+Input Dictionary - , List of stuff to removed divided in Sensor, Pumps, Valves
+
+Controller Naming:
+Attribute naming based on the bus bars employed - in this way you can also see if a future request try to overwrite the previous one
+NO YOU HAVE TO DO NAMING AFTER SINK, SOURCE, PARAMETER - EVEN ON THE GRAPHS NODES
+
+Python Pump Mode:
+You can send numbers too
+
+Check closed loop:
+Closed loop is probably a strongly connected graph
+
+CRUCIAL TO BE DETERMINED FOR FUTURE PROGRESSES:
+-> API for Logical layer, now it is Source, Sink, Energy, Setpoint.
+  It will include some list of components to be removed according to the Reasoning discriminators:
+  Reasoning discriminators:
+  - active, inactive: this can be decided either by user input or by the online status.
+                      In case of user input specification by name, the removed items can be removed by the
+                      relevant lists of the active_components dictionary in message_for_controller.py before
+                      the rule engine elaboration, careful to recalculate the number of element_sources/sinks
+
+-> How the system will handle requests in terms of - what happen if:
+  - we switch the configuration of the system with the same user input (e.g. we move the same experiment from busbars 1H-1C to 2H-2C), should the controller
+    be killed and restarted or it should not change? Then an opening procedure for valves shall be carefully designed in the higher layer
+  - we change user input, should the controller kill the previous process? Not of course. Then it is necessary to build a dictionary memory with the previous
+    user_input/matching_configuration to be able to run again a path_matching with the old user inputs requests. THIS IS VERY EXPENSIVE BUT EASILY DOABLE THEN
+    YOU CAN REMOVE DICTIONARIES KEYS WITH dict.pop() AND KILL PROCESSES IF THE NEW CHECKING DOESN'T DETECT THE MATCH BETWEEN THE OLD REQUEST AND THE PREVIOUS USER INPUT
+
+-> Is it acceptable that:
+    Case of multiple actuators and feedback sensors (e.g. one source - two sinks control over sinks pumps (same for valves) and the control
+    loop of each pump is decoupled -> single control loop with multiple actuator
+
+-> Valve as actuator selection - if specified by Users by elements to be removed it is part of the API bit
+
+-> it is relevant to defend the system from wrong user inputs? DRAGONS
+   this also mean to check if there are some valves open but not useful to anything or even harmful - should we kill the unuseful?
+   in this case it is probably the controller that have a inizialization where kills everything but the relevant component - it needs to receive these
+   object from the logical layer -> it is trivial but really time consuming as you should read the active valve of the relevant bays and kill the ones
+   that do not belong to the matching path.
+   -> the original sin of the the KW energy balance
+
+
+-> is calculation from different sensors a redundancy for the controller? Of course it is but implementation would be a real pain and a real system
+   would actually have a same component redundancy rather than software component --> in this case this is twice true as there is only one meter
+   with different modbus register there is no reason to think that "some registers works and not other".
+   But what if? Also the pump has a Energy reader - first implement that, than component redundancy and then calculation --> really annoying to implement
+   if really needed you need a method that check what comes back from the rule engine and send to the controller the new sensors needed for calculation
+   with another parameter that say "calculate energy or whatever" --> they are all multiplication so you don't need to keep track of the order
+
+   -> Necessary to enable all sensors all around the system to build up redundancy - this may be missing in Java too.

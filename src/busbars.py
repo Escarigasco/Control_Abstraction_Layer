@@ -8,6 +8,7 @@ class busbar(object):
         self.system_pipes = system_pipes
         self.circuit_ID = circuit_ID
         self.set_flow_and_type()
+        self.object_type = "busbar"
 
     def set_flow_and_type(self):
         self.type = self.system_pipes[_FIRST_OF_THE_CLASS].type
