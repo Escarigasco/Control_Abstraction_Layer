@@ -13,6 +13,7 @@ _MULTIPLIER = 1000000
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
 
+
 class controller(object):
 
     def read_feedback():
@@ -38,13 +39,13 @@ class controller(object):
         circulator_mode = inputs["circulator_mode"]
         feedback_sensor = inputs["feedback_sensor"]
         actuators = inputs["actuator"]
-        setpoint = float(inputs["setpoint"])
+        setpoint = float(inputs["setpoint"][_FIRST_OF_CLASS])
         print(inputs)
         integral = 0
         pre_error = 0
         windup_corrector = 0
         actuator_signal = 0
-        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
         '''for n in len(circulators):
             interface.setPumpMode(circulators[n], circulator_mode)
@@ -54,10 +55,10 @@ class controller(object):
             try:
                 print("Control Thread {0} running".format(process_ID))
                 time.sleep(_CONTROL_TIME)
-                feedback_value = interface.getThermalPower(feedback_sensor[_FIRST_OF_CLASS]).value
+                #feedback_value = interface.getThermalPower(feedback_sensor[_FIRST_OF_CLASS]).value
+                feedback_value = 0
                 print(feedback_value)
 
-                feedback_value = 0
                 error_value = gain * (setpoint - feedback_value)       # Calculate the error
                 integral = (integral + error_value) - windup_corrector              # Calculate integral
                 derivative = error_value - pre_error           # Calculate derivative
@@ -77,14 +78,14 @@ class controller(object):
                 print("The actuator signal is ", actuator_signal)
                 CompositMess = CM(actuator_signal, time.time() * _MULTIPLIER)
                 print(CompositMess)
-                # interface.setPumpSetpoint(actuators[_FIRST_OF_CLASS], CompositMess)
+                #interface.setPumpSetpoint(actuators[_FIRST_OF_CLASS], CompositMess)
                 error.append(error_value)
                 time_response.append(feedback_value)  # Save as previous error.
                 signal.signal(signal.SIGTERM, self.signal_term_handler)
             except (KeyboardInterrupt, Exception, SystemExit):
-                # interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
+                #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
                 CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
-                # interface.setPumpSetpoint(actuators[_FIRST_OF_CLASS], CompositMess)
+                #interface.setPumpSetpoint(actuators[_FIRST_OF_CLASS], CompositMess)
                 print("Circulators is now at zero flow")
                 sys.exit(0)
 
