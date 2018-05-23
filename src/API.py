@@ -3,6 +3,12 @@
 import sys
 import getopt
 from logical_layer import logical_layer
+import pickle
+import socket
+_HOST = 'localhost'                 # Symbolic name meaning all available interfaces
+_PORT = 50010              # Arbitrary non-privileged port
+_BEGIN_WITH = 0
+
 
 
 def main(argv):
@@ -11,12 +17,11 @@ def main(argv):
     nargs = 2
     recognized_building_ID = False
     recognized_board_ID = False
-    sensors = []
     parameters = []
     setpoints = []
     sources = []
-    control_object = []
-    control_strategy = []
+    sinks = []
+    input_dictionary = {}
 
     try:
         ops, args = getopt.getopt(argv, "")
@@ -41,23 +46,50 @@ def main(argv):
                 print('Invalid Board ID')
                 sys.exit(2)
 
-        logical = logical_layer(Building_ID, Switch_Board_ID)
-
         while(1):
-            n_sensors = int(input("how many sensors do you want to control?"))
-            for n in range(0, n_sensors):
-                sensors.insert(n, input("Insert sensor code for sensor {n}:".format(n)))
-                parameters.insert(n, input("Insert parameter code for sensor {n}:".format(n)))
-                setpoints.insert(n, int(input("Insert setpoint for sensor {n}:".format(n))))
-                sources.append(n, input("Insert source code to control sensor {n}:".format(n)))
-                control_object.insert(n, input("Insert device code to be controlled {n}:".format(n)))
-                control_strategy.insert(n, input("Insert control mode of device {n}:".format(n)))
+            n = int(input("How many sources? \n"))
+            if n >= 10:
+                sinks = ["Sink_1H7"]
+                sources = ["Source_1BH4"]
+                boosted = "N"
+                parameters = "Energy"
+                setpoints = 2
+            else:
+                parameters = []
+                setpoints = []
+                sources = []
+                sinks = []
 
-            logical.run(sensors, parameters, setpoints, sources, control_object, control_strategy)
-            print("\n\n\n")
+                for i in range(_BEGIN_WITH, n):
+                    sources.insert(i, input("Insert code for source {0}: \n".format(i)))
+                n = int(input("How many sinks? \n"))
+                for i in range(_BEGIN_WITH, n):
+                    sinks.insert(i, input("Insert code for sink {0}: \n".format(i)))
+                n = int(input("How many parameters? \n"))
+                for i in range(_BEGIN_WITH, n):
+                    parameters.insert(i, input("Insert parameter code for sensor {0}: \n".format(i)))
+                    setpoints.insert(i, int(input("Insert setpoint for sensor {0}: \n".format(i))))
+                boosted = input("Is the system Boosted? \n")
+
+            input_dictionary = {"sinks": sinks, "sources": sources, "boosted": boosted,
+                                "parameters": parameters, "setpoints": setpoints}
+            print(input_dictionary)
+            print("\n\n\n\n")
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((_HOST, _PORT))
+                    message_serialized = pickle.dumps(input_dictionary)
+                    s.sendall(message_serialized)
+                    print("\n\n\n")
+                    s.close()
+
+            except Exception:
+                print("Message sending failed")
+                pass
 
     except getopt.GetoptError:
         print('main.py <BuildingID> <Switch_Board_ID>')
+        s.close()
         sys.exit(2)
 
 
