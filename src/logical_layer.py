@@ -84,10 +84,15 @@ class logical_layer(object):
                             else:
                                 system_input = pickle.loads(data_from_API)
                                 system_input = self.check_sources(system_input)
-                                requested_configuration[str(system_input)][_INPUTS] = system_input
-                                requested_configuration[str(system_input)][_STATE] = "Inactive"
-                                requested_configuration[str(system_input)][_GRAPH] = []
-                                print('\r{}:'.format(rs.getpeername()), system_input)
+                                name = str(system_input["sources"]) + str(system_input["sinks"])  # the logic is to check the name matching and then also the inputs matching and do something about it
+                                print(name)
+                                if (name not in requested_configuration.keys()):
+                                    requested_configuration[name][_INPUTS] = system_input
+                                    requested_configuration[name][_STATE] = "Inactive"
+                                    requested_configuration[name][_GRAPH] = []
+                                    print('\r{}:'.format(rs.getpeername()), system_input)
+                                else:
+                                    print("Input already given")
                     try:
 
                         if not self.work_q.empty():
@@ -113,7 +118,7 @@ class logical_layer(object):
                                             mssgr.kill(requested_configuration[name][_INPUTS], name)
                                             requested_configuration.pop(name)
                                             print(requested_configuration)
-                                            
+
 
                     except Exception:
                         print("No user inputs defined")
