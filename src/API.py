@@ -6,7 +6,7 @@ from logical_layer import logical_layer
 import pickle
 import socket
 _HOST = 'localhost'                 # Symbolic name meaning all available interfaces
-_PORT = 50010              # Arbitrary non-privileged port
+_PORT = 50000              # Arbitrary non-privileged port
 _BEGIN_WITH = 0
 
 
@@ -48,12 +48,24 @@ def main(argv):
 
         while(1):
             n = int(input("How many sources? \n"))
-            if n >= 10:
+            if n == 100:
                 sinks = ["Sink_1H7"]
                 sources = ["Source_1BH4"]
                 boosted = "N"
-                parameters = "Energy"
-                setpoints = 2
+                parameters = ["Energy"]
+                setpoints = [2]
+            elif (n == 200):
+                sinks = ["Sink_1H8"]
+                sources = ["Source_1DH6"]
+                boosted = "N"
+                parameters = ["Energy"]
+                setpoints = [6]
+            elif (n == 300):
+                sinks = ["Sink_1H8"]
+                sources = ["Source_1HP5"]
+                boosted = "N"
+                parameters = ["Energy"]
+                setpoints = [1]
             else:
                 parameters = []
                 setpoints = []
