@@ -6,6 +6,7 @@ from object_tracker import object_tracker
 from path_builder import path_builder
 from switch_board_building import switch_board_building
 from multiprocessing import Process, Pipe, Queue
+from miscellaneous import AutoVivification
 import pickle
 import select
 import socket
@@ -15,8 +16,12 @@ import time
 
 _BOOSTER_NAME = "Source_1BH4"
 _HOST = 'localhost'                 # Symbolic name meaning all available interfaces
-_PORT = 50010              # Arbitrary non-privileged port
+_PORT = 50000              # Arbitrary non-privileged port
 _BEGIN_WITH = 0
+_INPUTS = "inputs"
+_STATE = "state"
+_GRAPH = "graph"
+
 
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
@@ -47,71 +52,85 @@ class logical_layer(object):
         self.boosted = boosted
         self.parameters = parameters
         self.setpoints = setpoints
-
         self.process_started = False
+        requested_configuration = AutoVivification()  # nothing but a dictionary
+        requested_configuration_state = {}
         #system_input = {"sinks": self.used_sinks, "sources": self.used_sources, "boosted": self.boosted,
                         #"parameters": self.parameters, "setpoints": self.setpoints}
         pb = path_builder(self.intf)
         mssgr = message_for_controller()
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                # op_controller = controller()
+                s.bind((_HOST, _PORT))
+                s.listen(1)
+                print("Physical Layer Listening")
+                readable = [s] # list of readable sockets.  s is readable if a client is waiting.
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            # op_controller = controller()
-            s.bind((_HOST, _PORT))
-            s.listen(1)
-            print("Physical Layer Listening")
-            readable = [s] # list of readable sockets.  s is readable if a client is waiting.
-
-            while True:
-                r, w, e = select.select(readable, [], [], _BEGIN_WITH)
-                for rs in r:  # iterate through readable sockets
-                    if rs is s:  # is it the server
-                        c, a = s.accept()
-                        print('\r{}:'.format(a), 'connected')
-                        readable.append(c)  # add the client
-                    else:
-                        # read from a client
-                        data_from_API = rs.recv(1024)
-                        if not data_from_API:
-                            print('\r{}:'.format(rs.getpeername()), 'disconnected')
-                            readable.remove(rs)
-                            rs.close()
+                while True:
+                    r, w, e = select.select(readable, [], [], _BEGIN_WITH)
+                    for rs in r:  # iterate through readable sockets
+                        if rs is s:  # is it the server
+                            c, a = s.accept()
+                            print('\r{}:'.format(a), 'connected')
+                            readable.append(c)  # add the client
                         else:
-                            system_input = pickle.loads(data_from_API)
-                            system_input = self.check_sources(system_input)
-                            print('\r{}:'.format(rs.getpeername()), system_input)
-                try:
-                    if not self.work_q.empty():
-                        print("I am checking again the matches because something changed in the online configuration")
-                        # plt.close()
-                        plt.close('all')
-                        #online_configuration = self.main_end.recv()
-                        online_configuration = self.work_q.get()
-                        unique = pb.run(system_input, online_configuration)
+                            # read from a client
+                            data_from_API = rs.recv(1024)
+                            if not data_from_API:
+                                print('\r{}:'.format(rs.getpeername()), 'disconnected')
+                                readable.remove(rs)
+                                rs.close()
+                            else:
+                                system_input = pickle.loads(data_from_API)
+                                system_input = self.check_sources(system_input)
+                                requested_configuration[str(system_input)][_INPUTS] = system_input
+                                requested_configuration[str(system_input)][_STATE] = "Inactive"
+                                requested_configuration[str(system_input)][_GRAPH] = []
+                                print('\r{}:'.format(rs.getpeername()), system_input)
+                    try:
 
-                        if (unique is not None):  # if there is a matching between user input and online configuration
-                            if (not self.process_started):
-                                print("Preparing Message")
-                                mssgr.run(unique, system_input, self.intf)
-                                self.process_started = True
-                        else:
-                            if (self.process_started):
-                                print("Kill started process")
-                                mssgr.kill(system_input)
-                                self.process_started = False
-                except Exception:
-                    print("No user inputs defined")
-                    pass
+                        if not self.work_q.empty():
+                            print("I am checking again the matches because something changed in the online configuration")
+                            # plt.close()
+                            plt.close('all')
+                            online_configuration = self.work_q.get()
+                            print(requested_configuration)
+                            if (requested_configuration):
+                                for name, attributes in requested_configuration.items():
+                                    print(requested_configuration)
+                                    unique = pb.run(requested_configuration[name][_INPUTS], online_configuration)
+                                    if (unique is not None):  # if there is a matching between user input and online configuration
+                                        if (requested_configuration[name][_STATE] == "Inactive"):
+                                            print("Preparing Message")
+                                            mssgr.run(unique, system_input, self.intf, name)
+                                            requested_configuration[name][_STATE] = "Active"
+                                            print(requested_configuration[name][_STATE])
 
-                            #except KeyboardInterrupt:
-                            #    self.online_reader.terminate()
-                            #    sys.exit()
+                                    else:
+                                        if (attributes[_STATE] == "Active"):
+                                            print("Kill started process")
+                                            mssgr.kill(requested_configuration[name][_INPUTS], name)
+                                            requested_configuration.pop(name)
+                                            print(requested_configuration)
+                                            
 
-                    #except(KeyboardInterrupt, SystemExit, Exception):
-                    #            conn.close()
-                    #            print("Logical Layer Isolated")
-                    #            s.shutdown(socket.SHUT_RDWR) # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
-                    #            s.close()
-                    #            sys.exit()
+                    except Exception:
+                        print("No user inputs defined")
+                        pass
+
+                                #except KeyboardInterrupt:
+                                #    self.online_reader.terminate()
+                                #    sys.exit()
+
+        except(KeyboardInterrupt, SystemExit, Exception):
+                    for n in readable:
+                        n.close()
+                    print("Logical Layer Isolated")
+                    #s.shutdown() # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
+                    self.online_reader.terminate()
+                    s.close()
+                    sys.exit()
 
     def check_sources(self, system_input):
         for source in system_input["sources"]:
