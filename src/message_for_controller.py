@@ -14,9 +14,9 @@ class message_for_controller(object):
 
         def __init__(self):
             self.HOST = 'localhost'    # The remote host
-            self.PORT = 50008              # The same port as used by the server
+            self.PORT = 2000              # The same port as used by the server
 
-        def run(self, unique, system_input, interface):
+        def run(self, unique, system_input, interface, controller_name):
 
             system_valves = interface.get_system_valves()
             system_pipes = interface.get_system_pipes()
@@ -53,9 +53,9 @@ class message_for_controller(object):
                 actuators["actuators"] = self.actuators_name_translator(actuators["actuators"])
                 print(actuators)
                 controller_mode = act_circulator["mode"]
-                self.controller_name = act_circulator["mode"]
+                #self.controller_name = act_circulator["mode"]
 
-                input_for_controller = {"controller_name": self.controller_name, "kill": 'N', "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
+                input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
                                         "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
                                         "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
                                         "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
@@ -77,9 +77,10 @@ class message_for_controller(object):
                 print("Message sending failed")
                 pass
 
-        def kill(self, system_input):
-            input_for_controller = {"controller_name": self.controller_name, "kill": 'Y'}
+        def kill(self, system_input, controller_name):
+            input_for_controller = {"controller_name": controller_name, "kill": 'Y'}
             print(input_for_controller)
+            print("are we sending some stuffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
             try:
                 if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     message_serialized = pickle.dumps(input_for_controller)
@@ -88,6 +89,7 @@ class message_for_controller(object):
                         s.connect((self.HOST, self.PORT))
                         s.sendall(message_serialized)
                     s.close()
+                    print("Looks like we did")
             except Exception:
                 print("Message sending failed")
                 pass
