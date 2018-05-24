@@ -53,11 +53,11 @@ class configuration_reader(object):
         plt.show()
 
         while True:
-            #try:
-                '''you could just be checking the valves as list of strings between the old and the new before running the new graph builder - check if you want to improve performance'''
-                #ro.run_random(system_pumps, system_sensors, system_valves)
-                ro.run_online(system_pumps, system_sensors, system_valves)
-                time.sleep(1)
+            try:
+
+                ro.run_random(system_pumps, system_sensors, system_valves)
+                #ro.run_online(system_pumps, system_sensors, system_valves)
+                time.sleep(2)
 
                 valve_status_online = []
                 for valve in system_valves.values():
@@ -65,9 +65,6 @@ class configuration_reader(object):
 
                 if (valve_status_online != valve_status_previous):
                     valve_status_previous = valve_status_online
-                    #print(valve_status_online)
-                    #print(valve_status_previous)
-                    #print("Am I enteringggggggggggggggggggggggggggggggggggg")
 
                     for busbar in system_busbars.keys():
 
@@ -216,11 +213,11 @@ class configuration_reader(object):
                         worker_q.put(self.UpdatedGraph)
                         #print(self.UpdatedGraph.nodes())
 
-            #except (KeyboardInterrupt, SystemExit, Exception):
-                #print("Online reader Thread Stopped")
-            #    print("Process Error. Stopped")
-            #    worker_q.close()
-            #    sys.exit()
+            except (KeyboardInterrupt, SystemExit, Exception):
+                print("Online reader Thread Stopped")
+                print("Process Error. Stopped")
+                worker_q.close()
+                sys.exit()
 
         #print(self.UpdatedGraph.nodes())
         #print(self.Graph.nodes())

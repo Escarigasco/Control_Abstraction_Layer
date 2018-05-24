@@ -53,22 +53,23 @@ class controller_constant_flow(object):
         CompositMess = [_FIRST_OF_CLASS] * len(actuators)
         error_development = [[] for n in range(len(feedback_sensor))]
         time_response = [[] for n in range(len(feedback_sensor))]
-        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
         for n in range(_FIRST_OF_CLASS, len(circulators)):
             #interface.setPumpMode(circulators[n], circulator_mode)
             print("mode set in pump ", circulators[n])
 
         while(1):
-            #try:
+            try:
                 print("Control Thread {0} running".format(process_ID))
                 time.sleep(_CONTROL_TIME)
                 for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
                     print(n)
-                    #feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
-                    #feedback_value = interface.getThermalPower(feedback_sensor[_FIRST_OF_CLASS]).value
+                    feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
+                    if feedback_value[n] == "NaN":
+                        feedback_value[n] = 0     # --->>> really bad though
                     print("feedback taken from sensor ", feedback_sensor[n])
-                    feedback_value[n] = 0
+                    #feedback_value[n] = 0
                     print(feedback_value[n])
                     error_value[n] = gain * (setpoint[n] - feedback_value[n])       # Calculate the error
                     integral[n] = (integral[n] + error_value[n]) - windup_corrector[n]              # Calculate integral
@@ -92,24 +93,26 @@ class controller_constant_flow(object):
                     error_development[n].append(error_value[n])
                     time_response[n].append(feedback_value[n])  # Save as previous error.
                 signal.signal(signal.SIGTERM, self.signal_term_handler)
-            #except (KeyboardInterrupt, Exception, SystemExit):
-            #    #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
-            #    CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
-            #    #interface.setPumpSetpoint(actuators[_FIRST_OF_CLASS], CompositMess)
-            #    print("Circulators is now at zero flow")
-            #    sys.exit(0)
+
+            except (KeyboardInterrupt, Exception, SystemExit):
+                #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
+                for n in range(_FIRST_OF_CLASS, len(actuators)):
+                    #interface.setPumpSetpoint(actuators[n], CompositMess[n])
+                    CompositMess[n] = CM(shut_down_signal, time.time() * _MULTIPLIER)
+                    #interface.setPumpSetpoint(actuators[n], CompositMess[n])
+                print("Circulators is now at zero flow")
+                sys.exit(0)
 
     def controller_wind_up(self, actuator_signal, controller_output, ki):
         error_saturation = actuator_signal - controller_output
         windup_corrector = error_saturation / ki
         return windup_corrector
 
-    def signal_term_handler(signal, frame):
+    def signal_term_handler(self, signal, frame):
         print("It has to be here to receive signal but doesn't effectively do anything this is not going to be printed but it handles the asynchronous interaction")
-        #print('got SIGTERM - the process was killed as the configuration was not matched any more')
-        #print("Circulators is now at zero flow")
-        # interface.setPumpSetpoint(circulators, actuator_signal)
-        #sys.exit(0)
+        print("stai a dì na cazzata")
+        print('got SIGTERM - the process was killed as the configuration was not matched any more')
+        sys.exit(0)
 
     def pump_setpoint_converter(self, volume_flow):
         pump_max_volume_flow = 10 # this is correct
