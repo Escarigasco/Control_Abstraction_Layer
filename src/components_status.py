@@ -13,7 +13,7 @@ class components_status(object):
         pumps = []
         valves = []
         active_components = {}
-        interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        #interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
         interface = 0
         for node in unique_nodes.keys():
             s_name = 'Sensor'
@@ -28,9 +28,9 @@ class components_status(object):
             if (re.match(v_name, node)):
                 valves.append(unique_nodes[node])
 
-        self.sensor_evaluation(sensors, interface_syslab)
-        self.pumps_evaluation(pumps, interface_syslab)
-        self.valves_evaluation(valves, interface_syslab)
+        #self.sensor_evaluation(sensors, interface_syslab)
+        #self.pumps_evaluation(pumps, interface_syslab)
+        #self.valves_evaluation(valves, interface_syslab)
 
         active_components = {"Pumps_active": [pump for pump in pumps if pump.status == _ACTIVE],
                              "Sensors_active": [sensor for sensor in sensors if sensor.status == _ACTIVE],
@@ -62,7 +62,8 @@ class components_status(object):
                 sensor.set_status(_ACTIVE)
                 print(sensor.status)
             else:
-                sensor.set_status(_INACTIVE)
+                # sensor.set_status(_INACTIVE)
+                sensor.set_status(_ACTIVE)
 
     def pumps_evaluation(self, pumps, interface_syslab):
 
@@ -82,7 +83,8 @@ class components_status(object):
                 print(pump)
                 print(pump.status)
             else:
-                pump.set_status(_INACTIVE)
+                # pump.set_status(_INACTIVE)
+                pump.set_status(_ACTIVE)
 
     def valves_evaluation(self, valves, interface_syslab):
 
@@ -94,7 +96,7 @@ class components_status(object):
             'Valve_2H8': "Bay_8H-Busbar_1F", 'Valve_1H8': "Bay_8H-Busbar_2F", 'Valve_2C8': "Bay_8L-Busbar_1R", 'Valve_1C8': "Bay_8L-Busbar_2R"}
 
         for valve in valves:
-            #time.sleep(0.1)
+            # time.sleep(0.1)
             status = interface_syslab.getValvePosition(valves_name_translator[valve.ID])
             print(valve)
             print(status.value)
