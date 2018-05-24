@@ -66,7 +66,7 @@ class logical_layer(object):
                 s.listen(1)
                 print("Physical Layer Listening")
                 readable = [s] # list of readable sockets.  s is readable if a client is waiting.
-
+                i = 0
                 while True:
                     r, w, e = select.select(readable, [], [], _BEGIN_WITH)
                     for rs in r:  # iterate through readable sockets
@@ -91,6 +91,7 @@ class logical_layer(object):
                                     requested_configuration[name][_STATE] = "Inactive"
                                     requested_configuration[name][_GRAPH] = []
                                     print('\r{}:'.format(rs.getpeername()), system_input)
+                                    new_input = True
                                 else:
                                     print("Input already given")
                     try:
@@ -117,7 +118,28 @@ class logical_layer(object):
                                             requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
                                             requested_configuration.pop(name)
                                             print(requested_configuration)
+                        else:  # this handle the possibility that you have anew input without the online reading has changed --> please, do a method that enclose all this shit so you don't repeat
+                            if (new_input):
+                                new_input = False
+                                if (requested_configuration):
+                                    for name, attributes in requested_configuration.items():
+                                        print(requested_configuration)
+                                        requested_configuration[name][_GRAPH] = pb.run(requested_configuration[name][_INPUTS], online_configuration)
+                                        if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
+                                            if (requested_configuration[name][_STATE] == "Inactive"):
+                                                print("Preparing Message")
+                                                requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], system_input, self.intf, name)
+                                                print(requested_configuration[name][_STATE])
 
+                                        else:
+                                            if (requested_configuration[name][_STATE] == "Active"):
+                                                print("Kill started process")
+                                                requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
+                                                requested_configuration.pop(name)
+                                                print(requested_configuration)
+
+                        i += 1
+                        print('/-\|'[i % 4] + '\r', end='', flush=True)
                     except Exception:
                         print("No user inputs defined")
                         pass
