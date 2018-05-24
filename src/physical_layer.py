@@ -39,6 +39,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         # processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
                     else:
+                        print("Mi è stato detto di ucciderti, ", inputs["controller_name"])
                         processes[inputs["controller_name"]].terminate()
                         print("process terminated", inputs["controller_name"])
 
