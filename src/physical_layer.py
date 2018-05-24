@@ -1,14 +1,16 @@
 # Create two threads as follow
-from controller import controller
+from controller_constant_flow import controller_constant_flow
+from controller_constant_pressure import controller_constant_pressure
 from multiprocessing import Process
+import pickle
 import socket
 import sys
-import pickle
 _NEG = "N"
 
 HOST = 'localhost'                 # Symbolic name meaning all available interfaces
-PORT = 50008              # Arbitrary non-privileged port
-op_controller = controller()
+PORT = 2000             # Arbitrary non-privileged port
+op_controller_flow = controller_constant_flow()
+op_controller_pressure = controller_constant_pressure()
 n = 0
 threads = []
 processes = {}
@@ -25,13 +27,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     print('Connected by', addr)
 
                     data_from_logical_layer = conn.recv(1024)
-                    print("Control objective received")
+                    print("Message received")
                     inputs = pickle.loads(data_from_logical_layer)
                     if (inputs["kill"] == _NEG):
                         input_for_controller = (data_from_logical_layer, inputs["controller_name"])
                         # print(input_for_controller)
                         # threads.append(_thread.start_new_thread(op_controller.PID_controller, input_for_controller))
-                        processes[inputs["controller_name"]] = Process(target=op_controller.PID_controller, args=input_for_controller)
+                        processes[inputs["controller_name"]] = Process(target=op_controller_flow.PID_controller, args=input_for_controller)
                         print("New Process started")
                         processes[inputs["controller_name"]].start()
                         # processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa

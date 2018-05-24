@@ -1,6 +1,6 @@
 # Class for object_tracker - it identify with the simple method where are the specified devices (pumps, sensors, lines, etc..)
-import re
 from collections import defaultdict
+import re
 
 
 class object_tracker(object):

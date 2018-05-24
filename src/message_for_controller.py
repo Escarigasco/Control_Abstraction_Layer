@@ -34,7 +34,7 @@ class message_for_controller(object):
                 unique_nodes[node] = system_components[node]
 
             print(nodes)
-            #sys.exit()
+
             c_status = components_status()
             available_components = c_status.run(interface, unique_nodes)
             try:
@@ -53,16 +53,16 @@ class message_for_controller(object):
                 actuators["actuators"] = self.actuators_name_translator(actuators["actuators"])
                 print(actuators)
                 controller_mode = act_circulator["mode"]
-                #self.controller_name = act_circulator["mode"]
+                # self.controller_name = act_circulator["mode"]
 
                 input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
                                         "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
                                         "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
                                         "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
                 print(input_for_controller)
+                time.sleep(10)
             except Exception:
                 return
-            #sys.exit()
 
             try:
                 if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
@@ -80,7 +80,7 @@ class message_for_controller(object):
         def kill(self, system_input, controller_name):
             input_for_controller = {"controller_name": controller_name, "kill": 'Y'}
             print(input_for_controller)
-            print("are we sending some stuffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+
             try:
                 if ((len(system_input["sinks"]) == 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     message_serialized = pickle.dumps(input_for_controller)
@@ -89,7 +89,7 @@ class message_for_controller(object):
                         s.connect((self.HOST, self.PORT))
                         s.sendall(message_serialized)
                     s.close()
-                    print("Looks like we did")
+
             except Exception:
                 print("Message sending failed")
                 pass
@@ -161,6 +161,7 @@ class message_for_controller(object):
             for sensor in sensors:
                 if ((sensor.location in locations) & (sensor.variable == variable)):
                     feedback_sensors.append(sensor.get_name())
+
             sensors_feed = {"sensors": feedback_sensors}
             return sensors_feed
 

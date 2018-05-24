@@ -104,11 +104,11 @@ class logical_layer(object):
                             if (requested_configuration):
                                 for name, attributes in requested_configuration.items():
                                     print(requested_configuration)
-                                    unique = pb.run(requested_configuration[name][_INPUTS], online_configuration)
-                                    if (unique is not None):  # if there is a matching between user input and online configuration
+                                    requested_configuration[name][_GRAPH] = pb.run(requested_configuration[name][_INPUTS], online_configuration)
+                                    if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
                                         if (requested_configuration[name][_STATE] == "Inactive"):
                                             print("Preparing Message")
-                                            mssgr.run(unique, system_input, self.intf, name)
+                                            mssgr.run(requested_configuration[name][_GRAPH], system_input, self.intf, name)
                                             requested_configuration[name][_STATE] = "Active"
                                             print(requested_configuration[name][_STATE])
 
@@ -118,7 +118,6 @@ class logical_layer(object):
                                             mssgr.kill(requested_configuration[name][_INPUTS], name)
                                             requested_configuration.pop(name)
                                             print(requested_configuration)
-
 
                     except Exception:
                         print("No user inputs defined")

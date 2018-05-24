@@ -8,6 +8,7 @@ class connected_device:
         self.parent_ID = parent_ID
         self.ID = ID
         self.type = type_device
+        print(self.type)
         self.rated_power = float(rated_power)
         self.object_type = "connected_device"
 
