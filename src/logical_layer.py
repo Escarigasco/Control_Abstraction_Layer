@@ -108,14 +108,13 @@ class logical_layer(object):
                                     if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
                                         if (requested_configuration[name][_STATE] == "Inactive"):
                                             print("Preparing Message")
-                                            mssgr.run(requested_configuration[name][_GRAPH], system_input, self.intf, name)
-                                            requested_configuration[name][_STATE] = "Active"
+                                            requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], system_input, self.intf, name)
                                             print(requested_configuration[name][_STATE])
 
                                     else:
-                                        if (attributes[_STATE] == "Active"):
+                                        if (requested_configuration[name][_STATE] == "Active"):
                                             print("Kill started process")
-                                            mssgr.kill(requested_configuration[name][_INPUTS], name)
+                                            requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
                                             requested_configuration.pop(name)
                                             print(requested_configuration)
 
