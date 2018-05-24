@@ -52,20 +52,41 @@ def main(argv):
                 sinks = ["Sink_1H7"]
                 sources = ["Source_1BH4"]
                 boosted = "N"
-                parameters = ["Energy"]
+                parameters = "Energy"
                 setpoints = [2]
             elif (n == 200):
                 sinks = ["Sink_1H8"]
                 sources = ["Source_1DH6"]
                 boosted = "N"
-                parameters = ["Energy"]
+                parameters = "Energy"
                 setpoints = [6]
             elif (n == 300):
-                sinks = ["Sink_1H8"]
+                sinks = ["Sink_1H8", "Sink_1H7"]
                 sources = ["Source_1HP5"]
                 boosted = "N"
-                parameters = ["Energy"]
+                parameters = "Energy"
+                setpoints = [1, 2]
+            elif (n == 400):
+                sinks = ["Sink_1H8", "Sink_1H7"]
+                sources = ["Source_1HP5"]
+                boosted = "Y"
+                parameters = "Energy"
+                setpoints = [1, 2]
+            elif (n == 500):
+                sinks = ["Source_1HP5"]
+                sources = ["Sink_1H8"]
+                boosted = "N"
+                parameters = "Energy"
                 setpoints = [1]
+                print("1 to 1 reverse")
+            elif (n == 600):
+                sinks = ["Source_1HP5", "Source_1BH4"]
+                sources = ["Sink_1H8"]
+                boosted = "N"
+                parameters = "Energy"
+                setpoints = [1, 2]
+                print("1 to 2 reverse")
+
             else:
                 parameters = []
                 setpoints = []
@@ -95,9 +116,10 @@ def main(argv):
                     print("\n\n\n")
                     s.close()
 
-            except Exception:
+            except (Exception, KeyboardInterrupt):
                 print("Message sending failed")
-                pass
+                sys.exit()
+
 
     except getopt.GetoptError:
         print('main.py <BuildingID> <Switch_Board_ID>')
