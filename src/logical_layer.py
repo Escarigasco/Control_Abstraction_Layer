@@ -21,6 +21,7 @@ _BEGIN_WITH = 0
 _INPUTS = "inputs"
 _STATE = "state"
 _GRAPH = "graph"
+_WATCHDOG = "watchdog"
 
 
 #  from IPython.core.debugger import Tracer
@@ -60,25 +61,26 @@ class logical_layer(object):
         pb = path_builder(self.intf)
         mssgr = message_for_controller()
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
                 # op_controller = controller()
                 s.bind((_HOST, _PORT))
                 s.listen(1)
                 print("Physical Layer Listening")
-                readable = [s] # list of readable sockets.  s is readable if a client is waiting.
+                readable = [s]  # list of readable sockets.  s is readable if a client is waiting.
                 i = 0
                 while True:
-                    r, w, e = select.select(readable, [], [], _BEGIN_WITH)
-                    for rs in r:  # iterate through readable sockets
-                        if rs is s:  # is it the server
-                            c, a = s.accept()
+                    r, w, e = select.select(readable, [], [], _BEGIN_WITH)  # the 0 here is the time out, it doesn't wait anything, it keeps cheking if the first argument is ready to be red
+                    for rs in r:  # iterate through readable sockets - so r is a list of objects included in readable that are ready to be read - if its ready there is a call from the client
+                        if rs is s:  # is it the server - if one of the object ready to be red is the socket we are using to communicate, then we listen to it!
+                            c, a = s.accept()  # this accept the first client in the queue - "c" is the socket object and "a" the ip and port object
                             print('\r{}:'.format(a), 'connected')
-                            readable.append(c)  # add the client
+                            readable.append(c)  # add the connection with the client
                         else:
-                            # read from a client
+                            # read from a client represented by that readable object
                             data_from_API = rs.recv(1024)
                             if not data_from_API:
                                 print('\r{}:'.format(rs.getpeername()), 'disconnected')
+                                #self.killer_routine(requested_configuration, mssgr)
                                 readable.remove(rs)
                                 rs.close()
                             else:
@@ -90,6 +92,7 @@ class logical_layer(object):
                                     requested_configuration[name][_INPUTS] = system_input
                                     requested_configuration[name][_STATE] = "Inactive"
                                     requested_configuration[name][_GRAPH] = []
+                                    requested_configuration[name][_WATCHDOG] = 0
                                     print('\r{}:'.format(rs.getpeername()), system_input)
                                     new_input = True
                                 else:
@@ -97,60 +100,36 @@ class logical_layer(object):
                     try:
 
                         if not self.work_q.empty():
-                            print("I am checking again the matches because something changed in the online configuration")
+                            print("There was a change in the online configuration")
                             # plt.close()
                             plt.close('all')
                             online_configuration = self.work_q.get()
-                            print(requested_configuration)
-                            if (requested_configuration):
-                                for name, attributes in requested_configuration.items():
-                                    print(requested_configuration)
-                                    requested_configuration[name][_GRAPH] = pb.run(requested_configuration[name][_INPUTS], online_configuration)
-                                    if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
-                                        if (requested_configuration[name][_STATE] == "Inactive"):
-                                            print("Preparing Message")
-                                            requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], system_input, self.intf, name)
-                                            print(requested_configuration[name][_STATE])
-
-                                    else:
-                                        if (requested_configuration[name][_STATE] == "Active"):
-                                            print("Kill started process")
-                                            requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
-                                            requested_configuration.pop(name)
-                                            print(requested_configuration)
-                        else:  # this handle the possibility that you have anew input without the online reading has changed --> please, do a method that enclose all this shit so you don't repeat
-                            if (new_input):
+                            #print(requested_configuration)
+                            requested_configuration = self.check_compatibility(requested_configuration, online_configuration, mssgr, pb)
+                        elif (new_input):  # this handle the possibility that you have a new input without the online reading has changed --> please, do a method that enclose all this shit so you don't repeat
                                 new_input = False
-                                if (requested_configuration):
-                                    for name, attributes in requested_configuration.items():
-                                        print(requested_configuration)
-                                        requested_configuration[name][_GRAPH] = pb.run(requested_configuration[name][_INPUTS], online_configuration)
-                                        if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
-                                            if (requested_configuration[name][_STATE] == "Inactive"):
-                                                print("Preparing Message")
-                                                requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], system_input, self.intf, name)
-                                                print(requested_configuration[name][_STATE])
-
-                                        else:
-                                            if (requested_configuration[name][_STATE] == "Active"):
-                                                print("Kill started process")
-                                                requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
-                                                requested_configuration.pop(name)
-                                                print(requested_configuration)
-
+                                requested_configuration = self.check_compatibility(requested_configuration, online_configuration, mssgr, pb)
+                        else:
+                            #print("let's make this try" + "." * 3, end="\r", flush=True)
+                            for name, attributes in requested_configuration.items():
+                                if ((requested_configuration[name][_STATE] == "Inactive") & (requested_configuration[name][_WATCHDOG] >= 1)):
+                                    requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], self.intf, name)
+                                    if (requested_configuration[name][_STATE] == "Inactive"):
+                                        requested_configuration[name][_WATCHDOG] += 1
+                                        if (requested_configuration[name][_WATCHDOG] >= 3):
+                                            print("Configuration {0} failed to be delivered to the controller, please check the Pysical Layer connection")
+                                            requested_configuration.pop(name)
                         i += 1
                         print('/-\|'[i % 4] + '\r', end='', flush=True)
                     except Exception:
-                        print("No user inputs defined")
+                        print("Waiting for user input" + "." * 3, end="\r", flush=True)
                         pass
 
-                                #except KeyboardInterrupt:
-                                #    self.online_reader.terminate()
-                                #    sys.exit()
-
         except(KeyboardInterrupt, SystemExit, Exception):
-                    for n in readable:
-                        n.close()
+                    #for n in readable:
+                    #    n.close()
+                    print(Exception.args)
+                    print("Unexpected error:", sys.exc_info()[0])
                     print("Logical Layer Isolated")
                     #s.shutdown() # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
                     self.online_reader.terminate()
@@ -162,6 +141,41 @@ class logical_layer(object):
             if (source == _BOOSTER_NAME):
                 system_input["boosted"] = 'N'
         return system_input
+
+    def check_compatibility(self, requested_configuration, online_configuration, mssgr, pb):
+        if (requested_configuration):
+            for name, attributes in requested_configuration.items():
+                print(requested_configuration)
+                requested_configuration[name][_GRAPH] = pb.run(requested_configuration[name][_INPUTS], online_configuration)
+                if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
+                    if (requested_configuration[name][_STATE] == "Inactive"):
+                        print("Preparing Message")
+                        requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], self.intf, name)
+                        if (requested_configuration[name][_STATE] == "Inactive"):
+                            print("Did we set this watch dog?")
+                            requested_configuration[name][_WATCHDOG] = 1
+                        print(requested_configuration[name][_STATE])
+
+                else:
+                    if (requested_configuration[name][_STATE] == "Active"):
+                        print("Kill started process")
+                        requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
+                        requested_configuration.pop(name)
+                        print(requested_configuration)
+                    else:
+                        requested_configuration.pop(name)
+        return requested_configuration
+
+    '''def killer_routine(self, requested_configuration, mssgr):
+        print("I will kill them all")
+        if (requested_configuration):
+            for name, attributes in requested_configuration.items():
+                if (requested_configuration[name][_STATE] == "Active"):
+                    print("Kill started process")
+                    requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
+                    requested_configuration.pop(name)
+        return requested_configuration'''
+
 
 if __name__ == "__main__":
     start_time = time.time()
