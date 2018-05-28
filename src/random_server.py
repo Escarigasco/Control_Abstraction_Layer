@@ -1,6 +1,8 @@
+from communicator_physical_layer import communicator_physical_layer
 import random
 import syslab
 import time
+import sys
 _BUILDING_NAME = "716-h1"
 _ACTIVE = 1
 _ACTIVE_VALVE = 0.1
@@ -21,6 +23,7 @@ class current_status_reader(object):
 
     def run_online(self, pumps, sensors, valves):
             interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+            valves_for_physical_layer = {}
 
             valves_name_translator = {
                 'Valve_2C4': "Bay_4L-Busbar_2R", 'Valve_1C4': "Bay_4L-Busbar_1R", 'Valve_1B4': "Bay_4H-Busbar_B", 'Valve_2H4': "Bay_4H-Busbar_2F", 'Valve_1H4': "Bay_4H-Busbar_1F", 'Valve_2B4': "Bay_4L-Busbar_B",
@@ -32,6 +35,7 @@ class current_status_reader(object):
             for valve in valves.keys():
                 #time.sleep(0.1)
                 opening = interface.getValvePosition(valves_name_translator[valve])
+                valves_for_physical_layer[valves_name_translator[valve]] = _INACTIVE
                 #print(valve)
                 #print(opening.value)
                 try:
