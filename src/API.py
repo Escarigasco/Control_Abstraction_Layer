@@ -10,7 +10,6 @@ _PORT = 50000              # Arbitrary non-privileged port
 _BEGIN_WITH = 0
 
 
-
 def main(argv):
     Building_List = ["Building716"]
     Switch_Board_List = ["Switch_Board_1"]
@@ -108,6 +107,7 @@ def main(argv):
                                 "parameters": parameters, "setpoints": setpoints}
             print(input_dictionary)
             print("\n\n\n\n")
+
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.connect((_HOST, _PORT))
@@ -119,7 +119,6 @@ def main(argv):
             except (Exception, KeyboardInterrupt):
                 print("Message sending failed")
                 sys.exit()
-
 
     except getopt.GetoptError:
         print('main.py <BuildingID> <Switch_Board_ID>')

@@ -21,7 +21,7 @@ _BEGIN_WITH = 0
 _INPUTS = "inputs"
 _STATE = "state"
 _GRAPH = "graph"
-_WATCHDOG = "watchdog"
+_COUNTER = "counter"
 
 
 #  from IPython.core.debugger import Tracer
@@ -36,8 +36,6 @@ class logical_layer(object):
         self.building_config = switch_board_building(self.buildingID)
         self.intf = interface(self.building_config, self.SwitchID)
         self.objtk = object_tracker(self.intf)
-
-
         cfg = configuration_reader(self.intf)
         self.main_end, self.cfg_end = Pipe()
         self.work_q = Queue()
@@ -55,7 +53,6 @@ class logical_layer(object):
         self.setpoints = setpoints
         self.process_started = False
         requested_configuration = AutoVivification()  # nothing but a dictionary
-        requested_configuration_state = {}
         #system_input = {"sinks": self.used_sinks, "sources": self.used_sources, "boosted": self.boosted,
                         #"parameters": self.parameters, "setpoints": self.setpoints}
         pb = path_builder(self.intf)
@@ -92,15 +89,14 @@ class logical_layer(object):
                                     requested_configuration[name][_INPUTS] = system_input
                                     requested_configuration[name][_STATE] = "Inactive"
                                     requested_configuration[name][_GRAPH] = []
-                                    requested_configuration[name][_WATCHDOG] = 0
+                                    requested_configuration[name][_COUNTER] = 0
                                     print('\r{}:'.format(rs.getpeername()), system_input)
                                     new_input = True
                                 else:
                                     print("Input already given")
                     try:
-
                         if not self.work_q.empty():
-                            print("There was a change in the online configuration")
+                            #print("There was a change in the online configuration")
                             # plt.close()
                             plt.close('all')
                             online_configuration = self.work_q.get()
@@ -112,11 +108,11 @@ class logical_layer(object):
                         else:
                             #print("let's make this try" + "." * 3, end="\r", flush=True)
                             for name, attributes in requested_configuration.items():
-                                if ((requested_configuration[name][_STATE] == "Inactive") & (requested_configuration[name][_WATCHDOG] >= 1)):
+                                if ((requested_configuration[name][_STATE] == "Inactive") & (requested_configuration[name][_COUNTER] >= 1)):
                                     requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], self.intf, name)
                                     if (requested_configuration[name][_STATE] == "Inactive"):
-                                        requested_configuration[name][_WATCHDOG] += 1
-                                        if (requested_configuration[name][_WATCHDOG] >= 3):
+                                        requested_configuration[name][_COUNTER] += 1
+                                        if (requested_configuration[name][_COUNTER] >= 3):
                                             print("Configuration {0} failed to be delivered to the controller, please check the Pysical Layer connection")
                                             requested_configuration.pop(name)
                         i += 1
@@ -152,8 +148,7 @@ class logical_layer(object):
                         print("Preparing Message")
                         requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], self.intf, name)
                         if (requested_configuration[name][_STATE] == "Inactive"):
-                            print("Did we set this watch dog?")
-                            requested_configuration[name][_WATCHDOG] = 1
+                            requested_configuration[name][_COUNTER] = 1
                         print(requested_configuration[name][_STATE])
 
                 else:

@@ -31,8 +31,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     inputs = pickle.loads(data_from_logical_layer)
                     if (inputs["kill"] == _NEG):
                         input_for_controller = (data_from_logical_layer, inputs["controller_name"])
-                        # print(input_for_controller)
-                        # threads.append(_thread.start_new_thread(op_controller.PID_controller, input_for_controller))
+        
                         processes[inputs["controller_name"]] = Process(target=op_controller_flow.PID_controller, args=input_for_controller)
                         print("New Process started")
                         processes[inputs["controller_name"]].start()
