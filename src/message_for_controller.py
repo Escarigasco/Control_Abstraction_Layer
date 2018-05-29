@@ -17,18 +17,20 @@ _CREATOR = "creator"
 
 class message_for_controller(object):
 
-        def __init__(self):
+        def __init__(self, interface, comms):
+            self.intf = interface
+            self.comms = comms
             self.HOST = 'localhost'    # The remote host
             self.PORT = 2000              # The same port as used by the server
 
-        def run(self, unique, system_input, interface, controller_name):
+        def run(self, unique, system_input, controller_name):
 
-            system_valves = interface.get_system_valves()
-            system_pipes = interface.get_system_pipes()
-            system_pumps = interface.get_system_pumps()
-            system_sensors = interface.get_system_sensors()
-            system_busbars = interface.build_busbars(system_pipes)
-            system_connected_devices = interface.get_connected_devices()
+            system_valves = self.intf.get_system_valves()
+            system_pipes = self.intf.get_system_pipes()
+            system_pumps = self.intf.get_system_pumps()
+            system_sensors = self.intf.get_system_sensors()
+            system_busbars = self.intf.build_busbars(system_pipes)
+            system_connected_devices = self.intf.get_connected_devices()
             system_components = {**system_sensors, **system_busbars, **system_valves, **system_connected_devices, **system_valves, **system_pumps}
             unique_nodes = {}
             config = configparser.ConfigParser()
@@ -41,7 +43,7 @@ class message_for_controller(object):
             print(nodes)
 
             c_status = components_status()
-            available_components = c_status.run(interface, unique_nodes)
+            available_components = c_status.run(self.intf, unique_nodes)
             try:
                 engine = rule_engine()
                 ideal_components = engine.run(system_input, available_components)
@@ -71,13 +73,7 @@ class message_for_controller(object):
 
             try:
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    message_serialized = pickle.dumps(input_for_controller)
-
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.HOST, self.PORT))
-                        s.sendall(message_serialized)
-
-                    s.close()
+                    self.comms.send(input_for_controller)
                     return _CONTROLLER_ACTIVATED
             except Exception:
                 print("Message sending failed")
@@ -89,11 +85,7 @@ class message_for_controller(object):
 
             try:
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    message_serialized = pickle.dumps(input_for_controller)
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.HOST, self.PORT))
-                        s.sendall(message_serialized)
-                    s.close()
+                    self.comms.send(input_for_controller)
                     return _CONTROLLER_DEACTIVED
             except Exception:
                 print("Message sending failed")

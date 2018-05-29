@@ -1,3 +1,4 @@
+from communicator_physical_layer import communicator_physical_layer
 from configuration_reader import configuration_reader
 from interface import interface
 from matplotlib import pyplot as plt
@@ -43,6 +44,7 @@ class logical_layer(object):
         self.online_reader = Process(target=cfg.run, args=(self.work_q,))
         self.online_reader.daemon = True
         self.online_reader.start()
+        self.comms = communicator_physical_layer()
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
     def run(self, sinks, sources, boosted, parameters, setpoints):
@@ -56,7 +58,7 @@ class logical_layer(object):
         #system_input = {"sinks": self.used_sinks, "sources": self.used_sources, "boosted": self.boosted,
                         #"parameters": self.parameters, "setpoints": self.setpoints}
         pb = path_builder(self.intf)
-        mssgr = message_for_controller()
+        mssgr = message_for_controller(self.intf, self.comms)
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
                 # op_controller = controller()
@@ -109,7 +111,7 @@ class logical_layer(object):
                             #print("let's make this try" + "." * 3, end="\r", flush=True)
                             for name, attributes in requested_configuration.items():
                                 if ((requested_configuration[name][_STATE] == "Inactive") & (requested_configuration[name][_COUNTER] >= 1)):
-                                    requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], self.intf, name)
+                                    requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], name)
                                     if (requested_configuration[name][_STATE] == "Inactive"):
                                         requested_configuration[name][_COUNTER] += 1
                                         if (requested_configuration[name][_COUNTER] >= 3):
@@ -146,7 +148,7 @@ class logical_layer(object):
                 if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
                     if (requested_configuration[name][_STATE] == "Inactive"):
                         print("Preparing Message")
-                        requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], self.intf, name)
+                        requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], name)
                         if (requested_configuration[name][_STATE] == "Inactive"):
                             requested_configuration[name][_COUNTER] = 1
                         print(requested_configuration[name][_STATE])

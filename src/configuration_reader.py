@@ -30,7 +30,7 @@ class configuration_reader(object):
         #self._stop_event = threading.Event()
         # system_bays = self.config_reader.get_hydraulic_bays()
         self.comms = communicator_physical_layer()
-        
+
     def run(self, worker_q):
         self.Graph = nx.DiGraph()
         self.UpdatedGraph = nx.DiGraph()
@@ -56,8 +56,8 @@ class configuration_reader(object):
         while True:
             try:
 
-                #status_online_reading = ro.run_random()
-                status_online_reading = ro.run_online()
+                status_online_reading = ro.run_random()
+                #status_online_reading = ro.run_online()
                 if (status_online_reading):
                     time.sleep(2)
 
