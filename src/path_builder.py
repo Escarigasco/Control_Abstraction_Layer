@@ -21,9 +21,10 @@ _BOOSTER_BAR = "B"
 _OFFSET_FIGURE = 2
 
 
+
 class path_builder(object):
 
-    def __init__(self, interface):
+    def __init__(self, interface, comms):
         self.builder = interface
         self.objtk = object_tracker(self.builder)
         self.system_sensors = self.builder.get_system_sensors()
@@ -36,10 +37,10 @@ class path_builder(object):
         self.connected_device_position = self.objtk.where_are_devices(self.system_connected_devices)
         self.valves_position = self.objtk.where_are_devices(self.system_valves)
         self.line_position = self.objtk.where_are_devices(self.system_lines)
-        self.conf_slct = configuration_selector(self.system_sensors, self.system_valves, self.system_pumps)
+        self.conf_slct = configuration_selector(self.system_sensors, self.system_valves, self.system_pumps, self.system_connected_devices, self.system_busbars, self.builder, comms)
 
 
-    def run(self, input_request):
+    def run(self, input_request, busy_busbars):
 
         #pm = path_matcher(online_configuration)
         sources = input_request['sources']
@@ -49,13 +50,7 @@ class path_builder(object):
         bays_sinks = []
 
         # It is hardcoded the number of graph
-        Graph_A = nx.DiGraph()
-        Graph_B = nx.DiGraph()
-        Graph_C = nx.DiGraph()
-        Graph_D = nx.DiGraph()
-        possible_configurations = [Graph_A, Graph_B, Graph_C, Graph_D]
         actuable_configuration = {}
-
 
         for source in sources:
             bays_sources.append(self.connected_device_position[source])
@@ -238,8 +233,8 @@ class path_builder(object):
             print(i)
             print(actuable_configuration[i].nodes)
 
-        configuration_selected = self.conf_slct.start_screening(actuable_configuration)
-        #sys.exit()            #
+        configuration_selected = self.conf_slct.start_screening(actuable_configuration, busy_busbars)
+        return configuration_selected
 
     def all_possible_valves(self, valves_position, bays_sinks, bays_sources, boosted, connected_device_position):
         possible_valves = []

@@ -31,7 +31,7 @@ class message_for_controller(object):
             system_sensors = self.intf.get_system_sensors()
             system_busbars = self.intf.build_busbars(system_pipes)
             system_connected_devices = self.intf.get_connected_devices()
-            system_components = {**system_sensors, **system_busbars, **system_valves, **system_connected_devices, **system_valves, **system_pumps}
+            system_components = {**system_sensors, **system_busbars, **system_connected_devices, **system_valves, **system_pumps}
             unique_nodes = {}
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
