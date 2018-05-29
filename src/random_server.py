@@ -20,12 +20,12 @@ class current_status_reader(object):
     def run_random(self):
         min_operating = 0
         max_operating = 100
-        for valve in self.valves.keys():
+        for valve in self.system_valves.keys():
             random_gen = random.randint(min_operating, max_operating)
             if (random_gen > 10):
-                self.valves[valve].set_status(_ACTIVE)
+                self.system_valves[valve].set_status(_ACTIVE)
             else:
-                self.valves[valve].set_status(_INACTIVE_VALVE)
+                self.system_valves[valve].set_status(_INACTIVE_VALVE)
         return True
 
     def run_online(self):
