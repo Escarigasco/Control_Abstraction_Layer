@@ -10,6 +10,9 @@ import time
 _FIRST_OF_CLASS = 1
 _CONTROLLER_ACTIVATED = "Active"
 _CONTROLLER_DEACTIVED = "Inactive"
+_DESCRIPTION = "description"
+_KILLER = "killer"
+_CREATOR = "creator"
 
 
 class message_for_controller(object):
@@ -57,7 +60,7 @@ class message_for_controller(object):
                 controller_mode = act_circulator["mode"]
                 # self.controller_name = act_circulator["mode"]
 
-                input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
+                input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _CREATOR, "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
                                         "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
                                         "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
                                         "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
@@ -81,7 +84,7 @@ class message_for_controller(object):
                 return _CONTROLLER_DEACTIVED
 
         def kill(self, system_input, controller_name):
-            input_for_controller = {"controller_name": controller_name, "kill": 'Y'}
+            input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _KILLER}
             print(input_for_controller)
 
             try:
