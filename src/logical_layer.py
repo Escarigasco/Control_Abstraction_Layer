@@ -23,7 +23,8 @@ _INPUTS = "inputs"
 _STATE = "state"
 _GRAPH = "graph"
 _COUNTER = "counter"
-_BUSBARS = "busbars"
+_BUSBARS = "busbar"
+_AVAILABLE_COMPONENTS = "available_components"
 
 
 #  from IPython.core.debugger import Tracer
@@ -46,6 +47,7 @@ class logical_layer(object):
         self.online_reader.daemon = True
         self.online_reader.start()
         self.comms = communicator_physical_layer()
+        self.busy_busbars = {}
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
     def run(self, sinks, sources, boosted, parameters, setpoints):
@@ -59,7 +61,7 @@ class logical_layer(object):
         requested_configuration = AutoVivification()  # nothing but a dictionary
         #system_input = {"sinks": self.used_sinks, "sources": self.used_sources, "boosted": self.boosted,
                         #"parameters": self.parameters, "setpoints": self.setpoints}
-        pb = path_builder(self.intf)
+        pb = path_builder(self.intf, self.comms)
         mssgr = message_for_controller(self.intf, self.comms)
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
@@ -94,15 +96,16 @@ class logical_layer(object):
                                 requested_configuration[name][_STATE] = "Inactive"
                                 requested_configuration[name][_GRAPH] = []
                                 requested_configuration[name][_COUNTER] = 0
-                                requested_configuration[name][_BUSBARS] = 'None'
+                                requested_configuration[name][_BUSBARS] = []
+                                requested_configuration[name][_AVAILABLE_COMPONENTS]
                                 print('\r{}:'.format(rs.getpeername()), system_input)
                                 new_input = True
                             else:
                                 print("Input already given")
                 if (new_input):
-                    self.find_suitable_setup(requested_configuration[name], pb)
                     new_input = False
-
+                    requested_configuration = self.find_suitable_setup(requested_configuration, pb)
+                    sys.exit()
                     '''
                     try:
                         if not self.work_q.empty():  # if there is a change in the online reading
@@ -169,7 +172,15 @@ class logical_layer(object):
         return requested_configuration
 
     def find_suitable_setup(self, requested_configuration, pb):
-        requested_configuration[_GRAPH] = pb.run(requested_configuration[_INPUTS])
+        for name, attributes in requested_configuration.items():
+            if (requested_configuration[name][_STATE] == "Inactive"):
+                suitable_setup = pb.run(requested_configuration[name][_INPUTS], self.busy_busbars)
+                requested_configuration[name][_GRAPH] = suitable_setup[_GRAPH]
+                requested_configuration[name][_AVAILABLE_COMPONENTS] = suitable_setup[_AVAILABLE_COMPONENTS]
+                requested_configuration[name][_BUSBARS] = suitable_setup[_BUSBARS]
+                self.busy_busbars[name] = suitable_setup[_BUSBARS]
+
+        return requested_configuration
 
     '''def killer_routine(self, requested_configuration, mssgr):
         print("I will kill them all")
