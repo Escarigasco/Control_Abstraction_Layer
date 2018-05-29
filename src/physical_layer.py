@@ -46,12 +46,18 @@ class physical_layer(object):
                                     processes[inputs["controller_name"]] = Process(target=op_controller_flow.PID_controller, args=input_for_controller)
                                     print("New Process started")
                                     processes[inputs["controller_name"]].start()
+                                    feedback = "I have created controller " + inputs["controller_name"]
+                                    message_serialized = pickle.dumps(feedback)
+                                    conn.sendall(message_serialized)
                                     # processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
                                 elif (inputs[_DESCRIPTION] == _KILLER):
                                     print("Mi è stato detto di ucciderti, ", inputs["controller_name"])
                                     processes[inputs["controller_name"]].terminate()
                                     print("process terminated", inputs["controller_name"])
+                                    feedback = "I have killed controller " + inputs["controller_name"]
+                                    message_serialized = pickle.dumps(feedback)
+                                    conn.sendall(message_serialized)
 
                                 elif (inputs[_DESCRIPTION] == _VALVE_STATUS):
                                     print(inputs)
