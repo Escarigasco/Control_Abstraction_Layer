@@ -1,4 +1,4 @@
-from communicator_physical_layer import communicator_physical_layer
+#from communicator_physical_layer import communicator_physical_layer
 import random
 import syslab
 import time
