@@ -45,7 +45,7 @@ class current_status_reader(object):
             valves_for_logical_layer = self.comms.send(valves_for_physical_layer)
             if (valves_for_logical_layer):
                 for valve in valves_for_logical_layer.keys():
-                    if (valves_for_logical_layer[valve] > _ACTIVE_VALVE):
+                    if (valves_for_logical_layer[valve] >= _ACTIVE_VALVE):
                         self.system_valves[valve].set_status(_ACTIVE)
                     else:
                         self.system_valves[valve].set_status(_INACTIVE_VALVE)
