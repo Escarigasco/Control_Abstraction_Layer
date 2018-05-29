@@ -73,7 +73,8 @@ class message_for_controller(object):
 
             try:
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    self.comms.send(input_for_controller)
+                    feedback = self.comms.send(input_for_controller)
+                    print(feedback)
                     return _CONTROLLER_ACTIVATED
             except Exception:
                 print("Message sending failed")
@@ -85,7 +86,8 @@ class message_for_controller(object):
 
             try:
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    self.comms.send(input_for_controller)
+                    feedback = self.comms.send(input_for_controller)
+                    print(feedback)
                     return _CONTROLLER_DEACTIVED
             except Exception:
                 print("Message sending failed")
