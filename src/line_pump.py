@@ -2,7 +2,7 @@
 from random import choice
 
 
-class line_pump:
+class line_pump(object):
     'Class for Pump definition and properties'
 
     def __init__(self, parent_ID, ID, position, connected_dev, status=None):
