@@ -4,7 +4,7 @@ import syslab
 import time
 import sys
 
-_BUILDING_NAME = "716-h1"
+
 _ACTIVE = 1
 _ACTIVE_VALVE = 0.1
 _INACTIVE_VALVE = 0

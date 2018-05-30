@@ -42,8 +42,10 @@ class message_for_controller(object):
 
             print(nodes)
 
-            c_status = components_status()
-            available_components = c_status.run(self.intf, unique_nodes)
+            #TODO
+            '''the available components will now come from outside'''
+            #c_status = components_status()
+            #available_components = c_status.run(self.intf, unique_nodes)
             try:
                 engine = rule_engine()
                 ideal_components = engine.run(system_input, available_components)

@@ -105,6 +105,7 @@ class logical_layer(object):
                 if (new_input):
                     new_input = False
                     requested_configuration = self.find_suitable_setup(requested_configuration, pb)
+                    print("si sono qui buone vacanze")
                     sys.exit()
                     '''
                     try:
