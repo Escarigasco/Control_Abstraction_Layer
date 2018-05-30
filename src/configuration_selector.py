@@ -20,11 +20,11 @@ class configuration_selector(object):
         self.sensors = sensors
         self.valves = valves
         self.pumps = pumps
-        self.comms = comms
+        #self.comms = comms
         self.system_busbars = busbars
         self.connected_devices = connected_devices
         self.system_components = {**self.sensors, **self.valves, **self.pumps, **self.connected_devices, **self.system_busbars}
-        self.c_status = components_status()
+        self.c_status = components_status(comms)
 
     def start_screening(self, actuable_configuration, busy_busbar):
         occupied_busbars = []
@@ -67,7 +67,7 @@ class configuration_selector(object):
                     busy = True
             print(not busy)
             if not busy:
-                available_components[name] = self.c_status.run(self.intf, configuration_components)
+                available_components[name] = self.c_status.run(configuration_components)
                 scores[name] = sum([available_components[name][_S_SCORE], available_components[name][_V_SCORE], available_components[name][_P_SCORE]])
 
         for name in scores.keys():
