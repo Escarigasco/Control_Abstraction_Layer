@@ -1,17 +1,24 @@
 import re
 import syslab
+import sys
 _ACTIVE = 1
-_INACTIVE = 0
-_BUILDING_NAME = "716-h1"
+_ACTIVE_VALVE = 0.1
+_INACTIVE_VALVE = 0
+_VALVE_STATUS = "valve_status"
+_DESCRIPTION = "description"
 _SENSORS = 'Sensor'
 _PUMPS = 'Pump'
 _VALVES = 'Valve'
 _MULTIPLIER = 1000
+_BUILDING_NAME = "716-h1"
 
 
 class components_status(object):
 
-    def run(self, interface, configuration_components):
+    def __init__(self, comms):
+        self.comms = comms
+
+    def run(self, configuration_components):
 
 
         active_components = {}
@@ -24,9 +31,10 @@ class components_status(object):
         sensors_score = 0
         valves_score = 0
 
-        self.sensor_evaluation(sensors)
-        self.pumps_evaluation(pumps)
-        self.valves_evaluation(valves)
+        #TODO handle return true false
+        bool = self.sensor_evaluation(sensors)
+        bool = self.pumps_evaluation(pumps)
+        bool = self.valves_evaluation(valves)
 
         active_components = {"Pumps_active": [pump for pump in pumps if pump.status == _ACTIVE],
                              "Sensors_active": [sensor for sensor in sensors if sensor.status == _ACTIVE],
@@ -98,7 +106,8 @@ class components_status(object):
                 pump.set_status(_ACTIVE)
 
     def valves_evaluation(self, valves):
-
+        valves_for_physical_layer = {}
+        valves_dic = {}
         valves_name_translator = {
             'Valve_2C4': "Bay_4L-Busbar_2R", 'Valve_1C4': "Bay_4L-Busbar_1R", 'Valve_1B4': "Bay_4H-Busbar_B", 'Valve_2H4': "Bay_4H-Busbar_2F", 'Valve_1H4': "Bay_4H-Busbar_1F", 'Valve_2B4': "Bay_4L-Busbar_B",
             'Valve_2C5': "Bay_5L-Busbar_1R", 'Valve_1C5': "Bay_5L-Busbar_2R", 'Valve_1B5': "Bay_5H-Busbar_B", 'Valve_2H5': "Bay_5H-Busbar_1F", 'Valve_1H5': "Bay_5H-Busbar_2F", 'Valve_2B5': "Bay_5L-Busbar_B",
@@ -106,13 +115,25 @@ class components_status(object):
             'Valve_2H7': "Bay_7H-Busbar_1F", 'Valve_1H7': "Bay_7H-Busbar_2F", 'Valve_2C7': "Bay_7L-Busbar_1R", 'Valve_1C7': "Bay_7L-Busbar_2R",
             'Valve_2H8': "Bay_8H-Busbar_1F", 'Valve_1H8': "Bay_8H-Busbar_2F", 'Valve_2C8': "Bay_8L-Busbar_1R", 'Valve_1C8': "Bay_8L-Busbar_2R"}
 
+
         for valve in valves:
             # time.sleep(0.1)
-            status = self.interface_syslab.getValvePosition(valves_name_translator[valve.ID])
-            print(valve)
-            print(status.value)
-            if(status.value != "NaN"):
-                valve.set_status(_ACTIVE)
-                valve.score_calculator(status.value)
-            else:
-                valve.set_status(_INACTIVE)
+            #status = self.interface_syslab.getValvePosition(valves_name_translator[valve.ID])
+            valves_for_physical_layer[valve.ID] = valves_name_translator[valve.ID]
+            valves_dic[valve.ID] = valve
+
+        valves_for_physical_layer = {v: k for k, v in valves_for_physical_layer.items()}
+        valves_for_physical_layer[_DESCRIPTION] = _VALVE_STATUS
+
+        valves_for_logical_layer = self.comms.send(valves_for_physical_layer)
+        print(valves_for_logical_layer)
+        if (valves_for_logical_layer):
+                for valve in valves_for_logical_layer.keys():
+                        if (valves_for_logical_layer[valve] >= _ACTIVE_VALVE):
+                            valves_dic[valve].set_status(_ACTIVE)
+                            valves_dic[valve].score_calculator(valves_for_logical_layer[valve])
+                        else:
+                            valves_dic[valve].set_status(_INACTIVE_VALVE)
+                return True
+        else:
+            return False
