@@ -22,6 +22,7 @@ class bay_valve(object):
 
     def score_calculator(self, value):
         self.opening_score = value
+        
     def get_flow_direction(self):
         return self.flow_direction
 
