@@ -20,9 +20,8 @@ class components_status(object):
 
     def run(self, configuration_components):
 
-
         active_components = {}
-        self.interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        #self.interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
         interface = 0
         sensors = configuration_components[_SENSORS]
         pumps = configuration_components[_PUMPS]
@@ -32,8 +31,8 @@ class components_status(object):
         valves_score = 0
 
         #TODO handle return true false
-        bool = self.sensor_evaluation(sensors)
-        bool = self.pumps_evaluation(pumps)
+        #bool = self.sensor_evaluation(sensors)
+        #bool = self.pumps_evaluation(pumps)
         bool = self.valves_evaluation(valves)
 
         active_components = {"Pumps_active": [pump for pump in pumps if pump.status == _ACTIVE],
@@ -55,8 +54,9 @@ class components_status(object):
             #sensors_score += sensor.status * _MULTIPLIER
             sensors_score = 0
         for valve in valves:
-            #valves_score += valve.opening_score * _MULTIPLIER
-            valves_score = 0
+            print(valve)
+            valves_score += valve.opening_score * _MULTIPLIER
+            #valves_score = 0
 
         components_score = {"Pumps_score": pumps_score,
                             "Sensors_score": sensors_score,
@@ -115,7 +115,6 @@ class components_status(object):
             'Valve_2H7': "Bay_7H-Busbar_1F", 'Valve_1H7': "Bay_7H-Busbar_2F", 'Valve_2C7': "Bay_7L-Busbar_1R", 'Valve_1C7': "Bay_7L-Busbar_2R",
             'Valve_2H8': "Bay_8H-Busbar_1F", 'Valve_1H8': "Bay_8H-Busbar_2F", 'Valve_2C8': "Bay_8L-Busbar_1R", 'Valve_1C8': "Bay_8L-Busbar_2R"}
 
-
         for valve in valves:
             # time.sleep(0.1)
             #status = self.interface_syslab.getValvePosition(valves_name_translator[valve.ID])
@@ -134,6 +133,7 @@ class components_status(object):
                             valves_dic[valve].score_calculator(valves_for_logical_layer[valve])
                         else:
                             valves_dic[valve].set_status(_INACTIVE_VALVE)
+                            valves_dic[valve].score_calculator(valves_for_logical_layer[valve])
                 return True
         else:
             return False
