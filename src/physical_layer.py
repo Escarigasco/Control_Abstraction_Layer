@@ -97,7 +97,8 @@ class physical_layer(object):
         max_operating = 1
         valves_for_logical_layer = {}
         for valve in valves_for_physical_layer.keys():
-            valves_for_logical_layer[valves_for_physical_layer[valve]] = random.uniform(min_operating, max_operating)
+            print(valve)
+            valves_for_logical_layer[valve] = random.uniform(min_operating, max_operating)
         return valves_for_logical_layer
 
 if __name__ == "__main__":
