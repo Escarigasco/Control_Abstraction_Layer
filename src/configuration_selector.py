@@ -15,7 +15,7 @@ _COLD_BUSBAR = "cold_busbar"
 
 
 class configuration_selector(object):
-    def __init__(self, sensors, valves, pumps, connected_devices, busbars, interface, comms):
+    def __init__(self, sensors, valves, pumps, connected_devices, busbars, interface, comms, translator):
         self.intf = interface
         self.sensors = sensors
         self.valves = valves
@@ -24,7 +24,7 @@ class configuration_selector(object):
         self.system_busbars = busbars
         self.connected_devices = connected_devices
         self.system_components = {**self.sensors, **self.valves, **self.pumps, **self.connected_devices, **self.system_busbars}
-        self.c_status = components_status(comms)
+        self.c_status = components_status(comms, translator)
 
     def start_screening(self, actuable_configuration, busy_busbar):
         occupied_busbars = []
