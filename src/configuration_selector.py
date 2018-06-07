@@ -74,7 +74,7 @@ class configuration_selector(object):
             print(name)
             print(scores[name])
         selected_configuration = max(scores, key=scores.get)  # this is to find the key that has the smallest value
-        print(selected_configuration)
+        print("The winner is.... ", selected_configuration)
 
         nodes = list(actuable_configuration[selected_configuration].nodes)
         configuration_nodes = {}
@@ -88,6 +88,5 @@ class configuration_selector(object):
         message_to_return = {_GRAPH: actuable_configuration[selected_configuration],
                              _AVAILABLE_COMPONENTS: available_components[selected_configuration],
                              _BUSBARS: busbars}
-
         print(message_to_return)
         return message_to_return

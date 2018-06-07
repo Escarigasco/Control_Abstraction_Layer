@@ -25,6 +25,7 @@ _GRAPH = "graph"
 _COUNTER = "counter"
 _BUSBARS = "busbar"
 _AVAILABLE_COMPONENTS = "available_components"
+_VALVES = 'Valves_active'
 
 
 #  from IPython.core.debugger import Tracer
@@ -97,7 +98,7 @@ class logical_layer(object):
                                 requested_configuration[name][_GRAPH] = []
                                 requested_configuration[name][_COUNTER] = 0
                                 requested_configuration[name][_BUSBARS] = []
-                                requested_configuration[name][_AVAILABLE_COMPONENTS]
+                                requested_configuration[name][_AVAILABLE_COMPONENTS] = []
                                 print('\r{}:'.format(rs.getpeername()), system_input)
                                 new_input = True
                             else:
@@ -105,6 +106,8 @@ class logical_layer(object):
                 if (new_input):
                     new_input = False
                     requested_configuration = self.find_suitable_setup(requested_configuration, pb)
+                    requested_configuration = self.actuate_suitable_setup(requested_configuration)
+
                     print("si sono qui buone vacanze")
                     sys.exit()
                     '''
@@ -180,6 +183,12 @@ class logical_layer(object):
                 requested_configuration[name][_AVAILABLE_COMPONENTS] = suitable_setup[_AVAILABLE_COMPONENTS]
                 requested_configuration[name][_BUSBARS] = suitable_setup[_BUSBARS]
                 self.busy_busbars[name] = suitable_setup[_BUSBARS]
+        return requested_configuration
+
+    def actuate_suitable_setup(self, requested_configuration):
+        for name, attributes in requested_configuration.items():
+            if (requested_configuration[name][_STATE] == "Inactive"):
+                print(requested_configuration[name][_AVAILABLE_COMPONENTS][_VALVES])
 
         return requested_configuration
 
@@ -207,4 +216,4 @@ if __name__ == "__main__":
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
-'''From Test Rig to Online uncomment interface from configuration_reader.py, components_status.py, controller.py'''
+'''From Test Rig to Online uncomment interface and related from, components_status.py, controller.py, physical_layer.py'''

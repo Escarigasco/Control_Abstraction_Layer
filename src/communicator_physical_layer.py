@@ -16,7 +16,7 @@ class communicator_physical_layer(object):
                 s.connect((_HOST, _PORT))
                 s.sendall(message_serialized)
                 while not message_received:
-                    print("I am stucked here")
+                    #print("I am stucked here")
                     message_received = s.recv(2048)
                     print("Message received")
                 s.close()
