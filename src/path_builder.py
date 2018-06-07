@@ -24,7 +24,7 @@ _OFFSET_FIGURE = 2
 
 class path_builder(object):
 
-    def __init__(self, interface, comms):
+    def __init__(self, interface, comms, translator):
         self.builder = interface
         self.objtk = object_tracker(self.builder)
         self.system_sensors = self.builder.get_system_sensors()
@@ -37,7 +37,7 @@ class path_builder(object):
         self.connected_device_position = self.objtk.where_are_devices(self.system_connected_devices)
         self.valves_position = self.objtk.where_are_devices(self.system_valves)
         self.line_position = self.objtk.where_are_devices(self.system_lines)
-        self.conf_slct = configuration_selector(self.system_sensors, self.system_valves, self.system_pumps, self.system_connected_devices, self.system_busbars, self.builder, comms)
+        self.conf_slct = configuration_selector(self.system_sensors, self.system_valves, self.system_pumps, self.system_connected_devices, self.system_busbars, self.builder, comms, translator)
 
 
     def run(self, input_request, busy_busbars):

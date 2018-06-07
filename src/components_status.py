@@ -16,9 +16,9 @@ _BUILDING_NAME = "716-h1"
 
 class components_status(object):
 
-    def __init__(self, comms):
+    def __init__(self, comms, name_translator):
         self.comms = comms
-        self.translator = name_translator()
+        self.translator = name_translator
 
     def run(self, configuration_components):
 
