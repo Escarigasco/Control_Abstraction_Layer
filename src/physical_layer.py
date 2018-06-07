@@ -7,15 +7,21 @@ import random
 import socket
 import sys
 import syslab
+import syslab.core.datatypes.CompositeMeasurement as CM
+import time
 
+_MULTIPLIER = 1000000
+_ACTUATE = "actuate"
+_VALVE_STATUS = "valve_status"
+_VALVES = 'Valves_active'
 _BUILDING_NAME = "716-h1"
 _NEG = "N"
-_VALVE_STATUS = "valve_status"
 _DESCRIPTION = "description"
 _KILLER = "killer"
 _CREATOR = "creator"
 _HOST = 'localhost'                 # Symbolic name meaning all available interfaces
 _PORT = 2000             # Arbitrary non-privileged port
+_TURN_ME_ON = 1
 
 
 class physical_layer(object):
@@ -42,8 +48,8 @@ class physical_layer(object):
                                 inputs = pickle.loads(data_from_logical_layer)
 
                                 if (inputs[_DESCRIPTION] == _CREATOR):
+                                    inputs.pop(_DESCRIPTION)
                                     input_for_controller = (data_from_logical_layer, inputs["controller_name"])
-
                                     processes[inputs["controller_name"]] = Process(target=op_controller_flow.PID_controller, args=input_for_controller)
                                     print("New Process started")
                                     processes[inputs["controller_name"]].start()
@@ -53,6 +59,7 @@ class physical_layer(object):
                                     # processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
                                 elif (inputs[_DESCRIPTION] == _KILLER):
+                                    inputs.pop(_DESCRIPTION)
                                     print("Mi è stato detto di ucciderti, ", inputs["controller_name"])
                                     processes[inputs["controller_name"]].terminate()
                                     print("process terminated", inputs["controller_name"])
@@ -67,6 +74,15 @@ class physical_layer(object):
                                     valves_for_logical_layer = self.get_valves_simulated_status(inputs)
                                     message_serialized = pickle.dumps(valves_for_logical_layer)
                                     print(valves_for_logical_layer)
+                                    conn.sendall(message_serialized)
+
+                                elif (inputs[_DESCRIPTION] == _ACTUATE):
+                                    print(inputs)
+                                    inputs.pop(_DESCRIPTION)
+                                    #complete = self.set_hydraulic_circuit(inputs, interface)
+                                    complete = self.set_hydraulic_simulated_circuit(inputs)
+                                    message_serialized = pickle.dumps(complete)
+                                    print(complete)
                                     conn.sendall(message_serialized)
 
                             except(KeyboardInterrupt, SystemExit, Exception):
@@ -100,6 +116,36 @@ class physical_layer(object):
             print(valve)
             valves_for_logical_layer[valve] = random.uniform(min_operating, max_operating)
         return valves_for_logical_layer
+
+    def set_hydraulic_circuit(self, inputs, interface):
+        valves = inputs[_VALVES]
+        valves_status = {}
+        opening_threshold = 3.6
+        CompositMess = CM(_TURN_ME_ON, time.time() * _MULTIPLIER)
+        complete = False
+        for valve in valves:
+            interface.setValvePosition(valve, CompositMess)
+        while not complete:
+            for valve in valves:
+                valves_status[valve] = interface.getValvePosition(valve, CompositMess).value
+            time.sleep(2)
+            if (sum(opening for opening in valves_status.values()) >= opening_threshold):
+                complete = True
+        return complete
+
+    def set_hydraulic_simulated_circuit(self, inputs):
+        valves = inputs[_VALVES]
+        valves_status = {}
+        opening_threshold = 3.6
+        complete = False
+        for valve in valves:
+            valves_status[valve] = 1
+        time.sleep(20)
+        print(sum(opening for opening in valves_status.values()))
+        if (sum(opening for opening in valves_status.values()) >= opening_threshold):
+                complete = True
+        return complete
+
 
 if __name__ == "__main__":
     test = physical_layer()
