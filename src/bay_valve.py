@@ -5,7 +5,7 @@ from random import choice
 class bay_valve(object):
     'Class for Valve definition and properties'
 
-    def __init__(self, parent_ID, ID, connection, flow, direction, connected_dev, status=None, opening_score=None):
+    def __init__(self, parent_ID, ID, connection, flow, direction, connected_dev, status=None, opening_score=0):
         self.parent_ID = parent_ID
         self.ID = ID
         self.connection = connection
@@ -22,7 +22,7 @@ class bay_valve(object):
 
     def score_calculator(self, value):
         self.opening_score = value
-        
+
     def get_flow_direction(self):
         return self.flow_direction
 
