@@ -1,8 +1,8 @@
 from communicator_physical_layer import communicator_physical_layer
 from configuration_reader import configuration_reader
 from interface import interface
-from matplotlib import pyplot as plt
 from message_for_controller import message_for_controller
+from name_translator import name_translator
 from object_tracker import object_tracker
 from path_builder import path_builder
 from switch_board_building import switch_board_building
@@ -15,17 +15,23 @@ import sys
 import time
 
 
-_BOOSTER_NAME = "Source_1BH4"
-_HOST = 'localhost'                 # Symbolic name meaning all available interfaces
-_PORT = 50000              # Arbitrary non-privileged port
-_BEGIN_WITH = 0
-_INPUTS = "inputs"
-_STATE = "state"
-_GRAPH = "graph"
-_COUNTER = "counter"
-_BUSBARS = "busbar"
 _AVAILABLE_COMPONENTS = "available_components"
+_BEGIN_WITH = 0
+_BOOSTER_NAME = "Source_1BH4"
+_BUSBARS = "busbar"
+_COUNTER = "counter"
+_DESCRIPTION = "description"
+_GRAPH = "graph"
+_HOST = 'localhost'                 # Symbolic name meaning all available interfaces
+_INPUTS = "inputs"
+_MATCH = 'match'
+_PORT = 50000              # Arbitrary non-privileged port
+_PUMPS = 'Pumps_active'
+_SENSORS = 'Sensors_active'
+_STATE = "state"
 _VALVES = 'Valves_active'
+_ACTUATE = "actuate"
+
 
 
 #  from IPython.core.debugger import Tracer
@@ -48,6 +54,7 @@ class logical_layer(object):
         self.online_reader.daemon = True
         self.online_reader.start()
         self.comms = communicator_physical_layer()
+        self.translator = name_translator()
         self.busy_busbars = {}
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
@@ -62,7 +69,7 @@ class logical_layer(object):
         requested_configuration = AutoVivification()  # nothing but a dictionary
         #system_input = {"sinks": self.used_sinks, "sources": self.used_sources, "boosted": self.boosted,
                         #"parameters": self.parameters, "setpoints": self.setpoints}
-        pb = path_builder(self.intf, self.comms)
+        pb = path_builder(self.intf, self.comms, self.translator)
         mssgr = message_for_controller(self.intf, self.comms)
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
@@ -95,20 +102,25 @@ class logical_layer(object):
                             if (name not in requested_configuration.keys()):
                                 requested_configuration[name][_INPUTS] = system_input
                                 requested_configuration[name][_STATE] = "Inactive"
+                                requested_configuration[name][_MATCH] = "Unmatched"
                                 requested_configuration[name][_GRAPH] = []
                                 requested_configuration[name][_COUNTER] = 0
                                 requested_configuration[name][_BUSBARS] = []
                                 requested_configuration[name][_AVAILABLE_COMPONENTS] = []
+
                                 print('\r{}:'.format(rs.getpeername()), system_input)
                                 new_input = True
                             else:
                                 print("Input already given")
+
                 if (new_input):
                     new_input = False
                     requested_configuration = self.find_suitable_setup(requested_configuration, pb)
                     requested_configuration = self.actuate_suitable_setup(requested_configuration)
 
                     print("si sono qui buone vacanze")
+                    while True:
+                        a = 0
                     sys.exit()
                     '''
                     try:
@@ -186,10 +198,25 @@ class logical_layer(object):
         return requested_configuration
 
     def actuate_suitable_setup(self, requested_configuration):
+        actuating_message = {}
+        valves_translated = []
         for name, attributes in requested_configuration.items():
             if (requested_configuration[name][_STATE] == "Inactive"):
-                print(requested_configuration[name][_AVAILABLE_COMPONENTS][_VALVES])
+                if (requested_configuration[name][_MATCH] == "Unmatched"):
+                    print(requested_configuration[name][_AVAILABLE_COMPONENTS][_VALVES])
+                    print(requested_configuration[name][_AVAILABLE_COMPONENTS][_PUMPS])
+                    print(requested_configuration[name][_AVAILABLE_COMPONENTS][_SENSORS])
+                    for valve in requested_configuration[name][_AVAILABLE_COMPONENTS][_VALVES]:
+                        valves_translated.append(self.translator.valves(valve.ID))
+                    actuating_message = {_DESCRIPTION: _ACTUATE, _VALVES: valves_translated}
+                    complete = self.comms.send(actuating_message)
+                    #TODO setup the hydraulic circuit
 
+
+
+
+
+                    #TODO send the actual controller command
         return requested_configuration
 
     '''def killer_routine(self, requested_configuration, mssgr):
