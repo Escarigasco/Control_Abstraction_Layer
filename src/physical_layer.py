@@ -3,6 +3,7 @@ from controller_constant_flow import controller_constant_flow
 from controller_constant_pressure import controller_constant_pressure
 from multiprocessing import Process
 import pickle
+import random
 import socket
 import sys
 import syslab
@@ -23,13 +24,13 @@ class physical_layer(object):
         op_controller_flow = controller_constant_flow()
         op_controller_pressure = controller_constant_pressure()
         processes = {}
-        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            # op_controller = controller()
-            s.bind((_HOST, _PORT))
-            while True:
-                print("Physical Layer Listening")
-                try:
+        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                # op_controller = controller()
+                s.bind((_HOST, _PORT))
+                while True:
+                    print("Physical Layer Listening")
                     s.listen(1)
                     conn, addr = s.accept()
                     with conn:
@@ -62,7 +63,8 @@ class physical_layer(object):
                                 elif (inputs[_DESCRIPTION] == _VALVE_STATUS):
                                     print(inputs)
                                     inputs.pop(_DESCRIPTION)
-                                    valves_for_logical_layer = self.get_valves_status(inputs, interface)
+                                    #valves_for_logical_layer = self.get_valves_status(inputs, interface)
+                                    valves_for_logical_layer = self.get_valves_simulated_status(inputs)
                                     message_serialized = pickle.dumps(valves_for_logical_layer)
                                     print(valves_for_logical_layer)
                                     conn.sendall(message_serialized)
@@ -77,18 +79,25 @@ class physical_layer(object):
                                             print("Stopped Process {0}".format(process))
                                         sys.exit()
 
-                except (KeyboardInterrupt, Exception, SystemExit):
-                    s.shutdown(socket.SHUT_RDWR)  # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
-                    s.close()
-                    sys.exit()
+        except (KeyboardInterrupt, Exception, SystemExit):
+            s.shutdown(socket.SHUT_RDWR)  # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
+            s.close()
+            sys.exit()
 
     def get_valves_status(self, valves_for_physical_layer, interface):
-
         valves_for_logical_layer = {}
         for valve in valves_for_physical_layer.keys():
             opening = interface.getValvePosition(valve)
             print(valve, opening.value)
             valves_for_logical_layer[valves_for_physical_layer[valve]] = opening.value
+        return valves_for_logical_layer
+
+    def get_valves_simulated_status(self, valves_for_physical_layer):
+        min_operating = 0
+        max_operating = 1
+        valves_for_logical_layer = {}
+        for valve in valves_for_physical_layer.keys():
+            valves_for_logical_layer[valves_for_physical_layer[valve]] = random.uniform(min_operating, max_operating)
         return valves_for_logical_layer
 
 if __name__ == "__main__":
