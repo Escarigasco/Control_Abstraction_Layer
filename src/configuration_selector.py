@@ -62,10 +62,8 @@ class configuration_selector(object):
             for bb in busbars:
                 print(bb)
                 print(occupied_busbars)
-                print(bb in occupied_busbars)
                 if (bb in occupied_busbars):
                     busy = True
-            print(not busy)
             if not busy:
                 available_components[name] = self.c_status.run(configuration_components)
                 scores[name] = sum([available_components[name][_S_SCORE], available_components[name][_V_SCORE], available_components[name][_P_SCORE]])
@@ -73,8 +71,12 @@ class configuration_selector(object):
         for name in scores.keys():
             print(name)
             print(scores[name])
-        selected_configuration = max(scores, key=scores.get)  # this is to find the key that has the smallest value
-        print("The winner is.... ", selected_configuration)
+        if scores:
+            selected_configuration = max(scores, key=scores.get)  # this is to find the key that has the smallest value
+            print("The winner is.... ", selected_configuration)
+        else:
+            print("You are already using all the busbars.. don't be greedy")
+            return None
 
         nodes = list(actuable_configuration[selected_configuration].nodes)
         configuration_nodes = {}
