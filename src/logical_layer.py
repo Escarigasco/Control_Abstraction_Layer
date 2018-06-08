@@ -5,9 +5,11 @@ from message_for_controller import message_for_controller
 from name_translator import name_translator
 from object_tracker import object_tracker
 from path_builder import path_builder
+from path_matcher import path_matcher
 from switch_board_building import switch_board_building
 from multiprocessing import Process, Pipe, Queue
 from miscellaneous import AutoVivification
+import copy
 import pickle
 import select
 import socket
@@ -49,16 +51,18 @@ class logical_layer(object):
         cfg = configuration_reader(self.intf)
         self.main_end, self.cfg_end = Pipe()
         self.work_q = Queue()
-        #self.online_reader = Process(target=cfg.run, args=(self.cfg_end,))
+        self.online_reader = Process(target=cfg.run, args=(self.cfg_end,))
         self.online_reader = Process(target=cfg.run, args=(self.work_q,))
         self.online_reader.daemon = True
         self.online_reader.start()
         self.comms = communicator_physical_layer()
         self.translator = name_translator()
         self.busy_busbars = {}
+        pm = path_matcher()
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
     def run(self, sinks, sources, boosted, parameters, setpoints):
+        input_ID = {}
         self.used_sinks = sinks
         self.used_sources = sources
         self.boosted = boosted
@@ -70,19 +74,20 @@ class logical_layer(object):
         #system_input = {"sinks": self.used_sinks, "sources": self.used_sources, "boosted": self.boosted,
                         #"parameters": self.parameters, "setpoints": self.setpoints}
         pb = path_builder(self.intf, self.comms, self.translator)
+        pm = path_matcher()
         mssgr = message_for_controller(self.intf, self.comms)
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
             # op_controller = controller()
             s.bind((_HOST, _PORT))
             s.listen(1)
-            print("Physical Layer Listening")
+            print("Logical Layer Listening")
             readable = [s]  # list of readable sockets.  s is readable if a client is waiting.
             i = 0
             while True:
                 r, w, e = select.select(readable, [], [], _BEGIN_WITH)  # the 0 here is the time out, it doesn't wait anything, it keeps cheking if the first argument is ready to be red
                 for rs in r:  # iterate through readable sockets - so r is a list of objects included in readable that are ready to be read - if its ready there is a call from the client
-                    if rs is s:  # is it the server - if one of the object ready to be red is the socket we are using to communicate, then we listen to it!
+                    if rs is s:  # if one of the object ready to be red is the speified socket we are using to communicate, then we listen to it!
                         c, a = s.accept()  # this accept the first client in the queue - "c" is the socket object and "a" the ip and port object
                         print('\r{}:'.format(a), 'connected')
                         readable.append(c)  # add the connection with the client
@@ -97,31 +102,27 @@ class logical_layer(object):
                         else:
                             system_input = pickle.loads(data_from_API)
                             system_input = self.check_sources(system_input)
-                            name = str(system_input["sources"]) + str(system_input["sinks"])  # the logic is to check the name matching and then also the inputs matching and do something about it
-                            print(name)
-                            if (name not in requested_configuration.keys()):
-                                requested_configuration[name][_INPUTS] = system_input
+                            for configuration in system_input.keys():
+                                name = str(system_input[configuration]["sources"]) + str(system_input[configuration]["sinks"])  # the logic is to check the name matching and then also the inputs matching and do something about it
+                                requested_configuration[name][_INPUTS] = system_input[configuration]
                                 requested_configuration[name][_STATE] = "Inactive"
                                 requested_configuration[name][_MATCH] = "Unmatched"
                                 requested_configuration[name][_GRAPH] = []
                                 requested_configuration[name][_COUNTER] = 0
                                 requested_configuration[name][_BUSBARS] = []
                                 requested_configuration[name][_AVAILABLE_COMPONENTS] = []
-
-                                print('\r{}:'.format(rs.getpeername()), system_input)
-                                new_input = True
-                            else:
-                                print("Input already given")
+                            print(requested_configuration)
+                            print('\r{}:'.format(rs.getpeername()), system_input)
+                            new_input = True
 
                 if (new_input):
                     new_input = False
                     requested_configuration = self.find_suitable_setup(requested_configuration, pb)
                     requested_configuration = self.actuate_suitable_setup(requested_configuration)
-
-                    print("si sono qui buone vacanze")
-                    while True:
-                        a = 0
+                    requested_configuration = self.check_compatibility(requested_configuration, pm, mssgr)
                     sys.exit()
+                    #TODO send the actual controller command
+
                     '''
                     try:
                         if not self.work_q.empty():  # if there is a change in the online reading
@@ -159,42 +160,26 @@ class logical_layer(object):
         #            sys.exit()
 
     def check_sources(self, system_input):
-        for source in system_input["sources"]:
-            if (source == _BOOSTER_NAME):
-                system_input["boosted"] = 'N'
-        return system_input
-
-    def check_compatibility(self, requested_configuration, online_configuration, mssgr, pb):
-        if (requested_configuration):
-            for name, attributes in requested_configuration.items():
-                print(requested_configuration)
-                requested_configuration[name][_GRAPH] = pb.run(requested_configuration[name][_INPUTS], online_configuration)
-                if (requested_configuration[name][_GRAPH] is not None):  # if there is a matching between user input and online configuration
-                    if (requested_configuration[name][_STATE] == "Inactive"):
-                        print("Preparing Message")
-                        requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_GRAPH], requested_configuration[name][_INPUTS], name)
-                        if (requested_configuration[name][_STATE] == "Inactive"):
-                            requested_configuration[name][_COUNTER] = 1
-                        print(requested_configuration[name][_STATE])
-
-                else:
-                    if (requested_configuration[name][_STATE] == "Active"):
-                        print("Kill started process")
-                        requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
-                        requested_configuration.pop(name)
-                        print(requested_configuration)
-                    else:
-                        requested_configuration.pop(name)
-        return requested_configuration
+        for configuration in system_input.keys():
+            for source in system_input[configuration]["sources"]:
+                if (source == _BOOSTER_NAME):
+                    system_input[configuration]["boosted"] = 'N'
+            return system_input
 
     def find_suitable_setup(self, requested_configuration, pb):
-        for name, attributes in requested_configuration.items():
+        for name, attributes in requested_configuration.copy().items():
             if (requested_configuration[name][_STATE] == "Inactive"):
-                suitable_setup = pb.run(requested_configuration[name][_INPUTS], self.busy_busbars)
-                requested_configuration[name][_GRAPH] = suitable_setup[_GRAPH]
-                requested_configuration[name][_AVAILABLE_COMPONENTS] = suitable_setup[_AVAILABLE_COMPONENTS]
-                requested_configuration[name][_BUSBARS] = suitable_setup[_BUSBARS]
-                self.busy_busbars[name] = suitable_setup[_BUSBARS]
+                if (requested_configuration[name][_MATCH] == "Unmatched"):
+                    suitable_setup = pb.run(requested_configuration[name][_INPUTS], self.busy_busbars)
+                    if suitable_setup:
+                        requested_configuration[name][_GRAPH] = suitable_setup[_GRAPH]
+                        requested_configuration[name][_AVAILABLE_COMPONENTS] = suitable_setup[_AVAILABLE_COMPONENTS]
+                        requested_configuration[name][_BUSBARS] = suitable_setup[_BUSBARS]
+                        self.busy_busbars[name] = suitable_setup[_BUSBARS]
+                    else:
+                        print("Configuration {0} is not actuable - request deleted".format(requested_configuration[name]))
+                        requested_configuration.pop(name)
+
         return requested_configuration
 
     def actuate_suitable_setup(self, requested_configuration):
@@ -208,16 +193,40 @@ class logical_layer(object):
                     print(requested_configuration[name][_AVAILABLE_COMPONENTS][_SENSORS])
                     for valve in requested_configuration[name][_AVAILABLE_COMPONENTS][_VALVES]:
                         valves_translated.append(self.translator.valves(valve.ID))
+                    print(valves_translated)
                     actuating_message = {_DESCRIPTION: _ACTUATE, _VALVES: valves_translated}
                     complete = self.comms.send(actuating_message)
-                    #TODO setup the hydraulic circuit
-
-
-
-
-
-                    #TODO send the actual controller command
+                    if (complete):
+                        requested_configuration[name][_MATCH] = "Matched"
         return requested_configuration
+
+    def check_compatibility(self, requested_configuration, pm, mssgr):
+        print(requested_configuration)
+        if (not self.work_q.empty()):
+            online_configuration = self.work_q.get()
+            if (requested_configuration):
+                for name, attributes in requested_configuration.items():
+                    print(requested_configuration)
+                    if (requested_configuration[name][_STATE] == "Inactive"):
+                        requested_configuration[name][_MATCH] = pm.run(requested_configuration[name][_GRAPH], online_configuration)
+                        if (requested_configuration[name][_MATCH] == "Matched"):
+                            print("Preparing Message")
+                            requested_configuration[name][_STATE] = mssgr.run(requested_configuration[name][_AVAILABLE_COMPONENTS], requested_configuration[name][_INPUTS], name)
+                            # if (requested_configuration[name][_STATE] == "Inactive"):
+                            #    requested_configuration[name][_COUNTER] = 1
+                            print(requested_configuration[name][_STATE])
+
+
+                    #else:
+                    #    if (requested_configuration[name][_STATE] == "Active"):
+                    #        print("Kill started process")
+                    #        requested_configuration[name][_STATE] = mssgr.kill(requested_configuration[name][_INPUTS], name)
+                    #        requested_configuration.pop(name)
+                    #        print(requested_configuration)
+                    #    else:
+                            #requested_configuration.pop(name)
+        return requested_configuration
+
 
     '''def killer_routine(self, requested_configuration, mssgr):
         print("I will kill them all")
