@@ -23,7 +23,7 @@ class message_for_controller(object):
             self.HOST = 'localhost'    # The remote host
             self.PORT = 2000              # The same port as used by the server
 
-        def run(self, unique, system_input, controller_name):
+        def run(self, available_components, system_input, controller_name):
 
             system_valves = self.intf.get_system_valves()
             system_pipes = self.intf.get_system_pipes()
@@ -36,11 +36,11 @@ class message_for_controller(object):
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
 
-            nodes = list(unique.nodes)
+            '''nodes = list(unique.nodes)
             for node in nodes:
                 unique_nodes[node] = system_components[node]
 
-            print(nodes)
+            print(nodes)'''
 
             #TODO
             '''the available components will now come from outside'''
