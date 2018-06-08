@@ -48,17 +48,27 @@ def main(argv):
         while(1):
             n = int(input("How many sources? \n"))
             if n == 100:
-                sinks = ["Sink_1H7"]
-                sources = ["Source_1BH4"]
-                boosted = "N"
-                parameters = "Energy"
-                setpoints = [2]
+                sinks_one = ["Sink_1H7"]
+                sources_one = ["Source_1BH4"]
+                boosted_one = "N"
+                parameters_one = "Energy"
+                setpoints_one = [2]
+                sinks_two = ["Sink_1H8"]
+                sources_two = ["Source_1DH6"]
+                boosted_two = "N"
+                parameters_two = "Energy"
+                setpoints_two = [6]
             elif (n == 200):
-                sinks = ["Sink_1H8"]
-                sources = ["Source_1DH6"]
-                boosted = "N"
-                parameters = "Energy"
-                setpoints = [6]
+                sinks_one = ["Sink_1H7"]
+                sources_one = ["Source_1BH4"]
+                boosted_one = "N"
+                parameters_one = "Energy"
+                setpoints_one = [2]
+                sinks_two = ["Sink_1H8"]
+                sources_two = ["Source_1DH6"]
+                boosted_two = "N"
+                parameters_two = "Energy"
+                setpoints_two = []
             elif (n == 300):
                 sinks = ["Sink_1H8", "Sink_1H7"]
                 sources = ["Source_1HP5"]
@@ -103,8 +113,18 @@ def main(argv):
                     setpoints.insert(i, int(input("Insert setpoint for sensor {0}: \n".format(i))))
                 boosted = input("Is the system Boosted? \n")
 
-            input_dictionary = {"sinks": sinks, "sources": sources, "boosted": boosted,
-                                "parameters": parameters, "setpoints": setpoints}
+            Configuration_one = {"sinks": sinks_one, "sources": sources_one, "boosted": boosted_one,
+                                 "parameters": parameters_one, "setpoints": setpoints_one}
+            Configuration_two = {"sinks": sinks_two, "sources": sources_two, "boosted": boosted_two,
+                                 "parameters": parameters_two, "setpoints": setpoints_two}
+            for value in Configuration_one.values():
+                if not value:
+                    Configuration_one = None
+            for value in Configuration_two.values():
+                if not value:
+                    Configuration_two = None
+
+            input_dictionary = {"Configuration_one": Configuration_one, "Configuration_two": Configuration_two}
             print(input_dictionary)
             print("\n\n\n\n")
 
