@@ -32,7 +32,6 @@ class configuration_selector(object):
         scores = {}
         message_to_return = {} # this will be both the actual nx.graph and the available components
 
-
         for list_busbar in busy_busbar.values():
             occupied_busbars += list_busbar
 
@@ -58,19 +57,19 @@ class configuration_selector(object):
                     busbars.append(node)
 
             configuration_components = {_S_NAME: sensors, _P_NAME: pumps, _V_NAME: valves}
-            print(busbars)
+            #print(busbars)
             for bb in busbars:
-                print(bb)
-                print(occupied_busbars)
+                #print(bb)
+                #print(occupied_busbars)
                 if (bb in occupied_busbars):
                     busy = True
             if not busy:
                 available_components[name] = self.c_status.run(configuration_components)
                 scores[name] = sum([available_components[name][_S_SCORE], available_components[name][_V_SCORE], available_components[name][_P_SCORE]])
 
-        for name in scores.keys():
-            print(name)
-            print(scores[name])
+        #for name in scores.keys():
+            #print(name)
+            #print(scores[name])
         if scores:
             selected_configuration = max(scores, key=scores.get)  # this is to find the key that has the smallest value
             print("The winner is.... ", selected_configuration)
@@ -90,5 +89,5 @@ class configuration_selector(object):
         message_to_return = {_GRAPH: actuable_configuration[selected_configuration],
                              _AVAILABLE_COMPONENTS: available_components[selected_configuration],
                              _BUSBARS: busbars}
-        print(message_to_return)
+        #print(message_to_return)
         return message_to_return
