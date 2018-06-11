@@ -56,7 +56,6 @@ class configuration_reader(object):
         while True:
             try:
 
-                #status_online_reading = ro.run_random()
                 status_online_reading = ro.run_online()
                 if (status_online_reading):
                     time.sleep(2)
