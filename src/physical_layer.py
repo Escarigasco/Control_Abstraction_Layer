@@ -40,7 +40,7 @@ class physical_layer(object):
         op_controller_pressure = controller_constant_pressure()
         processes = {}
         new_input = False
-        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
             # op_controller = controller()
@@ -94,8 +94,8 @@ class physical_layer(object):
                                     elif (inputs[_DESCRIPTION] == _VALVE_STATUS):
                                         #print(inputs)
                                         inputs.pop(_DESCRIPTION)
-                                        #valves_for_logical_layer = self.get_valves_status(inputs, interface)
-                                        valves_for_logical_layer = self.get_valves_simulated_status(inputs)
+                                        valves_for_logical_layer = self.get_valves_status(inputs, interface)
+                                        #valves_for_logical_layer = self.get_valves_simulated_status(inputs)
                                         message_serialized = pickle.dumps(valves_for_logical_layer)
                                         #print(valves_for_logical_layer)
                                         c.sendall(message_serialized)
@@ -134,8 +134,8 @@ class physical_layer(object):
         valves_for_logical_layer = {}
         for valve in valves_for_physical_layer.keys():
             opening = interface.getValvePosition(valve)
-            print(valve, opening.value)
-            valves_for_logical_layer[valves_for_physical_layer[valve]] = opening.value
+            #print(valve, opening.value)
+            valves_for_logical_layer[valve] = opening.value
         return valves_for_logical_layer
 
     def get_valves_simulated_status(self, valves_for_physical_layer):
