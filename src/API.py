@@ -1,10 +1,9 @@
 # Interface to specify the configuration and launch the logical layer
 
-import sys
 import getopt
-from logical_layer import logical_layer
 import pickle
 import socket
+import sys
 _HOST = 'localhost'                 # Symbolic name meaning all available interfaces
 _PORT = 50000              # Arbitrary non-privileged port
 _BEGIN_WITH = 0
@@ -70,17 +69,23 @@ def main(argv):
                 parameters_two = "Energy"
                 setpoints_two = []
             elif (n == 300):
-                sinks = ["Sink_1H8", "Sink_1H7"]
-                sources = ["Source_1HP5"]
-                boosted = "N"
-                parameters = "Energy"
-                setpoints = [1, 2]
+                sinks_one = ["Sink_1H8", "Sink_1H7"]
+                sources_one = ["Source_1HP5"]
+                boosted_one = "N"
+                parameters_one = "Energy"
+                setpoints_one = []
+                sinks_two = ["Sink_1H8"]
+                sources_two = ["Source_1DH6"]
+                boosted_two = "N"
+                parameters_two = "Energy"
+                setpoints_two = []
             elif (n == 400):
                 sinks = ["Sink_1H8", "Sink_1H7"]
                 sources = ["Source_1HP5"]
                 boosted = "Y"
                 parameters = "Energy"
                 setpoints = [1, 2]
+
             elif (n == 500):
                 sinks = ["Source_1HP5"]
                 sources = ["Sink_1H8"]
@@ -120,9 +125,11 @@ def main(argv):
             for value in Configuration_one.values():
                 if not value:
                     Configuration_one = None
+                    break
             for value in Configuration_two.values():
                 if not value:
                     Configuration_two = None
+                    break
 
             input_dictionary = {"Configuration_one": Configuration_one, "Configuration_two": Configuration_two}
             print(input_dictionary)
