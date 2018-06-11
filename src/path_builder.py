@@ -229,9 +229,9 @@ class path_builder(object):
                         nx.draw_kamada_kawai(actuable_configuration[configuration_name], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                         plt.pause(0.001)'''
 
-        for i in actuable_configuration.keys():
-            print(i)
-            print(actuable_configuration[i].nodes)
+        #for i in actuable_configuration.keys():
+            #print(i)
+            #print(actuable_configuration[i].nodes)
 
         configuration_selected = self.conf_slct.start_screening(actuable_configuration, busy_busbars)
         return configuration_selected

@@ -56,7 +56,7 @@ class controller_constant_flow(object):
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
         for n in range(_FIRST_OF_CLASS, len(circulators)):
-            #interface.setPumpMode(circulators[n], circulator_mode)
+            #interface.setPumpControlMode(circulators[n], circulator_mode)
             print("mode set in pump ", circulators[n])
 
         while(1):
