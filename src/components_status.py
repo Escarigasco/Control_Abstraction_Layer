@@ -24,7 +24,6 @@ class components_status(object):
 
         active_components = {}
         #self.interface_syslab = syslab.HeatSwitchBoard(_BUILDING_NAME)
-        interface = 0
         sensors = configuration_components[_SENSORS]
         pumps = configuration_components[_PUMPS]
         valves = configuration_components[_VALVES]
@@ -56,7 +55,6 @@ class components_status(object):
             #sensors_score += sensor.status * _MULTIPLIER
             sensors_score = 0
         for valve in valves:
-            print(valve)
             valves_score += valve.opening_score * _MULTIPLIER
             #valves_score = 0
 
@@ -81,7 +79,7 @@ class components_status(object):
             status = sensors_name_translator[sensor.ID].value
             if (status != "NaN"):
                 sensor.set_status(_ACTIVE)
-                print(sensor.status)
+
             else:
                 # sensor.set_status(_INACTIVE)
                 sensor.set_status(_ACTIVE)
@@ -96,13 +94,10 @@ class components_status(object):
             'Pump_1H8': "Pump_Bay8"}
 
         for pump in pumps:
-            print(pump.ID)
-            print(pump_name_translator[pump.ID])
             status = self.interface_syslab.getPumpFlow(pump_name_translator[pump.ID])
             if (status.value != "NaN"):
                 pump.set_status(_ACTIVE)
-                print(pump)
-                print(pump.status)
+
             else:
                 # pump.set_status(_INACTIVE)
                 pump.set_status(_ACTIVE)
@@ -113,7 +108,7 @@ class components_status(object):
         valves_dic = {}
 
         for valve in valves:
-            valves_for_physical_layer[self.translator.valves(valve.ID)] = valve.ID
+            valves_for_physical_layer[self.translator.components(valve.ID)] = valve.ID
             valves_dic[valve.ID] = valve
 
         valves_for_physical_layer[_DESCRIPTION] = _VALVE_STATUS
@@ -121,11 +116,8 @@ class components_status(object):
         valves_for_translation = self.comms.send(valves_for_physical_layer)
 
         for valve in valves_for_translation.keys():
-            print(valves_for_translation)
-            valves_for_logical_layer[self.translator.reverse_valves(valve)] = valves_for_translation[valve]
-            #valves_for_logical_layer.pop(valve)
+            valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
 
-        print(valves_for_logical_layer)
         if (valves_for_logical_layer):
                 for valve in valves_for_logical_layer.keys():
                         if (valves_for_logical_layer[valve] >= _ACTIVE_VALVE):

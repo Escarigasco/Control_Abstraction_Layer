@@ -18,8 +18,8 @@ class communicator_physical_layer(object):
                 while not message_received:
                     #print("I am stucked here")
                     message_received = s.recv(2048)
-                    print("Message received")
                 s.close()
+                #print("Message received")
                 message_received = pickle.loads(message_received)
             except Exception:
                 print("Messaged not received yet")
