@@ -46,7 +46,7 @@ class bay_valve(object):
         return self.status
 
     def __repr__(self):
-        return "{0}".format(self.ID)
+        return "-{0}-".format(self.ID)
 
     def __str__(self):
-        return "{0}".format(self.ID)
+        return "-{0}-".format(self.ID)
