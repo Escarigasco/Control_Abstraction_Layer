@@ -35,13 +35,13 @@ class current_status_reader(object):
             valves_for_logical_layer = {}
 
             for valve in self.system_valves:
-                valves_for_physical_layer[self.translator.valves(valve)] = valve
+                valves_for_physical_layer[self.translator.components(valve)] = valve
             valves_for_physical_layer[_DESCRIPTION] = _VALVE_STATUS
 
             valves_for_translation = self.comms.send(valves_for_physical_layer)
 
             for valve in valves_for_translation.keys():
-                valves_for_logical_layer[self.translator.reverse_valves(valve)] = valves_for_translation[valve]
+                valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
 
             if (valves_for_logical_layer):
                 for valve in valves_for_logical_layer.keys():
