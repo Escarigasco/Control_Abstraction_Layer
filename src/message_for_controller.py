@@ -64,12 +64,15 @@ class message_for_controller(object):
 
             except Exception:
                 return _CONTROLLER_DEACTIVED
-            print("I am sending the messageesssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss")
+
             try:
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     feedback = self.comms.send(input_for_controller)
-                    print(feedback)
+                    print("Message Sent")
+                    print("Feedback: ", feedback)
                     return _CONTROLLER_ACTIVATED
+                else:
+                    return _CONTROLLER_DEACTIVED
             except Exception:
                 print("Message sending failed")
                 return _CONTROLLER_DEACTIVED
@@ -81,7 +84,7 @@ class message_for_controller(object):
             try:
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     feedback = self.comms.send(input_for_controller)
-                    print(feedback)
+                    print("Feedback: ", feedback)
                     return _CONTROLLER_DEACTIVED
             except Exception:
                 print("Message sending failed")
@@ -101,7 +104,7 @@ class message_for_controller(object):
                 translated_components.append(self.translator.components(component))
             return translated_components
 
-        
+
         def pump_selector(self, ideal_pump, pumps):
             circulation_pumps = []
             locations = []
