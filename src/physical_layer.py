@@ -2,14 +2,11 @@
 from controller_constant_flow import controller_constant_flow
 from controller_constant_pressure import controller_constant_pressure
 from multiprocessing import Process
+from physical_logic import physical_logic
 import pickle
-import random
 import select
 import socket
 import sys
-import syslab
-import syslab.core.datatypes.CompositeMeasurement as CM
-import time
 
 _MULTIPLIER = 1000000
 _ACTUATE = "actuate"
@@ -35,12 +32,11 @@ class physical_layer(object):
             "Bay_6L-Busbar_1R": 0.11, "Bay_6L-Busbar_2R": 0.11, "Bay_6H-Busbar_B": 0.11, "Bay_6H-Busbar_1F": 0.11, "Bay_6H-Busbar_2F": 0.11, "Bay_6L-Busbar_B": 0.11,
             "Bay_7H-Busbar_1F": 0.11, "Bay_7H-Busbar_2F": 0.11, "Bay_7L-Busbar_1R": 0.11, "Bay_7L-Busbar_2R": 0.11,
             "Bay_8H-Busbar_1F": 0.11, "Bay_8H-Busbar_2F": 0.11, "Bay_8L-Busbar_1R": 0.11, "Bay_8L-Busbar_2R": 0.11}
-
+        p_logic = physical_logic()
         op_controller_flow = controller_constant_flow()
         op_controller_pressure = controller_constant_pressure()
         processes = {}
         new_input = False
-        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
             # op_controller = controller()
@@ -94,8 +90,8 @@ class physical_layer(object):
                                     elif (inputs[_DESCRIPTION] == _VALVE_STATUS):
                                         #print(inputs)
                                         inputs.pop(_DESCRIPTION)
-                                        valves_for_logical_layer = self.get_valves_status(inputs, interface)
-                                        #valves_for_logical_layer = self.get_valves_simulated_status(inputs)
+                                        #valves_for_logical_layer = p_logic.get_valves_status(inputs)
+                                        valves_for_logical_layer = p_logic.get_valves_simulated_status(inputs)
                                         message_serialized = pickle.dumps(valves_for_logical_layer)
                                         #print(valves_for_logical_layer)
                                         c.sendall(message_serialized)
@@ -103,8 +99,8 @@ class physical_layer(object):
                                     elif (inputs[_DESCRIPTION] == _ACTUATE):
                                         print(inputs)
                                         inputs.pop(_DESCRIPTION)
-                                        #complete = self.set_hydraulic_circuit(inputs, interface)
-                                        complete = self.set_hydraulic_simulated_circuit(inputs)
+                                        #complete = p_logic.set_hydraulic_circuit(inputs)
+                                        complete = p_logic.set_hydraulic_simulated_circuit(inputs)
                                         message_serialized = pickle.dumps(complete)
                                         #print(self.valves_status)
                                         c.sendall(message_serialized)
@@ -115,13 +111,14 @@ class physical_layer(object):
                                         print("Now has stopped")
                                         s.shutdown(socket.SHUT_RDWR)
                                         s.close()
-                                        for process in processes.items():
-                                            process.terminate()
-                                            print("Stopped Process {0}".format(process))
+                                        if processes.keys():
+                                            for process in processes.items():
+                                                process.terminate()
+                                                print("Stopped Process {0}".format(process))
                                         sys.exit()
             except(KeyboardInterrupt, SystemExit, Exception):
                 if s:
-                    s.shutdown(socket.SHUT_RDWR)
+                    #s.shutdown(socket.SHUT_RDWR)
                     s.close()
                 sys.exit()
 
@@ -129,56 +126,6 @@ class physical_layer(object):
             s.shutdown(socket.SHUT_RDWR)  # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
             s.close()
             sys.exit()'''
-
-    def get_valves_status(self, valves_for_physical_layer, interface):
-        valves_for_logical_layer = {}
-        for valve in valves_for_physical_layer.keys():
-            opening = interface.getValvePosition(valve)
-            #print(valve, opening.value)
-            valves_for_logical_layer[valve] = opening.value
-        return valves_for_logical_layer
-
-    def get_valves_simulated_status(self, valves_for_physical_layer):
-        print("I am reading simulated circuit")
-        time.sleep(1)
-        min_operating = 0
-        max_operating = 1
-        valves_for_logical_layer = {}
-        for valve in valves_for_physical_layer.keys():
-            #valves_for_logical_layer[valve] = random.uniform(min_operating, max_operating)
-            valves_for_logical_layer[valve] = self.valves_status[valve]
-        return valves_for_logical_layer
-
-    def set_hydraulic_circuit(self, inputs, interface):
-        valves = inputs[_VALVES]
-        valves_status = {}
-        opening_threshold = 3.6
-        CompositMess = CM(_TURN_ME_ON, time.time() * _MULTIPLIER)
-        complete = False
-        for valve in valves:
-            interface.setValvePosition(valve, CompositMess)
-        while not complete:
-            for valve in valves:
-                valves_status[valve] = interface.getValvePosition(valve, CompositMess).value
-                time.sleep(0.5)
-            if (sum(opening for opening in valves_status.values()) >= opening_threshold):
-                complete = True
-        return complete
-
-    def set_hydraulic_simulated_circuit(self, inputs):
-        print("I am setting simulated circuit")
-        time.sleep(1)
-        valves = inputs[_VALVES]
-        valves_status = {}
-        opening_threshold = 3.6
-        complete = False
-        for valve in valves:
-            valves_status[valve] = 1
-            self.valves_status[valve] = 1
-        # print(sum(opening for opening in valves_status.values()))
-        if (sum(opening for opening in valves_status.values()) >= opening_threshold):
-                complete = True
-        return complete
 
 
 if __name__ == "__main__":
