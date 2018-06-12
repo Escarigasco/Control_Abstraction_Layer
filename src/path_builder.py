@@ -19,7 +19,9 @@ _BOOSTER = "booster"
 _BOOSTER_NAME = "Source_1BH4"
 _BOOSTER_BAR = "B"
 _OFFSET_FIGURE = 2
-
+_FINAL_BOOSTER = "final_booster"
+_START_SOURCE = "start_source"
+_MIDDLE_BOOSTER = "middle_booster"
 
 
 class path_builder(object):
@@ -39,28 +41,18 @@ class path_builder(object):
         self.line_position = self.objtk.where_are_devices(self.system_lines)
         self.conf_slct = configuration_selector(self.system_sensors, self.system_valves, self.system_pumps, self.system_connected_devices, self.system_busbars, self.builder, comms, translator)
 
-
     def run(self, input_request, busy_busbars):
 
         #pm = path_matcher(online_configuration)
         sources = input_request['sources']
         sinks = input_request['sinks']
         boosted = input_request['boosted']
-        bays_sources = []
-        bays_sinks = []
-
-        # It is hardcoded the number of graph
-        actuable_configuration = {}
-
-        for source in sources:
-            bays_sources.append(self.connected_device_position[source])
-        for sink in sinks:
-            bays_sinks.append(self.connected_device_position[sink])
-
         hot_busbars = {}
         cold_busbars = {}
+        actuable_configuration = {}
+        idx = 1
 
-        connected_valves = self.all_possible_valves(self.valves_position, bays_sinks, bays_sources, boosted, self.connected_device_position)
+        connected_valves = self.all_possible_valves(input_request)
         for busbar in self.system_busbars.keys():
             if (self.system_busbars[busbar].flow == _HOT_FLOW and self.system_busbars[busbar].type != _BOOSTER):
                 hot_busbars[busbar] = self.system_busbars[busbar]
@@ -209,6 +201,11 @@ class path_builder(object):
                                             # actuable_configuration[configuration_name].add_node(device.get_name(), pos=(x_dev, y))
                                             actuable_configuration[configuration_name].add_node(device.get_name())
                                             actuable_configuration[configuration_name].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
+                    idx += 1
+                    plt.figure(idx)
+                    nx.draw_kamada_kawai(actuable_configuration[configuration_name], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                    plt.pause(0.001)
+                    plt.savefig('books_read.png')
                     #is_match = pm.run(actuable_configuration[configuration_name], idx)
                     #if (is_match):
 
@@ -223,11 +220,11 @@ class path_builder(object):
                     #else:
                     #    print("Configuration {0} did not match match online reading \n".format(idx))
 
-                        '''plt.figure(idx + _OFFSET_FIGURE)
-                        plt.clf()
-                        plt.title('Not Compatible Configuratiion')
-                        nx.draw_kamada_kawai(actuable_configuration[configuration_name], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-                        plt.pause(0.001)'''
+                        #plt.figure(idx + _OFFSET_FIGURE)
+                        #plt.clf()
+                        #plt.title('Not Compatible Configuratiion')
+                        #nx.draw_kamada_kawai(actuable_configuration[configuration_name], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                        #plt.pause(0.001)
 
         #for i in actuable_configuration.keys():
             #print(i)
@@ -236,28 +233,63 @@ class path_builder(object):
         configuration_selected = self.conf_slct.start_screening(actuable_configuration, busy_busbars)
         return configuration_selected
 
-    def all_possible_valves(self, valves_position, bays_sinks, bays_sources, boosted, connected_device_position):
+    def all_possible_valves(self, input_request):
+        sources = input_request['sources']
+        sinks = input_request['sinks']
+        boosted = input_request['boosted']
         possible_valves = []
+        bays_sinks = []
+
+        for sink in sinks:
+            bays_sinks.append(self.connected_device_position[sink])
+
+        if (boosted == 'Y'):
+            #bay_start_source = []
+            bays_middle_sources = []
+            #bay_end_source = []
+
+            start_source = input_request[_START_SOURCE]
+            bay_start_source = self.connected_device_position[start_source]
+            middle_sources = input_request[_MIDDLE_BOOSTER]
+            if middle_sources:
+                for source in middle_sources:
+                    bays_middle_sources.append(self.connected_device_position[source])
+            end_source = input_request[_FINAL_BOOSTER]
+            bay_end_source = self.connected_device_position[end_source]
+
+        print(bay_start_source, bays_middle_sources, bay_end_source)
+
         if (boosted == 'N'):
+            bays_sources = []
+
+            for source in sources:
+                bays_sources.append(self.connected_device_position[source])
+
             for bay_sources in bays_sources:
-                for valve in valves_position[bay_sources]:
+                for valve in self.valves_position[bay_sources]:
                     if (valve.get_connection() != _BOOSTER_BAR):
                         possible_valves.append(valve)
             for bay_sink in bays_sinks:
-                for valve in valves_position[bay_sink]:
+                for valve in self.valves_position[bay_sink]:
                     if (valve.get_connection() != _BOOSTER_BAR):
                         possible_valves.append(valve)
-            return possible_valves
+
         elif (boosted == 'Y'):
-            for bay_sources in bays_sources:
-                for valve in valves_position[bay_sources]:
-                    if ((valve.get_flow() == _COLD_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _HOT_FLOW and valve.get_connection() == _BOOSTER_BAR)):
-                        possible_valves.append(valve)
             for bay_sink in bays_sinks:
-                possible_valves = possible_valves + valves_position[bay_sink]
-            bay_booster = connected_device_position[_BOOSTER_NAME]
-            booster_valves = valves_position[bay_booster]
-            for valve in booster_valves:
-                    if ((valve.get_flow() == _HOT_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _COLD_FLOW and valve.get_connection() == _BOOSTER_BAR)):
-                        possible_valves.append(valve)
-            return possible_valves
+                possible_valves = possible_valves + self.valves_position[bay_sink]
+            '''start_source'''
+            for valve in self.valves_position[bay_start_source]:
+                if ((valve.get_flow() == _COLD_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _HOT_FLOW and valve.get_connection() == _BOOSTER_BAR)):
+                    possible_valves.append(valve)
+            '''end_source'''
+            for valve in self.valves_position[bay_end_source]:
+                if ((valve.get_flow() == _HOT_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _COLD_FLOW and valve.get_connection() == _BOOSTER_BAR)):
+                    possible_valves.append(valve)
+            '''middle_sources'''
+            if bays_middle_sources:
+                for bay in bays_middle_sources:
+                    for valve in self.valves_position[bay]:
+                        if ((valve.get_flow() == _HOT_FLOW and valve.get_connection() == _BOOSTER_BAR) or (valve.get_flow() == _COLD_FLOW and valve.get_connection() == _BOOSTER_BAR)):
+                            possible_valves.append(valve)
+
+        return possible_valves
