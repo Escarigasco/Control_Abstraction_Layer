@@ -11,6 +11,12 @@ _SENSORS = 'Sensors_active'
 _STATE = "state"
 _VALVES = 'Valves_active'
 _ACTUATE = "actuate"
+_FINAL_BOOSTER = "final_booster"
+_START_SOURCE = "start_source"
+_MIDDLE_BOOSTER = "middle_booster"
+_BEGIN_WITH = 0     # the tuple
+_END_WITH = 1   # the tuple
+_BIT_SHIFT = 1
 
 
 class logic(object):
@@ -21,13 +27,33 @@ class logic(object):
         self.work_q = work_q
         self.busy_busbars = {}
 
+    '''logic --> the first one of the tuple boost the second one -- e.g. [(S2, S1),(S3,S2)] means that S3 boosts S2 that boosts S1'''
     def check_sources(self, system_input):
+        source_evaluator = {}
         for configuration in system_input.keys():
             if (system_input[configuration]):
-                for source in system_input[configuration]["sources"]:
-                    if (source == _BOOSTER_NAME):
-                        system_input[configuration]["boosted"] = 'N'
-            return system_input
+                if system_input[configuration]["boosted"]:
+                    for couple in system_input[configuration]["boosted"]:
+                        for source in couple:
+                            source_evaluator[source] = 2
+                    for couple in system_input[configuration]["boosted"]:
+                        for source in couple:
+                            if couple.index(source) == _BEGIN_WITH:
+                                source_evaluator[source] = source_evaluator[source] << _BIT_SHIFT
+                            else:
+                                source_evaluator[source] = source_evaluator[source] >> _BIT_SHIFT
+                    system_input[configuration][_MIDDLE_BOOSTER] = []
+                    for source in source_evaluator.keys():
+                        if source_evaluator[source] == 1:
+                            system_input[configuration][_START_SOURCE] = source
+                        elif source_evaluator[source] == 2:
+                            system_input[configuration][_MIDDLE_BOOSTER].append(source)
+                        elif source_evaluator[source] == 4:
+                            system_input[configuration][_FINAL_BOOSTER] = source
+                    system_input[configuration]["boosted"] = 'Y'
+                else:
+                    system_input[configuration]["boosted"] = 'N'
+        return system_input
 
     def find_suitable_setup(self, processed_configurations, pb):
         print("I look for a suitable setup")
@@ -67,7 +93,7 @@ class logic(object):
 
         return processed_configurations
 
-    def check_compatibility(self, processed_configurations, pm, mssgr):
+    def controller_starter(self, processed_configurations, pm, mssgr):
         print("I check the compatibility and start the controller")
         if (not self.work_q.empty()):
             print("la queue non è vuota!")
@@ -86,7 +112,7 @@ class logic(object):
 
         return processed_configurations
 
-    def configurations_checker(self, processed_configurations, system_input, mssgr):
+    def configurations_request_analyser(self, processed_configurations, system_input, mssgr):
         requested_configurations_names = []
         processed_configurations_names = []
         for name in processed_configurations.keys():

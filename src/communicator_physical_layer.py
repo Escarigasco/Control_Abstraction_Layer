@@ -17,7 +17,8 @@ class communicator_physical_layer(object):
                 s.sendall(message_serialized)
                 while not message_received:
                     #print("I am stucked here")
-                    message_received = s.recv(2048)
+                    #TODO timeout
+                    message_received = s.recv(4096)
                 s.close()
                 #print("Message received")
                 message_received = pickle.loads(message_received)

@@ -97,7 +97,6 @@ class controller_constant_flow(object):
             except (KeyboardInterrupt, Exception, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
                 for n in range(_FIRST_OF_CLASS, len(actuators)):
-                    #interface.setPumpSetpoint(actuators[n], CompositMess[n])
                     CompositMess[n] = CM(shut_down_signal, time.time() * _MULTIPLIER)
                     #interface.setPumpSetpoint(actuators[n], CompositMess[n])
                 print("Circulators is now at zero flow")
