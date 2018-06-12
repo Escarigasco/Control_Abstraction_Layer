@@ -49,57 +49,84 @@ def main(argv):
             if n == 100:
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4"]
-                boosted_one = "N"
+                boosted_one = []
                 parameters_one = "Energy"
                 setpoints_one = [2]
                 sinks_two = ["Sink_1H8"]
                 sources_two = ["Source_1DH6"]
-                boosted_two = "N"
+                boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = [6]
             elif (n == 200):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4"]
-                boosted_one = "N"
+                boosted_one = []
                 parameters_one = "Energy"
                 setpoints_one = [2]
                 sinks_two = ["Sink_1H8"]
                 sources_two = ["Source_1DH6"]
-                boosted_two = "N"
+                boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
             elif (n == 300):
-                sinks_one = ["Sink_1H8", "Sink_1H7"]
-                sources_one = ["Source_1HP5"]
-                boosted_one = "N"
+                sinks_one = []
+                sources_one = []
+                boosted_one = []
                 parameters_one = "Energy"
                 setpoints_one = []
-                sinks_two = ["Sink_1H8"]
-                sources_two = ["Source_1DH6"]
-                boosted_two = "N"
+                sinks_two = []
+                sources_two = []
+                boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
             elif (n == 400):
-                sinks = ["Sink_1H8", "Sink_1H7"]
-                sources = ["Source_1HP5"]
-                boosted = "Y"
-                parameters = "Energy"
-                setpoints = [1, 2]
+                sinks_one = ["Sink_1H7", "Sink_1H8"]
+                sources_one = ["Source_1BH4"]
+                boosted_one = []
+                parameters_one = "Energy"
+                setpoints_one = [5, 5]
+                sinks_two = []
+                sources_two = []
+                boosted_two = []
+                parameters_two = "Energy"
+                setpoints_two = []
 
             elif (n == 500):
-                sinks = ["Source_1HP5"]
-                sources = ["Sink_1H8"]
-                boosted = "N"
-                parameters = "Energy"
-                setpoints = [1]
-                print("1 to 1 reverse")
+                sinks_one = ["Sink_1H7", "Sink_1H8"]
+                sources_one = ["Source_1BH4", "Source_1HP5"]
+                boosted_one = []
+                parameters_one = "Energy"
+                setpoints_one = [5]
+                sinks_two = []
+                sources_two = []
+                boosted_two = []
+                parameters_two = "Energy"
+                setpoints_two = []
+
+
             elif (n == 600):
-                sinks = ["Source_1HP5", "Source_1BH4"]
-                sources = ["Sink_1H8"]
-                boosted = "N"
-                parameters = "Energy"
-                setpoints = [1, 2]
-                print("1 to 2 reverse")
+                sinks_one = ["Sink_1H7"]
+                sources_one = ["Source_1HP5", "Source_1DH6"]
+                boosted_one = [("Source_1HP5", "Source_1DH6"), ]
+                parameters_one = "Energy"
+                setpoints_one = [5]
+                sinks_two = []
+                sources_two = []
+                boosted_two = []
+                parameters_two = "Energy"
+                setpoints_two = []
+
+            elif (n == 700):
+                sinks_one = ["Sink_1H7"]
+                sources_one = ["Source_1BH4", "Source_1HP5", "Source_1DH6"]
+                boosted_one = [("Source_1BH4", "Source_1HP5"), ("Source_1HP5", "Source_1DH6")]
+                parameters_one = "Energy"
+                setpoints_one = [5]
+                sinks_two = []
+                sources_two = []
+                boosted_two = []
+                parameters_two = "Energy"
+                setpoints_two = []
 
             else:
                 parameters = []
@@ -122,12 +149,12 @@ def main(argv):
                                  "parameters": parameters_one, "setpoints": setpoints_one}
             Configuration_two = {"sinks": sinks_two, "sources": sources_two, "boosted": boosted_two,
                                  "parameters": parameters_two, "setpoints": setpoints_two}
-            for value in Configuration_one.values():
-                if not value:
+            for key in Configuration_one.keys():
+                if ((not Configuration_one[key]) & (key != "boosted")):
                     Configuration_one = None
                     break
-            for value in Configuration_two.values():
-                if not value:
+            for key in Configuration_two.keys():
+                if ((not Configuration_two[key]) & (key != "boosted")):
                     Configuration_two = None
                     break
 
