@@ -4,9 +4,9 @@ from interface import interface
 from logic import logic
 from message_for_controller import message_for_controller
 from miscellaneous import AutoVivification
-from multiprocessing import Process, Pipe, Queue
+from multiprocessing import Process
+from multiprocessing import Queue
 from name_translator import name_translator
-from object_tracker import object_tracker
 from path_builder import path_builder
 from path_matcher import path_matcher
 from switch_board_building import switch_board_building
@@ -32,27 +32,17 @@ class logical_layer(object):
         self.SwitchID = SwitchID
         self.building_config = switch_board_building(self.buildingID)
         self.intf = interface(self.building_config, self.SwitchID)
-        self.objtk = object_tracker(self.intf)
         cfg = configuration_reader(self.intf)
-        self.main_end, self.cfg_end = Pipe()
         self.work_q = Queue()
-        self.online_reader = Process(target=cfg.run, args=(self.cfg_end,))
         self.online_reader = Process(target=cfg.run, args=(self.work_q,))
         self.online_reader.daemon = True
         self.online_reader.start()
         self.comms = communicator_physical_layer()
         self.translator = name_translator()
         self.busy_busbars = {}
-
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
-    def run(self, sinks, sources, boosted, parameters, setpoints):
-        self.used_sinks = sinks
-        self.used_sources = sources
-        self.boosted = boosted
-        self.parameters = parameters
-        self.setpoints = setpoints
-        self.process_started = False
+    def run(self):
         self.logic = logic(self.comms, self.work_q, self.translator)
         new_input = False
         processed_configurations = AutoVivification()  # nothing but a dictionary
@@ -85,8 +75,9 @@ class logical_layer(object):
                         else:
                             system_input = pickle.loads(data_from_API)
                             system_input = self.logic.check_sources(system_input)
+                            print(system_input)
 
-                            processed_configurations = self.logic.configurations_checker(processed_configurations, system_input, mssgr)
+                            processed_configurations = self.logic.configurations_request_analyser(processed_configurations, system_input, mssgr)
 
                             print('\r{}:'.format(rs.getpeername()), system_input)
                             new_input = True
@@ -95,10 +86,8 @@ class logical_layer(object):
                     new_input = False
                     processed_configurations = self.logic.find_suitable_setup(processed_configurations, pb)
                     processed_configurations = self.logic.actuate_suitable_setup(processed_configurations)
-                    processed_configurations = self.logic.check_compatibility(processed_configurations, pm, mssgr)
-                    print(self.busy_busbars)
+                    processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr)
                     print(processed_configurations)
-                    #sys.exit()
                     #TODO send the actual controller command
 
 
@@ -117,13 +106,8 @@ class logical_layer(object):
 if __name__ == "__main__":
     start_time = time.time()
     test = logical_layer("Building716", "Switch_Board_1")
-    sinks = ["Sink_1H7"]
-    sources = ["Source_1BH4"]
-    boosted = "N"
-    parameters = "Energy"
-    setpoints = 2
 
-    test.run(sinks, sources, boosted, parameters, setpoints)
+    test.run()
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
