@@ -57,6 +57,17 @@ def main(argv):
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = [6]
+            elif n == 150:
+                sinks_one = ["Sink_1H7"]
+                sources_one = ["Source_1BH4"]
+                boosted_one = []
+                parameters_one = "Energy"
+                setpoints_one = [2000]
+                sinks_two = ["Sink_1H8"]
+                sources_two = ["Source_1DH6"]
+                boosted_two = []
+                parameters_two = "Energy"
+                setpoints_two = [6000]
             elif (n == 200):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4"]
@@ -85,6 +96,17 @@ def main(argv):
                 boosted_one = []
                 parameters_one = "Energy"
                 setpoints_one = [5, 5]
+                sinks_two = []
+                sources_two = []
+                boosted_two = []
+                parameters_two = "Energy"
+                setpoints_two = []
+            elif (n == 450):
+                sinks_one = ["Sink_1H7", "Sink_1H8"]
+                sources_one = ["Source_1BH4"]
+                boosted_one = []
+                parameters_one = "Energy"
+                setpoints_one = [5000, 5555]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []
@@ -122,6 +144,17 @@ def main(argv):
                 boosted_one = [("Source_1BH4", "Source_1HP5"), ("Source_1HP5", "Source_1DH6")]
                 parameters_one = "Energy"
                 setpoints_one = [5]
+                sinks_two = []
+                sources_two = []
+                boosted_two = []
+                parameters_two = "Energy"
+                setpoints_two = []
+            elif (n == 750):
+                sinks_one = ["Sink_1H7"]
+                sources_one = ["Source_1BH4", "Source_1HP5", "Source_1DH6"]
+                boosted_one = [("Source_1BH4", "Source_1HP5"), ("Source_1HP5", "Source_1DH6")]
+                parameters_one = "Energy"
+                setpoints_one = [5000]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []
