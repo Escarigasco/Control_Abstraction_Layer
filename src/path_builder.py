@@ -257,7 +257,7 @@ class path_builder(object):
             end_source = input_request[_FINAL_BOOSTER]
             bay_end_source = self.connected_device_position[end_source]
 
-        print(bay_start_source, bays_middle_sources, bay_end_source)
+            print(bay_start_source, bays_middle_sources, bay_end_source)
 
         if (boosted == 'N'):
             bays_sources = []

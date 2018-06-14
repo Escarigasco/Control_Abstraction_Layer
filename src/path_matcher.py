@@ -20,39 +20,26 @@ class path_matcher(object):
 
     def run(self, possible_configurations, online_configuration):
 
-        print("I start computing")
+        print("I start computing the isomorphism")
 
-        print("try extracting subgraph")
+        # print("try extracting subgraph")
         extracted_subgraph = online_configuration.subgraph(possible_configurations.nodes)
-        print("subgraph extracted")
+        # print("subgraph extracted")
         if(set(extracted_subgraph.edges) == set(possible_configurations.edges)):
-            print("Edges match")
+            # print("Edges match")
             if (set(extracted_subgraph.nodes) == set(possible_configurations.nodes)):
-                print("Nodes matches")
-                print("Configuration  matches online reading - it is shown in figure")
-                print("check isomorpishm")
+                # print("Nodes matches")
+                #print("Configuration  matches online reading - it is shown in figure")
+                #print("check isomorpishm")
                 # DiGM = isomorphism.GraphMatcher(extracted_subgraph, possible_configurations)
                 nx.is_isomorphic(extracted_subgraph, possible_configurations)
                 print("isomorpishm confirmed \n")
 
-                '''plt.figure(idx + _OFFSET_FIGURE)
-                #plt.figure()
-                plt.clf()
-                plt.title('Connected Subgraph of Online Configuration')
-                nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-                plt.pause(0.001)'''
+
                 return _MATCHED
             else:
-                '''plt.figure(idx + _OFFSET_FIGURE)
-                plt.clf()
-                plt.title('Disconnected Subgraph of Online Configuration')
-                nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-                plt.pause(0.001)'''
+
                 return _UNMATCHED
         else:
-            '''plt.figure(idx + _OFFSET_FIGURE)
-            plt.clf()
-            plt.title('Disconnected Subgraph of Online Configuration')
-            nx.draw_kamada_kawai(extracted_subgraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-            plt.pause(0.001)'''
+
             return _UNMATCHED
