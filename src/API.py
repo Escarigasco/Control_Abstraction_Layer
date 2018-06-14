@@ -105,7 +105,7 @@ def main(argv):
 
 
             elif (n == 600):
-                sinks_one = ["Sink_1H7"]
+                sinks_one = ["Sink_1H7", "Sink_1H8"]
                 sources_one = ["Source_1HP5", "Source_1DH6"]
                 boosted_one = [("Source_1HP5", "Source_1DH6"), ]
                 parameters_one = "Energy"

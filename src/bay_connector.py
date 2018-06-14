@@ -9,26 +9,19 @@ from connected_device import connected_device
 
 class bay_connector:
 
-    def __init__(self, parent_ID, ID, connector, output_line, connected_dev):
+    def __init__(self, parent_ID, ID, connector, connected_dev):
         self.parent_ID = parent_ID
         self.ID = ID
         self.lines_list = {}
         self.connector = connector
-        self.output_line = output_line
         self.connected_devices_list = {}
 
         lines = self.connector.find_all("line")
         devices = self.connector.find_all("connected_device")
 
-        print("bay_connector - is it relevant?")
         for line in lines:
-            if (self.output_line == line["type"]):
-                is_output = True
-                self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output, connected_dev)
+                self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], connected_dev)
 
-            else:
-                is_output = False
-                self.lines_list[line["id"]] = connector_line(self.ID, line["id"], line, line["type"], is_output, connected_dev)
 
         for device in devices:
             self.connected_devices_list[device["id"]] = connected_device(self.ID, device["id"], device["type"], device["rating"])
