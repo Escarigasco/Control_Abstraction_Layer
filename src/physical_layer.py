@@ -97,6 +97,7 @@ class physical_layer(object):
                                         c.sendall(message_serialized)
 
                                     elif (inputs[_DESCRIPTION] == _ACTUATE):
+                                        '''Here you should firs check if actuation is necessary - not really at the end of the day because it will confirm a setpoint'''
                                         print(inputs)
                                         inputs.pop(_DESCRIPTION)
                                         #complete = p_logic.set_hydraulic_circuit(inputs)
