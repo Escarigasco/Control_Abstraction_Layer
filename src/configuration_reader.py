@@ -194,12 +194,11 @@ class configuration_reader(object):
                                     continue
 
                         #print(not nx.is_isomorphic(self.UpdatedGraph, self.Graph))
-                        if (cold_start):
-                            #print("cold staaaaaaaaaaaaaaaaaaaaaaart")
-                            #worker_q.send(self.Graph)
-                            worker_q.put(self.Graph)
+                        #if (cold_start):
+
+                        #    worker_q.put(self.Graph)
                             #self.Graph.clear()
-                            cold_start = 0
+                        #    cold_start = 0
                         #if (not self.UpdatedGraph.nodes() == self.Graph.nodes()):
                         if (not nx.is_isomorphic(self.UpdatedGraph, self.Graph)):
                             self.UpdatedGraph.clear()
