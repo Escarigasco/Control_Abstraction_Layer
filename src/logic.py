@@ -96,7 +96,6 @@ class logic(object):
     def controller_starter(self, processed_configurations, pm, mssgr):
         print("I check the compatibility and start the controller")
         if (not self.work_q.empty()):
-            print("la queue non è vuota!")
             self.online_configuration = self.work_q.get()
         if (processed_configurations):
             for name, attributes in processed_configurations.items():
@@ -105,8 +104,9 @@ class logic(object):
                     if (processed_configurations[name][_MATCH] == "Matched"):
                         print("Preparing Message")
                         processed_configurations[name][_STATE] = mssgr.run(processed_configurations[name][_AVAILABLE_COMPONENTS], processed_configurations[name][_INPUTS], name)
-                        # if (processed_configurations[name][_STATE] == "Inactive"):
-                        #    processed_configurations[name][_COUNTER] = 1
+                    else:
+                        print("There is no match between request and Switchboad setting. Configuration {0} deleted".format(processed_configurations[name]))
+
                 else:
                     print("Skipped")
 
@@ -133,7 +133,6 @@ class logic(object):
                         if (processed_configurations[name][_STATE] == "Inactive"):
                             self.busy_busbars.pop(name)
                             processed_configurations.pop(name)
-
         for name in requested_configurations_names:
             if (name in processed_configurations_names):
                 pass
@@ -149,6 +148,14 @@ class logic(object):
                             processed_configurations[name][_COUNTER] = 0
                             processed_configurations[name][_BUSBARS] = []
                             processed_configurations[name][_AVAILABLE_COMPONENTS] = []
+        return processed_configurations
 
-        print(processed_configurations)
+    def inactive_configuration_cleaner(self, processed_configurations):
+        processed_configurations_names = []
+        for name in processed_configurations.keys():
+            processed_configurations_names.append(name)
+        for name in processed_configurations_names:
+            if (processed_configurations[name][_STATE] == "Inactive"):
+                self.busy_busbars.pop(name)
+                processed_configurations.pop(name)
         return processed_configurations

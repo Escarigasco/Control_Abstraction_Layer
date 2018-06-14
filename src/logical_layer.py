@@ -87,6 +87,7 @@ class logical_layer(object):
                     processed_configurations = self.logic.find_suitable_setup(processed_configurations, pb)
                     processed_configurations = self.logic.actuate_suitable_setup(processed_configurations)
                     processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr)
+                    processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations)
                     print(processed_configurations)
                     #TODO send the actual controller command
 
