@@ -202,10 +202,11 @@ class path_builder(object):
                                             actuable_configuration[configuration_name].add_node(device.get_name())
                                             actuable_configuration[configuration_name].add_edges_from([(device.get_name(), iterate_sensor.get_name())])
                     idx += 1
-                    plt.figure(idx)
-                    nx.draw_kamada_kawai(actuable_configuration[configuration_name], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
-                    plt.pause(0.001)
-                    plt.savefig('books_read.png')
+                    #plt.figure(idx)
+                    #nx.draw_kamada_kawai(actuable_configuration[configuration_name], font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
+                    #plt.pause(0.001)
+                    #plt.savefig('books_read.png')
+
                     #is_match = pm.run(actuable_configuration[configuration_name], idx)
                     #if (is_match):
 

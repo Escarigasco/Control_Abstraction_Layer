@@ -66,7 +66,6 @@ class message_for_controller(object):
                 return _CONTROLLER_DEACTIVED
 
             try:
-                print("or here")
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     feedback = self.comms.send(input_for_controller)
                     print("Message Sent")
