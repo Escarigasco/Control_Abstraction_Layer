@@ -1,13 +1,17 @@
+import sys
+
 _AVAILABLE_COMPONENTS = "available_components"
 _BOOSTER_NAME = "Source_1BH4"
 _BUSBARS = "busbar"
 _COUNTER = "counter"
+_CONTROLLER_NAME = "controller_name"
 _DESCRIPTION = "description"
 _GRAPH = "graph"
 _INPUTS = "inputs"
 _MATCH = 'match'
 _PUMPS = 'Pumps_active'
 _SENSORS = 'Sensors_active'
+_SETPOINT = "setpoints"
 _STATE = "state"
 _VALVES = 'Valves_active'
 _ACTUATE = "actuate"
@@ -115,17 +119,25 @@ class logic(object):
     def configurations_request_analyser(self, processed_configurations, system_input, mssgr):
         requested_configurations_names = []
         processed_configurations_names = []
+        requested_configuration = {}
         for name in processed_configurations.keys():
             processed_configurations_names.append(name)
         for configuration in system_input.keys():
             if (system_input[configuration]):
-                requested_configurations_names.append(str(system_input[configuration]["sources"]) + str(system_input[configuration]["sinks"]))
+                request_name = str(system_input[configuration]["sources"]) + str(system_input[configuration]["sinks"])
+                requested_configurations_names.append(request_name)
+                requested_configuration[request_name] = system_input[configuration]
         # First I check the ones I should destroy
         if processed_configurations_names:
             for name in processed_configurations_names:
                 if (name in requested_configurations_names):
-                    #TODO the change of setpoint
-                    pass
+                    print(processed_configurations[name]["inputs"][_SETPOINT])
+                    print(requested_configuration[name][_SETPOINT])
+                    if (processed_configurations[name]["inputs"][_SETPOINT] != requested_configuration[name][_SETPOINT]):
+                        self.set_point_changer(name, requested_configuration[name][_SETPOINT])
+                        processed_configurations[name]["inputs"][_SETPOINT] = requested_configuration[name][_SETPOINT]
+                    else:
+                        pass
                 else:
                     if (processed_configurations[name][_STATE] == "Active"):
                         print("Kill started process")
@@ -159,3 +171,10 @@ class logic(object):
                 self.busy_busbars.pop(name)
                 processed_configurations.pop(name)
         return processed_configurations
+
+    def set_point_changer(self, name, setpoint):
+        new_setpoint = {_DESCRIPTION: _SETPOINT, _CONTROLLER_NAME: name, _SETPOINT: setpoint}
+        print(new_setpoint)
+        #sys.exit()
+        feedback = self.comms.send(new_setpoint)
+        print(feedback)
