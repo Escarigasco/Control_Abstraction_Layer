@@ -2,6 +2,7 @@
 from controller_constant_flow import controller_constant_flow
 from controller_constant_pressure import controller_constant_pressure
 from multiprocessing import Process
+from multiprocessing import Queue
 from physical_logic import physical_logic
 import pickle
 import select
@@ -21,21 +22,19 @@ _CREATOR = "creator"
 _HOST = 'localhost'                 # Symbolic name meaning all available interfaces
 _PORT = 2000             # Arbitrary non-privileged port
 _TURN_ME_ON = 1
+_SETPOINT = "setpoints"
+_CONTROLLER_NAME = "controller_name"
 
 
 class physical_layer(object):
 
     def __init__(self):
-        self.valves_status = {
-            "Bay_4L-Busbar_2R": 0.11, "Bay_4L-Busbar_1R": 0.11, "Bay_4H-Busbar_B": 0.11, "Bay_4H-Busbar_2F": 0.11, "Bay_4H-Busbar_1F": 0.11, "Bay_4L-Busbar_B": 0.11,
-            "Bay_5L-Busbar_1R": 0.11, "Bay_5L-Busbar_2R": 0.11, "Bay_5H-Busbar_B": 0.11, "Bay_5H-Busbar_1F": 0.11, "Bay_5H-Busbar_2F": 0.11, "Bay_5L-Busbar_B": 0.11,
-            "Bay_6L-Busbar_1R": 0.11, "Bay_6L-Busbar_2R": 0.11, "Bay_6H-Busbar_B": 0.11, "Bay_6H-Busbar_1F": 0.11, "Bay_6H-Busbar_2F": 0.11, "Bay_6L-Busbar_B": 0.11,
-            "Bay_7H-Busbar_1F": 0.11, "Bay_7H-Busbar_2F": 0.11, "Bay_7L-Busbar_1R": 0.11, "Bay_7L-Busbar_2R": 0.11,
-            "Bay_8H-Busbar_1F": 0.11, "Bay_8H-Busbar_2F": 0.11, "Bay_8L-Busbar_1R": 0.11, "Bay_8L-Busbar_2R": 0.11}
+
         p_logic = physical_logic()
         op_controller_flow = controller_constant_flow()
         op_controller_pressure = controller_constant_pressure()
         processes = {}
+        queues = {}
         new_input = False
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
@@ -69,21 +68,30 @@ class physical_layer(object):
                                 if (new_input):
                                     if (inputs[_DESCRIPTION] == _CREATOR):
                                         inputs.pop(_DESCRIPTION)
-                                        input_for_controller = (data_from_API, inputs["controller_name"])
-                                        processes[inputs["controller_name"]] = Process(target=op_controller_flow.PID_controller, args=input_for_controller)
+                                        queues[inputs[_CONTROLLER_NAME]] = Queue()
+                                        input_for_controller = (data_from_API, inputs[_CONTROLLER_NAME], queues[inputs[_CONTROLLER_NAME]])
+                                        processes[inputs[_CONTROLLER_NAME]] = Process(target=op_controller_flow.PID_controller, args=input_for_controller)
                                         print("New Process started")
-                                        processes[inputs["controller_name"]].start()
-                                        feedback = "I have created controller " + inputs["controller_name"]
+                                        processes[inputs[_CONTROLLER_NAME]].start()
+                                        feedback = "I have created controller " + inputs[_CONTROLLER_NAME]
                                         message_serialized = pickle.dumps(feedback)
                                         c.sendall(message_serialized)
                                         # processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
+                                    elif (inputs[_DESCRIPTION] == _SETPOINT):
+                                        inputs.pop(_DESCRIPTION)
+                                        print("Mi è stato detto di cambiarti setpoint Mr., ", inputs[_CONTROLLER_NAME])
+                                        queues[inputs[_CONTROLLER_NAME]].put(inputs[_SETPOINT])
+                                        feedback = "I have changed setpoint to controller {0}, the new setpoint is {1}".format(inputs[_CONTROLLER_NAME], inputs[_SETPOINT])
+                                        message_serialized = pickle.dumps(feedback)
+                                        c.sendall(message_serialized)
+
                                     elif (inputs[_DESCRIPTION] == _KILLER):
                                         inputs.pop(_DESCRIPTION)
-                                        print("Mi è stato detto di ucciderti, ", inputs["controller_name"])
-                                        processes[inputs["controller_name"]].terminate()
-                                        print("process terminated", inputs["controller_name"])
-                                        feedback = "I have killed controller " + inputs["controller_name"]
+                                        print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
+                                        processes[inputs[_CONTROLLER_NAME]].terminate()
+                                        print("process terminated", inputs[_CONTROLLER_NAME])
+                                        feedback = "I have killed controller " + inputs[_CONTROLLER_NAME]
                                         message_serialized = pickle.dumps(feedback)
                                         c.sendall(message_serialized)
 
@@ -103,7 +111,6 @@ class physical_layer(object):
                                         #complete = p_logic.set_hydraulic_circuit(inputs)
                                         complete = p_logic.set_hydraulic_simulated_circuit(inputs)
                                         message_serialized = pickle.dumps(complete)
-                                        #print(self.valves_status)
                                         c.sendall(message_serialized)
 
                                     new_input = False

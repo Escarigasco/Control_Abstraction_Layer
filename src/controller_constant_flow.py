@@ -21,8 +21,8 @@ class controller_constant_flow(object):
         value = 0
         return value
 
-    def PID_controller(self, inputs, process_ID):
-
+    def PID_controller(self, inputs, process_ID, queue):
+        self.work_q = queue
         print("Control Process {0} started".format(process_ID))
         print("I am process", process_ID)
         inputs = pickle.loads(inputs)
@@ -61,6 +61,9 @@ class controller_constant_flow(object):
 
         while(1):
             try:
+                if (not self.work_q.empty()):
+                    received_setpoint = self.work_q.get()
+                    setpoint = [float(n) for n in received_setpoint]
                 print("Control Thread {0} running".format(process_ID))
                 time.sleep(_CONTROL_TIME)
                 for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
@@ -68,7 +71,7 @@ class controller_constant_flow(object):
                     feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
                     if feedback_value[n] == "NaN":
                         feedback_value[n] = 0     # --->>> really bad though
-                    print("feedback taken from sensor ", feedback_sensor[n])
+                    print("feedback taken from sensor {0} with setpoint {1} ".format(feedback_sensor[n], setpoint[n]))
                     #feedback_value[n] = 0
                     print(feedback_value[n])
                     error_value[n] = gain * (setpoint[n] - feedback_value[n])       # Calculate the error
@@ -108,8 +111,6 @@ class controller_constant_flow(object):
         return windup_corrector
 
     def signal_term_handler(self, signal, frame):
-        print("It has to be here to receive signal but doesn't effectively do anything this is not going to be printed but it handles the asynchronous interaction")
-        print("stai a dì na cazzata")
         print('got SIGTERM - the process was killed as the configuration was not matched any more')
         sys.exit(0)
 
