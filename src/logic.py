@@ -14,6 +14,7 @@ _SENSORS = 'Sensors_active'
 _SETPOINT = "setpoints"
 _STATE = "state"
 _VALVES = 'Valves_active'
+_VALVES_TO_SHUT = 'Valves_to_shut'
 _ACTUATE = "actuate"
 _FINAL_BOOSTER = "final_booster"
 _START_SOURCE = "start_source"
@@ -21,6 +22,7 @@ _MIDDLE_BOOSTER = "middle_booster"
 _BEGIN_WITH = 0     # the tuple
 _END_WITH = 1   # the tuple
 _BIT_SHIFT = 1
+_LAST_ELEMENT = -1
 
 
 class logic(object):
@@ -82,25 +84,36 @@ class logic(object):
         print("I actuate the suitable setup")
         actuating_message = {}
         valves_translated = []
+        valves_to_shut_translated = []
         for name, attributes in processed_configurations.items():
             if (processed_configurations[name][_STATE] == "Inactive"):
                 if (processed_configurations[name][_MATCH] == "Unmatched"):
-
                     for valve in processed_configurations[name][_AVAILABLE_COMPONENTS][_VALVES]:
                         valves_translated.append(self.translator.components(valve.ID))
-                    actuating_message = {_DESCRIPTION: _ACTUATE, _VALVES: valves_translated}
-                    complete = self.comms.send(actuating_message)
-                    if (complete):
-                        processed_configurations[name][_MATCH] = "Matched"
+                    for valve in processed_configurations[name][_AVAILABLE_COMPONENTS][_VALVES_TO_SHUT]:
+                        valves_to_shut_translated.append(self.translator.components(valve.ID))
+                    actuating_message = {_DESCRIPTION: _ACTUATE, _VALVES: valves_translated, _VALVES_TO_SHUT: valves_to_shut_translated}
+                    print(actuating_message[_VALVES])
+                    print(actuating_message[_VALVES_TO_SHUT])
+#                    sys.exit()
+                    #if (complete):
+                        #processed_configurations[name][_MATCH] = "Matched"
             else:
                 print("Skipped")
 
+        if actuating_message:
+            complete = self.comms.send(actuating_message)
         return processed_configurations
 
     def controller_starter(self, processed_configurations, pm, mssgr):
+        what_comes_out_the_cilinder = []
         print("I check the compatibility and start the controller")
-        if (not self.work_q.empty()):
-            self.online_configuration = self.work_q.get()
+        #if (not self.work_q.empty()):
+        #    self.online_configuration = self.work_q.get()
+        while not self.work_q.empty():
+            what_comes_out_the_cilinder.append(self.work_q.get())
+            print(what_comes_out_the_cilinder)
+        self.online_configuration = what_comes_out_the_cilinder[_LAST_ELEMENT]
         if (processed_configurations):
             for name, attributes in processed_configurations.items():
                 if (processed_configurations[name][_STATE] == "Inactive"):
@@ -170,6 +183,8 @@ class logic(object):
             if (processed_configurations[name][_STATE] == "Inactive"):
                 self.busy_busbars.pop(name)
                 processed_configurations.pop(name)
+        if (not self.work_q.empty()):
+            self.online_configuration = self.work_q.get()
         return processed_configurations
 
     def set_point_changer(self, name, setpoint):
