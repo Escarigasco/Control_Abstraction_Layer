@@ -34,8 +34,7 @@ class path_matcher(object):
                 # DiGM = isomorphism.GraphMatcher(extracted_subgraph, possible_configurations)
                 nx.is_isomorphic(extracted_subgraph, possible_configurations)
                 print("isomorpishm confirmed \n")
-
-
+                
                 return _MATCHED
             else:
 

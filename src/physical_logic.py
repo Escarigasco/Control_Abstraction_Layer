@@ -5,7 +5,9 @@ import time
 _BUILDING_NAME = "716-h1"
 _MULTIPLIER = 1000000
 _TURN_ME_ON = 1
+_TURN_ME_OFF = 0
 _VALVES = 'Valves_active'
+_VALVES_TO_SHUT = 'Valves_to_shut'
 
 
 class physical_logic(object):
@@ -41,17 +43,27 @@ class physical_logic(object):
 
     def set_hydraulic_circuit(self, inputs):
         valves = inputs[_VALVES]
+        valves_to_shut = inputs[_VALVES_TO_SHUT]
         valves_status = {}
-        opening_threshold = 3.6
+        valves_to_shut_status = {}
+        opening_threshold = len(valves) * 0.9
+        closing_threshold = len(valves_status) * 0.1
+        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER)
         CompositMess = CM(_TURN_ME_ON, time.time() * _MULTIPLIER)
         complete = False
+        for valve in valves_to_shut:
+            self.interface.setValvePosition(valve, CompositMess_Shut)
         for valve in valves:
             self.interface.setValvePosition(valve, CompositMess)
         while not complete:
             for valve in valves:
-                valves_status[valve] = self.interface.getValvePosition(valve, CompositMess).value
-                time.sleep(0.5)
-            if (sum(opening for opening in valves_status.values()) >= opening_threshold):
+                valves_status[valve] = self.interface.getValvePosition(valve).value
+                time.sleep(0.2)
+            for valve in valves_to_shut:
+                valves_to_shut_status[valve] = self.interface.getValvePosition(valve).value
+                time.sleep(0.2)
+            if ((sum(opening for opening in valves_status.values()) >= opening_threshold)
+               & (sum(opening for opening in valves_to_shut_status.values()) <= closing_threshold)):
                 complete = True
         return complete
 
@@ -59,13 +71,21 @@ class physical_logic(object):
         print("I am setting simulated circuit")
         time.sleep(1)
         valves = inputs[_VALVES]
+        valves_to_shut = inputs[_VALVES_TO_SHUT]
         valves_status = {}
-        opening_threshold = 3.6
+        valves_to_shut_status = {}
+        opening_threshold = len(valves) * 0.9
+        closing_threshold = len(valves_status) * 0.1
         complete = False
         for valve in valves:
             valves_status[valve] = 1
             self.valves_status[valve] = 1
+        for valve in valves_to_shut:
+            valves_to_shut_status[valve] = 1
+            self.valves_status[valve] = 0
         # print(sum(opening for opening in valves_status.values()))
-        if (sum(opening for opening in valves_status.values()) >= opening_threshold):
+        if ((sum(opening for opening in valves_status.values()) >= opening_threshold)
+           & (sum(opening for opening in valves_to_shut_status.values()) <= closing_threshold)):
                 complete = True
+        print(self.valves_status)
         return complete

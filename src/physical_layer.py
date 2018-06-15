@@ -36,15 +36,14 @@ class physical_layer(object):
         processes = {}
         queues = {}
         new_input = False
-        #try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
-            # op_controller = controller()
-            s.bind((_HOST, _PORT))
-            s.listen(1)
-            print("Physical Layer Listening")
-            readable = [s]  # list of readable sockets.  s is readable if a client is waiting.
-            i = 0
-            try:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
+                # op_controller = controller()
+                s.bind((_HOST, _PORT))
+                s.listen(1)
+                print("Physical Layer Listening")
+                readable = [s]  # list of readable sockets.  s is readable if a client is waiting.
+                i = 0
                 while True:
                     r, w, e = select.select(readable, [], [], _BEGIN_WITH)  # the 0 here is the time out, it doesn't wait anything, it keeps cheking if the first argument is ready to be red
                     for rs in r:  # iterate through readable sockets - so r is a list of objects included in readable that are ready to be read - if its ready there is a call from the client
@@ -66,6 +65,7 @@ class physical_layer(object):
                                 new_input = True
                             try:
                                 if (new_input):
+                                    #print(inputs)
                                     if (inputs[_DESCRIPTION] == _CREATOR):
                                         inputs.pop(_DESCRIPTION)
                                         queues[inputs[_CONTROLLER_NAME]] = Queue()
@@ -124,16 +124,12 @@ class physical_layer(object):
                                                 process.terminate()
                                                 print("Stopped Process {0}".format(process))
                                         sys.exit()
-            except(KeyboardInterrupt, SystemExit, Exception):
-                if s:
-                    #s.shutdown(socket.SHUT_RDWR)
-                    s.close()
-                sys.exit()
 
-        '''except (KeyboardInterrupt, Exception, SystemExit):
-            s.shutdown(socket.SHUT_RDWR)  # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
-            s.close()
-            sys.exit()'''
+        except(KeyboardInterrupt, SystemExit, Exception):
+            if s:
+                #s.shutdown(socket.SHUT_RDWR)
+                s.close()
+            sys.exit()
 
 
 if __name__ == "__main__":
