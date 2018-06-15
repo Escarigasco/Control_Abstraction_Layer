@@ -22,6 +22,8 @@ _OFFSET_FIGURE = 2
 _FINAL_BOOSTER = "final_booster"
 _START_SOURCE = "start_source"
 _MIDDLE_BOOSTER = "middle_booster"
+_POSSIBLE_VALVES = "possible_valves"
+_ALL_VALVES = "all_valves"
 
 
 class path_builder(object):
@@ -52,7 +54,10 @@ class path_builder(object):
         actuable_configuration = {}
         idx = 1
 
-        connected_valves = self.all_possible_valves(input_request)
+        valves_collection = self.all_possible_valves(input_request)
+        connected_valves = valves_collection[_POSSIBLE_VALVES]
+        all_valves = valves_collection[_ALL_VALVES]
+
         for busbar in self.system_busbars.keys():
             if (self.system_busbars[busbar].flow == _HOT_FLOW and self.system_busbars[busbar].type != _BOOSTER):
                 hot_busbars[busbar] = self.system_busbars[busbar]
@@ -231,7 +236,7 @@ class path_builder(object):
             #print(i)
             #print(actuable_configuration[i].nodes)
 
-        configuration_selected = self.conf_slct.start_screening(actuable_configuration, busy_busbars)
+        configuration_selected = self.conf_slct.start_screening(actuable_configuration, busy_busbars, all_valves)
         return configuration_selected
 
     def all_possible_valves(self, input_request):
@@ -239,6 +244,8 @@ class path_builder(object):
         sinks = input_request['sinks']
         boosted = input_request['boosted']
         possible_valves = []
+        all_valves = []
+        valves_collection = {}
         bays_sinks = []
 
         for sink in sinks:
@@ -268,29 +275,37 @@ class path_builder(object):
 
             for bay_sources in bays_sources:
                 for valve in self.valves_position[bay_sources]:
+                    all_valves.append(valve)
                     if (valve.get_connection() != _BOOSTER_BAR):
                         possible_valves.append(valve)
             for bay_sink in bays_sinks:
                 for valve in self.valves_position[bay_sink]:
+                    all_valves.append(valve)
                     if (valve.get_connection() != _BOOSTER_BAR):
                         possible_valves.append(valve)
 
         elif (boosted == 'Y'):
             for bay_sink in bays_sinks:
                 possible_valves = possible_valves + self.valves_position[bay_sink]
+                all_valves = all_valves + self.valves_position[bay_sink]
             '''start_source'''
             for valve in self.valves_position[bay_start_source]:
+                all_valves.append(valve)
                 if ((valve.get_flow() == _COLD_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _HOT_FLOW and valve.get_connection() == _BOOSTER_BAR)):
                     possible_valves.append(valve)
+
             '''end_source'''
             for valve in self.valves_position[bay_end_source]:
+                all_valves.append(valve)
                 if ((valve.get_flow() == _HOT_FLOW and valve.get_connection() != _BOOSTER_BAR) or (valve.get_flow() == _COLD_FLOW and valve.get_connection() == _BOOSTER_BAR)):
                     possible_valves.append(valve)
             '''middle_sources'''
             if bays_middle_sources:
                 for bay in bays_middle_sources:
                     for valve in self.valves_position[bay]:
+                        all_valves.append(valve)
                         if ((valve.get_flow() == _HOT_FLOW and valve.get_connection() == _BOOSTER_BAR) or (valve.get_flow() == _COLD_FLOW and valve.get_connection() == _BOOSTER_BAR)):
                             possible_valves.append(valve)
 
-        return possible_valves
+        valves_collection = {_ALL_VALVES: all_valves, _POSSIBLE_VALVES: possible_valves}
+        return valves_collection
