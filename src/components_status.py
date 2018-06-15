@@ -3,7 +3,7 @@ import re
 import syslab
 import sys
 _ACTIVE = 1
-_ACTIVE_VALVE = 0.1
+_ACTIVE_VALVE = 0  # active- inactive doesn't exist with the same previous logic
 _INACTIVE_VALVE = 0
 _VALVE_STATUS = "valve_status"
 _DESCRIPTION = "description"
@@ -12,6 +12,7 @@ _PUMPS = 'Pump'
 _VALVES = 'Valve'
 _MULTIPLIER = 1000
 _BUILDING_NAME = "716-h1"
+
 
 
 class components_status(object):
