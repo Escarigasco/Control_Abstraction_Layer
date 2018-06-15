@@ -1,6 +1,7 @@
 import pickle
 import socket
 import sys
+import time
 _NEG = "N"
 _HOST = 'localhost'    # The remote host
 _PORT = 2000

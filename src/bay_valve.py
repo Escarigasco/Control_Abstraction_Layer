@@ -1,7 +1,6 @@
 # Valve Class
 from random import choice
 
-
 class bay_valve(object):
     'Class for Valve definition and properties'
 

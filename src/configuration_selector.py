@@ -1,6 +1,7 @@
 from communicator_physical_layer import communicator_physical_layer
 from components_status import components_status
-import re
+import sys
+
 _S_NAME = 'Sensor'
 _P_NAME = 'Pump'
 _V_NAME = 'Valve'
@@ -12,6 +13,8 @@ _GRAPH = "graph"
 _BUSBARS = "busbar"
 _HOT_BUSBAR = "hot_busbar"
 _COLD_BUSBAR = "cold_busbar"
+_VALVES_TO_SHUT = 'Valves_to_shut'
+_VALVES = 'Valves_active'
 
 
 class configuration_selector(object):
@@ -26,7 +29,7 @@ class configuration_selector(object):
         self.system_components = {**self.sensors, **self.valves, **self.pumps, **self.connected_devices, **self.system_busbars}
         self.c_status = components_status(comms, translator)
 
-    def start_screening(self, actuable_configuration, busy_busbar):
+    def start_screening(self, actuable_configuration, busy_busbar, all_possible_valves):
         occupied_busbars = []
         available_components = {}
         scores = {}
@@ -65,7 +68,9 @@ class configuration_selector(object):
                     busy = True
             if not busy:
                 available_components[name] = self.c_status.run(configuration_components)
-                scores[name] = sum([available_components[name][_S_SCORE], available_components[name][_V_SCORE], available_components[name][_P_SCORE]])
+                scores[name] = sum([available_components[name][_S_SCORE],
+                                    available_components[name][_V_SCORE],
+                                    available_components[name][_P_SCORE]])
 
         #for name in scores.keys():
             #print(name)
@@ -86,8 +91,22 @@ class configuration_selector(object):
             if (configuration_nodes[node].object_type == _BUSBARS):
                 busbars.append(node)
 
+        '''this routine is to cloes the valves in the interested bays that are not part of the selected circuit'''
+        available_components[selected_configuration][_VALVES_TO_SHUT] = [valve for valve in all_possible_valves
+                                                                         if valve not in available_components[selected_configuration][_VALVES]]
+
+        '''this routine is to close the valves in all the other bays that are connected to the selected busbars'''
+        valves_other_bays_to_close = []
+        for valve in self.valves.values():
+            if ((valve.connection in busbars) & (valve not in available_components[selected_configuration][_VALVES])):
+                valves_other_bays_to_close.append(valve)
+
+        available_components[selected_configuration][_VALVES_TO_SHUT] = available_components[selected_configuration][_VALVES_TO_SHUT] + valves_other_bays_to_close
+        print(available_components[selected_configuration][_VALVES_TO_SHUT])
+        print(available_components[selected_configuration][_VALVES])
+
         message_to_return = {_GRAPH: actuable_configuration[selected_configuration],
                              _AVAILABLE_COMPONENTS: available_components[selected_configuration],
                              _BUSBARS: busbars}
-        #print(message_to_return)
+    
         return message_to_return
