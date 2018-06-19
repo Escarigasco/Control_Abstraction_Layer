@@ -40,7 +40,6 @@ class current_status_reader(object):
 
             valves_for_translation = self.comms.send(valves_for_physical_layer)
 
-
             for valve in valves_for_translation.keys():
                 valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
 
