@@ -14,10 +14,10 @@ class bay_valve(object):
         self.object_type = "Valve"
 
         #self.opening_threshold = 0.1
-        self.opening_threshold = 20
-        if status is None:
-            status = choice([1, 1, 1])
-        self.status = status
+        #self.opening_threshold = 20
+        #if status is None:
+        #    status = choice([1, 1, 1])
+        #self.status = status
 
     def score_calculator(self, value):
         self.opening_score = value
