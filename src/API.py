@@ -57,17 +57,19 @@ def main(argv):
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = [6]
+                get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
+                #get_rid_of = {"Pumps": ["Pump_1H7", "Pump_1H8"], "Sensors": ["Sensor_1E4", "Sensor_1E6"], "Valves": [""]}
             elif n == 150:
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4"]
                 boosted_one = []
                 parameters_one = "Energy"
-                setpoints_one = [2000]
+                setpoints_one = [20]
                 sinks_two = ["Sink_1H8"]
                 sources_two = ["Source_1DH6"]
                 boosted_two = []
                 parameters_two = "Energy"
-                setpoints_two = [6000]
+                setpoints_two = [60]
             elif (n == 200):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4"]
@@ -79,6 +81,7 @@ def main(argv):
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
+                get_rid_of = {"Pumps": ["Pump_1H7"], "Sensors": [], "Valves": []}
             elif (n == 300):
                 sinks_one = []
                 sources_one = []
@@ -90,6 +93,7 @@ def main(argv):
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
+                get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
             elif (n == 400):
                 sinks_one = ["Sink_1H7", "Sink_1H8"]
                 sources_one = ["Source_1BH4"]
@@ -179,9 +183,9 @@ def main(argv):
                 boosted = input("Is the system Boosted? \n")
 
             Configuration_one = {"sinks": sinks_one, "sources": sources_one, "boosted": boosted_one,
-                                 "parameters": parameters_one, "setpoints": setpoints_one}
+                                 "parameters": parameters_one, "setpoints": setpoints_one, "excluded_components": get_rid_of}
             Configuration_two = {"sinks": sinks_two, "sources": sources_two, "boosted": boosted_two,
-                                 "parameters": parameters_two, "setpoints": setpoints_two}
+                                 "parameters": parameters_two, "setpoints": setpoints_two, "excluded_components": get_rid_of}
             for key in Configuration_one.keys():
                 if ((not Configuration_one[key]) & (key != "boosted")):
                     Configuration_one = None
