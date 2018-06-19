@@ -12,9 +12,9 @@ class line_pump(object):
         self.location = connected_dev
         self.object_type = "Pump"
 
-        if status is None:
-            status = choice([1, 1, 1])
-        self.status = status
+        #if status is None:
+        #    status = choice([1, 1, 1])
+        #self.status = status
 
     def get_name(self):
         return self.ID

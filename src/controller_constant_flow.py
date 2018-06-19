@@ -119,12 +119,12 @@ class controller_constant_flow(object):
 
             except (KeyboardInterrupt, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
-                for n in range(_FIRST_OF_CLASS, len(actuators)):
-                    CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
-                    #interface.setPumpSetpoint(actuators[n], CompositMess)
-                print("Circulators is now at zero flow")
+                self.shut_down_routine(circulators, valves)
+                #interface.setPumpSetpoint(actuators[n], CompositMess)
+                print("Circulators is now at zero flow and valves have been closed")
                 sys.exit(0)
             except Exception:
+                '''there is the condition because it will keep except'''
                 if active_circuit:
                     stopper = True
                     self.shut_down_routine(circulators, valves)
