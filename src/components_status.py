@@ -12,6 +12,7 @@ _SENSORS = 'Sensor'
 _PUMPS = 'Pump'
 _VALVES = 'Valve'
 _MULTIPLIER = 1000
+_DISCARD_VALUE = -10000
 # _BUILDING_NAME = "716-h1"
 
 
@@ -107,11 +108,11 @@ class components_status(object):
 
         print(pumps_for_logical_layer)
         if (pumps_for_logical_layer):
-                for valve in pumps_for_logical_layer.keys():
-                        if isinstance(pumps_for_logical_layer[valve], float):
-                            pumps_dic[valve].set_status(_ACTIVE)
+                for pump in pumps_for_logical_layer.keys():
+                        if isinstance(pumps_for_logical_layer[pump], float):
+                            pumps_dic[pump].set_status(_ACTIVE)
                         else:
-                            pumps_dic[valve].set_status(_INACTIVE)
+                            pumps_dic[pump].set_status(_INACTIVE)
                 return True
         else:
             return False
@@ -134,12 +135,12 @@ class components_status(object):
 
         if (valves_for_logical_layer):
                 for valve in valves_for_logical_layer.keys():
-                        if (valves_for_logical_layer[valve] >= _ACTIVE_VALVE):
+                        if isinstance(valves_for_logical_layer[valve], float):
                             valves_dic[valve].set_status(_ACTIVE)
                             valves_dic[valve].score_calculator(valves_for_logical_layer[valve])
                         else:
                             valves_dic[valve].set_status(_INACTIVE)
-                            valves_dic[valve].score_calculator(valves_for_logical_layer[valve])
+                            valves_dic[valve].score_calculator(_DISCARD_VALUE)
                 return True
         else:
             return False

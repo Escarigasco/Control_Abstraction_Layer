@@ -49,6 +49,7 @@ class configuration_reader(object):
         valve_status_online = []
         valve_status_previous = []
 
+        #TODO handle the boolean return
         ro = current_status_reader(self.comms, system_pumps, system_sensors, system_valves)
         plt.ion()
         plt.show()
