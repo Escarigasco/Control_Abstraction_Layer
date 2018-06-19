@@ -56,9 +56,9 @@ class configuration_reader(object):
         while True:
             try:
 
+                time.sleep(0.1)
                 status_online_reading = ro.run_online()
                 if (status_online_reading):
-                    time.sleep(2)
 
                     valve_status_online = []
                     for valve in system_valves.values():
@@ -210,6 +210,7 @@ class configuration_reader(object):
                             nx.draw_kamada_kawai(self.UpdatedGraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
                             plt.pause(0.001)
                             #worker_q.send(self.UpdatedGraph)
+                            print("Give me some new honeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
                             worker_q.put(self.UpdatedGraph)
                             #print(self.UpdatedGraph.nodes())
                 else:

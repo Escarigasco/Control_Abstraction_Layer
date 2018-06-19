@@ -26,6 +26,7 @@ _POSSIBLE_VALVES = "possible_valves"
 _ALL_VALVES = "all_valves"
 
 
+
 class path_builder(object):
 
     def __init__(self, interface, comms, translator):
@@ -46,12 +47,10 @@ class path_builder(object):
     def run(self, input_request, busy_busbars):
 
         #pm = path_matcher(online_configuration)
-        sources = input_request['sources']
-        sinks = input_request['sinks']
-        boosted = input_request['boosted']
         hot_busbars = {}
         cold_busbars = {}
         actuable_configuration = {}
+        excluded_components = input_request["excluded_components"]
         idx = 1
 
         valves_collection = self.all_possible_valves(input_request)
@@ -236,7 +235,7 @@ class path_builder(object):
             #print(i)
             #print(actuable_configuration[i].nodes)
 
-        configuration_selected = self.conf_slct.start_screening(actuable_configuration, busy_busbars, all_valves)
+        configuration_selected = self.conf_slct.start_screening(actuable_configuration, busy_busbars, all_valves, excluded_components)
         return configuration_selected
 
     def all_possible_valves(self, input_request):
