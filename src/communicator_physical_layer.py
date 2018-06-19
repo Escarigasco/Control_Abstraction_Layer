@@ -23,7 +23,11 @@ class communicator_physical_layer(object):
                 s.close()
                 #print("Message received")
                 message_received = pickle.loads(message_received)
-            except Exception:
+            except (Exception, KeyboardInterrupt):
+                try:
+                    s.close()
+                except Exception:
+                    pass
                 print("Messaged not received yet")
                 pass
         return message_received
