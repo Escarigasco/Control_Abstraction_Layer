@@ -19,25 +19,42 @@ class physical_logic(object):
             "Bay_6L-Busbar_1R": 0.11, "Bay_6L-Busbar_2R": 0.11, "Bay_6H-Busbar_B": 0.11, "Bay_6H-Busbar_1F": 0.11, "Bay_6H-Busbar_2F": 0.11, "Bay_6L-Busbar_B": 0.11,
             "Bay_7H-Busbar_1F": 0.11, "Bay_7H-Busbar_2F": 0.11, "Bay_7L-Busbar_1R": 0.11, "Bay_7L-Busbar_2R": 0.11,
             "Bay_8H-Busbar_1F": 0.11, "Bay_8H-Busbar_2F": 0.11, "Bay_8L-Busbar_1R": 0.11, "Bay_8L-Busbar_2R": 0.11}
+        self.pumps_status = {
+            "Pump_Bay4": 0.0,
+            "Pump_Bay5": 0.0,
+            "Pump_Bay6": 0.0,
+            "Pump_Bay7": 0.0,
+            "Pump_Bay8": 0.0}
 
-        self.interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        #self.interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+
+    def get_pumps_status(self, pumps_for_physical_layer):
+        print("I am reading pumps")
+        pumps_for_logical_layer = {}
+        for pump in pumps_for_physical_layer.keys():
+            head = self.interface.getPumpHead(pump)
+            pumps_for_logical_layer[pump] = head.value
+        return pumps_for_logical_layer
+
+    def get_pumps_simulated_status(self, pumps_for_physical_layer):
+        print("I am reading simulated pumps")
+        pumps_for_logical_layer = {}
+        for pump in pumps_for_physical_layer.keys():
+            pumps_for_logical_layer[pump] = self.pumps_status[pump]
+        return pumps_for_logical_layer
 
     def get_valves_status(self, valves_for_physical_layer):
+        print("I am reading circuit")
         valves_for_logical_layer = {}
         for valve in valves_for_physical_layer.keys():
             opening = self.interface.getValvePosition(valve)
-            #print(valve, opening.value)
             valves_for_logical_layer[valve] = opening.value
         return valves_for_logical_layer
 
     def get_valves_simulated_status(self, valves_for_physical_layer):
-        print("I am reading simulated circuit")
-        time.sleep(1)
-        min_operating = 0
-        max_operating = 1
+        #print("I am reading simulated circuit")
         valves_for_logical_layer = {}
         for valve in valves_for_physical_layer.keys():
-            #valves_for_logical_layer[valve] = random.uniform(min_operating, max_operating)
             valves_for_logical_layer[valve] = self.valves_status[valve]
         return valves_for_logical_layer
 

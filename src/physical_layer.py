@@ -13,6 +13,7 @@ _MULTIPLIER = 1000000
 _ACTUATE = "actuate"
 _BEGIN_WITH = 0
 _VALVE_STATUS = "valve_status"
+_PUMP_STATUS = "pump_status"
 _VALVES = 'Valves_active'
 _BUILDING_NAME = "716-h1"
 _NEG = "N"
@@ -60,7 +61,7 @@ class physical_layer(object):
                                 readable.remove(rs)
                                 rs.close()
                             else:
-                                print("Message received")
+                                #print("Message received")
                                 inputs = pickle.loads(data_from_API)
                                 new_input = True
                             try:
@@ -104,6 +105,15 @@ class physical_layer(object):
                                         #print(valves_for_logical_layer)
                                         c.sendall(message_serialized)
 
+                                    elif (inputs[_DESCRIPTION] == _PUMP_STATUS):
+                                        #print(inputs)
+                                        inputs.pop(_DESCRIPTION)
+                                        #pumps_for_logical_layer = p_logic.get_pumps_status(inputs)
+                                        pumps_for_logical_layer = p_logic.get_pumps_simulated_status(inputs)
+                                        message_serialized = pickle.dumps(pumps_for_logical_layer)
+                                        #print(valves_for_logical_layer)
+                                        c.sendall(message_serialized)
+
                                     elif (inputs[_DESCRIPTION] == _ACTUATE):
                                         '''Here you should firs check if actuation is necessary - not really at the end of the day because it will confirm a setpoint'''
                                         print(inputs)
@@ -129,6 +139,7 @@ class physical_layer(object):
             if s:
                 #s.shutdown(socket.SHUT_RDWR)
                 s.close()
+            print("Physical Layer is closing")
             sys.exit()
 
 
