@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0"?>
 <switch_board_building id="Building716">
   <switch_board id="Switch_Board_1">
-        <bay id="Bay_4" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="booster">
+        <bay id="Bay_4" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="source">
              <pipe id="Pipeline_1C4" busbar="1C" type="normal"  direction="in">
                  <valve id="Valve_1C4" connection="1C" flow="C" ></valve>
              </pipe>
