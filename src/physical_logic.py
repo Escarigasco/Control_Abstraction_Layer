@@ -4,8 +4,8 @@ import time
 
 _BUILDING_NAME = "716-h1"
 _MULTIPLIER = 1000000
-_TURN_ME_ON = 1
-_TURN_ME_OFF = 0
+_TURN_ME_ON = 1.0
+_TURN_ME_OFF = 0.0
 _VALVES = 'Valves_active'
 _VALVES_TO_SHUT = 'Valves_to_shut'
 
@@ -14,10 +14,10 @@ class physical_logic(object):
 
     def __init__(self):
         self.valves_status = {
-            "Bay_4L-Busbar_2R": 0.11, "Bay_4L-Busbar_1R": 0.11, "Bay_4H-Busbar_B": 0.11, "Bay_4H-Busbar_2F": 0.11, "Bay_4H-Busbar_1F": 0.11, "Bay_4L-Busbar_B": 0.11,
+            "Bay_4L-Busbar_2R": 0.51, "Bay_4L-Busbar_1R": 0.11, "Bay_4H-Busbar_B": 0.11, "Bay_4H-Busbar_2F": 0.11, "Bay_4H-Busbar_1F": 0.91, "Bay_4L-Busbar_B": 0.11,
             "Bay_5L-Busbar_1R": 0.11, "Bay_5L-Busbar_2R": 0.11, "Bay_5H-Busbar_B": 0.11, "Bay_5H-Busbar_1F": 0.11, "Bay_5H-Busbar_2F": 0.11, "Bay_5L-Busbar_B": 0.11,
             "Bay_6L-Busbar_1R": 0.11, "Bay_6L-Busbar_2R": 0.11, "Bay_6H-Busbar_B": 0.11, "Bay_6H-Busbar_1F": 0.11, "Bay_6H-Busbar_2F": 0.11, "Bay_6L-Busbar_B": 0.11,
-            "Bay_7H-Busbar_1F": 0.11, "Bay_7H-Busbar_2F": 0.11, "Bay_7L-Busbar_1R": 0.11, "Bay_7L-Busbar_2R": 0.11,
+            "Bay_7H-Busbar_1F": 0.11, "Bay_7H-Busbar_2F": 0.11, "Bay_7L-Busbar_1R": 0.51, "Bay_7L-Busbar_2R": 0.11,
             "Bay_8H-Busbar_1F": 0.11, "Bay_8H-Busbar_2F": 0.11, "Bay_8L-Busbar_1R": 0.11, "Bay_8L-Busbar_2R": 0.11}
         self.pumps_status = {
             "Pump_Bay4": 0.0,
@@ -95,11 +95,11 @@ class physical_logic(object):
         closing_threshold = len(valves_status) * 0.1
         complete = False
         for valve in valves:
-            valves_status[valve] = 1
-            self.valves_status[valve] = 1
+            valves_status[valve] = 1.0
+            self.valves_status[valve] = 1.0
         for valve in valves_to_shut:
-            valves_to_shut_status[valve] = 1
-            self.valves_status[valve] = 0
+            valves_to_shut_status[valve] = 1.0
+            self.valves_status[valve] = 0.0
         # print(sum(opening for opening in valves_status.values()))
         if ((sum(opening for opening in valves_status.values()) >= opening_threshold)
            & (sum(opening for opening in valves_to_shut_status.values()) <= closing_threshold)):

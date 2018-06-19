@@ -58,7 +58,7 @@ class path_builder(object):
         all_valves = valves_collection[_ALL_VALVES]
 
         for busbar in self.system_busbars.keys():
-            if (self.system_busbars[busbar].flow == _HOT_FLOW and self.system_busbars[busbar].type != _BOOSTER):
+            if (self.system_busbars[busbar].flow == _HOT_FLOW and self.system_busbars[busbar].type != _BOOSTER):   # careful that here the reference is not to the booster heater but to the booster bar so it is legit
                 hot_busbars[busbar] = self.system_busbars[busbar]
 
             elif (self.system_busbars[busbar].flow == _COLD_FLOW and self.system_busbars[busbar].type != _BOOSTER):
