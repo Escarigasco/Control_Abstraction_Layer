@@ -69,7 +69,7 @@ class logic(object):
             processed_configurations_names.append(name)
         for configuration in system_input.keys():
             if (system_input[configuration]):
-                request_name = str(system_input[configuration]["sources"]) + str(system_input[configuration]["sinks"])
+                request_name = str(system_input[configuration]["sources"]) + str(system_input[configuration]["sinks"]) + str(system_input[configuration]["boosted"])
                 requested_configurations_names.append(request_name)
                 requested_configuration[request_name] = system_input[configuration]
         # First I check the ones I should destroy
@@ -96,7 +96,7 @@ class logic(object):
             else:
                 for configuration in system_input.keys():
                     if (system_input[configuration]):
-                        new_name = str(system_input[configuration]["sources"]) + str(system_input[configuration]["sinks"])  # the logic is to check the name matching and then also the inputs matching and do something about it
+                        new_name = str(system_input[configuration]["sources"]) + str(system_input[configuration]["sinks"]) + str(system_input[configuration]["boosted"]) # the logic is to check the name matching and then also the inputs matching and do something about it
                         if (name == new_name):
                             processed_configurations[name][_INPUTS] = system_input[configuration]
                             processed_configurations[name][_STATE] = "Inactive"
