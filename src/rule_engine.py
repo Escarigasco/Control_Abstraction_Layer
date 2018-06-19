@@ -15,7 +15,6 @@ class Location(Flags):
 
     SOURCE = ['source']
     SINK = ['sink']
-    BOOSTER = ['booster']
 
 
 class Number(Flags):
@@ -28,17 +27,21 @@ class Number(Flags):
 class Pump_Mode(Flags):
     """this will also be the controller name"""
     # OFF = ["OFF"] does this exist?
-    CONSTANT_SPEED = ["PUMP_MODE_CONSTANT_SPEED"]
-    CONSTANT_FREQUENCY = ["PUMP_MODE_CONSTANT_FREQUENCY"]
-    CONSTANT_HEAD = ["PUMP_MODE_CONSTANT_HEAD"]
-    CONSTANT_PRESSURE = ["PUMP_MODE_CONSTANT_PRESSURE"]
-    CONSTANT_FLOW = ["PUMP_MODE_CONSTANT_FLOW"]
-    CONSTANT_TEMP = ["PUMP_MODE_CONSTANT_TEMP"]
-
+    CONSTANT_SPEED = ["PUMP_MODE_CONSTANT_SPEED"]               # 0
+    CONSTANT_FREQUENCY = ["PUMP_MODE_CONSTANT_FREQUENCY"]       # 1
+    CONSTANT_HEAD = ["PUMP_MODE_CONSTANT_HEAD"]                 # 2
+    CONSTANT_PRESSURE = ["PUMP_MODE_CONSTANT_PRESSURE"]         # 3
+    CONSTANT_FLOW = ["PUMP_MODE_CONSTANT_FLOW"]                 # 4
+    CONSTANT_TEMP = ["PUMP_MODE_CONSTANT_TEMP"]                 # 5
 
 class Actuator_type(Flags):
     VALVE = ["Valve"]
     PUMP = ["Pump"]
+
+
+class System_facts(Fact):
+    '''info about the System'''
+    pass
 
 
 class Sensors_facts(Fact):
@@ -78,6 +81,7 @@ class Pump_Configurator(KnowledgeEngine):
         yield Pump_facts(obj=self.pump)
         yield Sensors_facts(obj=self.sensor)
 
+    '''Rule that choose the valve as actuator'''
     @Rule(Actuator_facts(pumps_sources=MATCH.n_pumps_sources, pumps_sinks=MATCH.n_pumps_sinks),
           Actuator_facts(pumps_sources=P(lambda pumps_sources: pumps_sources > 0)),
           TEST(lambda n_pumps_sources, n_pumps_sinks: n_pumps_sources >= n_pumps_sinks),
@@ -97,10 +101,12 @@ class Pump_Configurator(KnowledgeEngine):
         self.retract(_ALL_FLAGS_ACTUATOR_TYPE)
         print(self.facts)
 
+    '''Rule that should select which valve'''
     @Rule(Actuator_facts(actuator_type=Actuator_type.VALVE))  # actuator_type=Actuator_type.VALVE))
     def just_a_consequence(self):
         print("Ti rimane da scegliere che valvola ")
 
+    '''this is only to select the actuator type'''
     @Rule(Actuator_facts(pumps_sources=MATCH.n_pumps_sources, pumps_sinks=MATCH.n_pumps_sinks),
           OR(TEST(lambda n_pumps_sources, n_pumps_sinks: n_pumps_sources <= n_pumps_sinks),
           Actuator_facts(pumps_sinks=P(lambda pumps_sinks: pumps_sinks == 0))),
@@ -186,6 +192,7 @@ class rule_engine(object):
         engine.declare(Bays(sources=n_sources, sinks=n_sinks))
         engine.declare(Actuator_facts(pumps_sources=n_pumps_sources, pumps_sinks=n_pumps_sinks))
         engine.declare(Actuator_facts(valves=n_valves, valves_sources=n_valves_sources, valves_sinks=n_valves_sinks))
+        engine.declare(System_facts(boosted=booster))
         # engine.declare(Sensors(loc=sensor.location, obj=sensor))
         engine.run()
 
@@ -225,3 +232,5 @@ if __name__ == "__main__":
         1 source - 2 sinks, all pumps working, sensor assumed working always because if NaN/0 issue --> actuator Pump in constant flow in the two sinks
         1 source - 2 sinks, pump in sink broken, sensor assumed working always because if NaN/0 issue --> actuator valves, Pump in constant pressure at the source
 '''
+
+# with double source and one sink you control with the valve at the sink and not with the pumps at the source .. can you imagine the feedback? Avresti un hunting bestiale. In realtà sta cosa di due sources in parallelo è sbagliata
