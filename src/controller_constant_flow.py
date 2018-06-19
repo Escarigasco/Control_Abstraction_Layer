@@ -13,6 +13,7 @@ _CONTROL_TIME = 2
 _MULTIPLIER = 1000000
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
+_MINUTES_THRESHOLDS = 100
 
 
 class controller_constant_flow(object):
@@ -22,7 +23,12 @@ class controller_constant_flow(object):
         return value
 
     def PID_controller(self, inputs, process_ID, queue):
+        self.thresholds = []
+        start_time = time.time()
+        self.n = 0
         self.work_q = queue
+        stopper = False
+        active_circuit = True
         print("Control Process {0} started".format(process_ID))
         print("I am process", process_ID)
         inputs = pickle.loads(inputs)
@@ -38,8 +44,8 @@ class controller_constant_flow(object):
         circulator_mode = inputs["circulator_mode"]
         feedback_sensor = inputs["feedback_sensor"]
         actuators = inputs["actuator"]
+        valves = inputs["valves"]
         setpoint = [float(n) for n in inputs["setpoint"]]
-        print(inputs)
         feedback_value = [_FIRST_OF_CLASS] * len(feedback_sensor)
         time_response = [_FIRST_OF_CLASS] * len(feedback_sensor)
         derivative = [_FIRST_OF_CLASS] * len(actuators)
@@ -50,6 +56,7 @@ class controller_constant_flow(object):
         pre_error = [_FIRST_OF_CLASS] * len(feedback_sensor)
         actuator_signal = [_FIRST_OF_CLASS] * len(actuators)
         error_value = [_FIRST_OF_CLASS] * len(feedback_sensor)
+        self.thresholds = [_FIRST_OF_CLASS] * len(feedback_sensor)
         CompositMess = [_FIRST_OF_CLASS] * len(actuators)
         error_development = [[] for n in range(len(feedback_sensor))]
         time_response = [[] for n in range(len(feedback_sensor))]
@@ -61,49 +68,67 @@ class controller_constant_flow(object):
 
         while(1):
             try:
+                time.sleep(_CONTROL_TIME)
                 if (not self.work_q.empty()):
                     received_setpoint = self.work_q.get()
                     setpoint = [float(n) for n in received_setpoint]
-                print("Control Thread {0} running".format(process_ID))
-                time.sleep(_CONTROL_TIME)
-                for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
-                    print(n)
-                    feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
-                    if feedback_value[n] == "NaN":
-                        feedback_value[n] = 0     # --->>> really bad though
-                    print("feedback taken from sensor {0} with setpoint {1} ".format(feedback_sensor[n], setpoint[n]))
-                    #feedback_value[n] = 0
-                    print(feedback_value[n])
-                    error_value[n] = gain * (setpoint[n] - feedback_value[n])       # Calculate the error
-                    integral[n] = (integral[n] + error_value[n]) - windup_corrector[n]              # Calculate integral
-                    derivative[n] = error_value[n] - pre_error[n]           # Calculate derivative
-                    controller_output[n] = (kp * error_value[n]) + (ki * integral[n]) + (kd * derivative[n])  # Calculate the controller_output, pwm.
-                    windup_corrector[n] = self.controller_wind_up(actuator_signal[n], controller_output[n], ki)
-                    controller_output_percentage[n] = self.pump_setpoint_converter(controller_output[n])
-                    if (controller_output_percentage[n] > max):
-                        actuator_signal[n] = 100  # Limit the controller_output to maximum 100.
-                    elif (controller_output_percentage[n] < min):
-                        actuator_signal[n] = 1
-                    else:
-                        actuator_signal[n] = controller_output_percentage[n]
-                    print("The actuator signal is ", actuator_signal[n])
-                    CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER)
-                    print(CompositMess[n])
-                    pre_error[n] = error_value[n]
-                for n in range(_FIRST_OF_CLASS, len(actuators)):
-                    #interface.setPumpSetpoint(actuators[n], CompositMess[n])
-                    print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
-                    error_development[n].append(error_value[n])
-                    time_response[n].append(feedback_value[n])  # Save as previous error.
-                signal.signal(signal.SIGTERM, self.signal_term_handler)
+                    self.n = 0
+                    start_time = time.time()
+                    self.threshold = []
+                if stopper:
+                    print("Control Thread {0} is ready to be stopped".format(process_ID))
+                    signal.signal(signal.SIGTERM, self.signal_term_handler)
+                    print(active_circuit)
+                    if active_circuit:
+                        self.shut_down_routine(circulators, valves)
+                        active_circuit = False
+                else:
+                    print("Control Thread {0} running".format(process_ID))
+                    for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
+                        print(n)
+                        feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
+                        if feedback_value[n] == "NaN":
+                            feedback_value[n] = 0     # --->>> really bad though
+                        print("feedback taken from sensor {0} with setpoint {1} ".format(feedback_sensor[n], setpoint[n]))
+                        #feedback_value[n] = 0
+                        print(feedback_value[n])
+                        error_value[n] = gain * (setpoint[n] - feedback_value[n])       # Calculate the error
+                        stopper = self.minutes_threshold([x / gain for x in error_value], start_time)
 
-            except (KeyboardInterrupt, Exception, SystemExit):
+                        integral[n] = (integral[n] + error_value[n]) - windup_corrector[n]              # Calculate integral
+                        derivative[n] = error_value[n] - pre_error[n]           # Calculate derivative
+                        controller_output[n] = (kp * error_value[n]) + (ki * integral[n]) + (kd * derivative[n])  # Calculate the controller_output, pwm.
+                        windup_corrector[n] = self.controller_wind_up(actuator_signal[n], controller_output[n], ki)
+                        controller_output_percentage[n] = self.pump_setpoint_converter(controller_output[n])
+                        if (controller_output_percentage[n] > max):
+                            actuator_signal[n] = 100  # Limit the controller_output to maximum 100.
+                        elif (controller_output_percentage[n] < min):
+                            actuator_signal[n] = 1
+                        else:
+                            actuator_signal[n] = controller_output_percentage[n]
+                        print("The actuator signal is ", actuator_signal[n])
+                        CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER)
+                        print(CompositMess[n])
+                        pre_error[n] = error_value[n]
+                    for n in range(_FIRST_OF_CLASS, len(actuators)):
+                        #interface.setPumpSetpoint(actuators[n], CompositMess[n])
+                        print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
+                        error_development[n].append(error_value[n])
+                        time_response[n].append(feedback_value[n])  # Save as previous error.
+                    signal.signal(signal.SIGTERM, self.signal_term_handler)
+
+            except (KeyboardInterrupt, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
                 for n in range(_FIRST_OF_CLASS, len(actuators)):
-                    CompositMess[n] = CM(shut_down_signal, time.time() * _MULTIPLIER)
-                    #interface.setPumpSetpoint(actuators[n], CompositMess[n])
+                    CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
+                    #interface.setPumpSetpoint(actuators[n], CompositMess)
                 print("Circulators is now at zero flow")
                 sys.exit(0)
+            except Exception:
+                if active_circuit:
+                    stopper = True
+                    self.shut_down_routine(circulators, valves)
+                    active_circuit = False
 
     def controller_wind_up(self, actuator_signal, controller_output, ki):
         error_saturation = actuator_signal - controller_output
@@ -119,6 +144,32 @@ class controller_constant_flow(object):
         volume_flow_in_percent = 100 * (volume_flow / pump_max_volume_flow)
         return volume_flow_in_percent
 
+    def minutes_threshold(self, errors, start_time):
+        stop_time = time.time()
+        current_time = stop_time - start_time
+        print("these are passed seconds ", current_time)
+        idx = 0
+        if current_time >= (60 * self.n):
+            self.n += 1
+            for error in errors:
+                self.thresholds[idx] += error
+                print(self.thresholds[idx])
+                idx += 1
+            for threshold in self.thresholds:
+                if threshold > _MINUTES_THRESHOLDS:
+                    return True
+        print("the minutes degree quantities are ", self.thresholds)
+        return False
+
+    def shut_down_routine(self, circulators, valves):
+        shut_down_signal = 0
+        CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
+        for circulator in circulators:
+            print("Circulators are off")
+            #interface.setPumpSetpoint(circulator, CompositMess)
+        for valve in valves:
+            print("Valves are closed")
+            #interface.setPumpSetpoint(valve, CompositMess)
 
 if __name__ == "__main__":
     test = controller_constant_flow()
