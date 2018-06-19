@@ -74,7 +74,8 @@ class controller_constant_flow(object):
                     setpoint = [float(n) for n in received_setpoint]
                     self.n = 0
                     start_time = time.time()
-                    self.threshold = []
+                    self.threshold = [_FIRST_OF_CLASS] * len(feedback_sensor)
+
                 if stopper:
                     print("Control Thread {0} is ready to be stopped".format(process_ID))
                     signal.signal(signal.SIGTERM, self.signal_term_handler)
@@ -93,7 +94,6 @@ class controller_constant_flow(object):
                         #feedback_value[n] = 0
                         print(feedback_value[n])
                         error_value[n] = gain * (setpoint[n] - feedback_value[n])       # Calculate the error
-                        stopper = self.minutes_threshold([x / gain for x in error_value], start_time)
 
                         integral[n] = (integral[n] + error_value[n]) - windup_corrector[n]              # Calculate integral
                         derivative[n] = error_value[n] - pre_error[n]           # Calculate derivative
@@ -108,7 +108,6 @@ class controller_constant_flow(object):
                             actuator_signal[n] = controller_output_percentage[n]
                         print("The actuator signal is ", actuator_signal[n])
                         CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER)
-                        print(CompositMess[n])
                         pre_error[n] = error_value[n]
                     for n in range(_FIRST_OF_CLASS, len(actuators)):
                         #interface.setPumpSetpoint(actuators[n], CompositMess[n])
@@ -116,12 +115,14 @@ class controller_constant_flow(object):
                         error_development[n].append(error_value[n])
                         time_response[n].append(feedback_value[n])  # Save as previous error.
                     signal.signal(signal.SIGTERM, self.signal_term_handler)
+                    stopper = self.minutes_threshold([x / gain for x in error_value], start_time)
 
             except (KeyboardInterrupt, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
-                self.shut_down_routine(circulators, valves)
-                #interface.setPumpSetpoint(actuators[n], CompositMess)
-                print("Circulators is now at zero flow and valves have been closed")
+                CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
+                for circulator in circulators:
+                    #interface.setPumpSetpoint(circulator, CompositMess)
+                    print("Circulator {0} is now at zero flow".format(circulator))
                 sys.exit(0)
             except Exception:
                 '''there is the condition because it will keep except'''
@@ -147,13 +148,12 @@ class controller_constant_flow(object):
     def minutes_threshold(self, errors, start_time):
         stop_time = time.time()
         current_time = stop_time - start_time
-        print("these are passed seconds ", current_time)
+
         idx = 0
         if current_time >= (60 * self.n):
             self.n += 1
             for error in errors:
                 self.thresholds[idx] += error
-                print(self.thresholds[idx])
                 idx += 1
             for threshold in self.thresholds:
                 if threshold > _MINUTES_THRESHOLDS:
