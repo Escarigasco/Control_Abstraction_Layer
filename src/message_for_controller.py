@@ -37,8 +37,9 @@ class message_for_controller(object):
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
 
-
             try:
+                valves_of_circuit = self.components_name_translator([valve.ID for valve in available_components["Valves_active"]])
+                print(valves_of_circuit)
                 engine = rule_engine()
                 ideal_components = engine.run(system_input, available_components)
                 act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
@@ -59,7 +60,7 @@ class message_for_controller(object):
                 input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _CREATOR, "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
                                         "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
                                         "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
-                                        "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
+                                        "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit}
                 print(input_for_controller)
             except Exception:
                 print("There is a failure in calculate the components to be used")

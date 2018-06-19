@@ -90,15 +90,15 @@ class logical_layer(object):
                     processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations)
                     print(processed_configurations)
                     #TODO send the actual controller command
-
+                else:
+                    if processed_configurations:
+                        processed_configurations = self.logic.check_the_match(processed_configurations, pm, mssgr)
 
         #except(KeyboardInterrupt, SystemExit, Exception):
-                    #for n in readable:
-                    #    n.close()
-        #            print(Exception.args)
-        #            print("Unexpected error:", sys.exc_info()[0])
+        #            for n in readable:
+        #                n.close()
         #            print("Logical Layer Isolated")
-        #            #s.shutdown() # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
+                    #s.shutdown() # this is that close both end of connection  alternative are SHUT_RD to avoid receiving and SHUT_WR to avoid the other to send
         #            self.online_reader.terminate()
         #            s.close()
         #            sys.exit()
