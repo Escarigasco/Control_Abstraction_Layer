@@ -6,6 +6,8 @@ from rule_engine import rule_engine
 import socket
 import sys
 import time
+from pprint import pprint
+
 
 _FIRST_OF_CLASS = 1
 _CONTROLLER_ACTIVATED = "Active"
@@ -13,6 +15,10 @@ _CONTROLLER_DEACTIVED = "Inactive"
 _DESCRIPTION = "description"
 _KILLER = "killer"
 _CREATOR = "creator"
+_HOT_FLOW = "H"
+_VALVE = "Valve"
+_PUMP = "Pump"
+_SHUTTER = "shutter"
 
 
 class message_for_controller(object):
@@ -37,34 +43,38 @@ class message_for_controller(object):
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
 
-            try:
-                valves_of_circuit = self.components_name_translator([valve.ID for valve in available_components["Valves_active"]])
-                print(valves_of_circuit)
-                engine = rule_engine()
-                ideal_components = engine.run(system_input, available_components)
-                act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
-                #print(act_circulator)
-                actuators = self.actuator_selector(ideal_components["Ideal_Actuator"], available_components["Valves_active"], available_components["Pumps_active"])
-                #print(actuators)
-                feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
-                #print(feedback_sensors)
-                act_circulator["pumps"] = self.components_name_translator(act_circulator["pumps"])
-                #print(act_circulator)
-                feedback_sensors["sensors"] = self.components_name_translator(feedback_sensors["sensors"])
-                #print(feedback_sensors)
-                actuators["actuators"] = self.components_name_translator(actuators["actuators"])
-                #print(actuators)
-                controller_mode = act_circulator["mode"]
-                # self.controller_name = act_circulator["mode"]
+            self.shut_the_pumps_up(available_components["Pumps_active"], self.comms)
+        #    try:
+            valves_of_circuit = self.components_name_translator([valve.ID for valve in available_components["Valves_active"]])
+            print(valves_of_circuit)
+            engine = rule_engine()
+            ideal_components = engine.run(system_input, available_components)
+            act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
+            #print(act_circulator)
+            actuators = self.actuator_selector(ideal_components["Ideal_Actuator"], available_components["Valves_active"], available_components["Pumps_active"])
+            #print(actuators)
+            feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
+            #print(feedback_sensors)
+            act_circulator["pumps"] = self.components_name_translator(act_circulator["pumps"])
+            #print(act_circulator)
+            feedback_sensors["sensors"] = self.components_name_translator(feedback_sensors["sensors"])
+            #print(feedback_sensors)
+            actuators["actuators"] = self.components_name_translator(actuators["actuators"])
+            #print(actuators)
+            controller_mode = act_circulator["mode"]
+            # self.controller_name = act_circulator["mode"]
 
-                input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _CREATOR, "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
-                                        "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
-                                        "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
-                                        "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit}
-                print(input_for_controller)
-            except Exception:
-                print("There is a failure in calculate the components to be used")
-                return _CONTROLLER_DEACTIVED
+            input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _CREATOR, "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
+                                    "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
+                                    "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
+                                    "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit}
+            print(input_for_controller)
+            
+            #sys.exit()
+
+            #except Exception:
+                #print("There is a failure in calculate the components to be used")
+                #return _CONTROLLER_DEACTIVED
 
             try:
                 if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
@@ -99,13 +109,20 @@ class message_for_controller(object):
 #       - if two sinks always use both pumps of each sink
 # sensor -
 
+        def shut_the_pumps_up(self, pumps, comms):
+            print(pumps)
+            pumps = [pump.ID for pump in pumps]
+            print(pumps)
+            translated_pumps = self.components_name_translator(pumps)
+            pumps_shutter = {_DESCRIPTION: _SHUTTER, _PUMP: translated_pumps}
+            feedback = comms.send(pumps_shutter)
+            print(feedback)
 
         def components_name_translator(self, components):
             translated_components = []
             for component in components:
                 translated_components.append(self.translator.components(component))
             return translated_components
-
 
         def pump_selector(self, ideal_pump, pumps):
             circulation_pumps = []
@@ -133,12 +150,19 @@ class message_for_controller(object):
         '''this method is missing the discrimination -- which valve of the rule engine'''
         def actuator_selector(self, ideal_actuator, valves, pumps):
             actuators = valves + pumps
+            print(actuators)
             active_actuators = []
             locations = []
             for location in ideal_actuator.location:
                 locations.append(location.data)
             for actuator in actuators:
                 if ((actuator.object_type == ideal_actuator.type.data) & (actuator.location in locations)):
-                    active_actuators.append(actuator.get_name())
+                    if (actuator.object_type == _VALVE):
+                        if (actuator.flow == _HOT_FLOW):
+                            active_actuators.append(actuator.get_name())
+                    elif (actuator.object_type == _PUMP):
+                        active_actuators.append(actuator.get_name())
+                if (ideal_actuator.number == len(active_actuators)):
+                    break
             acts = {"actuators": active_actuators}
             return acts
