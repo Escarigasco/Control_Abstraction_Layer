@@ -20,7 +20,7 @@ class path_matcher(object):
 
     def run(self, possible_configurations, online_configuration):
 
-        print("I start computing the isomorphism")
+        #print("I start computing the isomorphism", end="\r")
 
         # print("try extracting subgraph")
         extracted_subgraph = online_configuration.subgraph(possible_configurations.nodes)
@@ -33,8 +33,9 @@ class path_matcher(object):
                 #print("check isomorpishm")
                 # DiGM = isomorphism.GraphMatcher(extracted_subgraph, possible_configurations)
                 nx.is_isomorphic(extracted_subgraph, possible_configurations)
-                print("isomorpishm confirmed \n")
-                
+
+                print("isomorpishm confirmed", end="\r")
+
                 return _MATCHED
             else:
 

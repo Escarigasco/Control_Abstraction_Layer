@@ -45,10 +45,15 @@ class current_status_reader(object):
 
             if (valves_for_logical_layer):
                 for valve in valves_for_logical_layer.keys():
-                    if (valves_for_logical_layer[valve] >= _ACTIVE_VALVE):
-                        self.system_valves[valve].set_status(_ACTIVE)
+                    if isinstance(valves_for_logical_layer[valve], float):
+                        if (valves_for_logical_layer[valve] >= _ACTIVE_VALVE):
+                            self.system_valves[valve].set_status(_ACTIVE)
+                        else:
+                            self.system_valves[valve].set_status(_INACTIVE_VALVE)
                     else:
+                        print("{0} is not answering please check the connection - it is now setted to off but it is a non responder ".format(valve))
                         self.system_valves[valve].set_status(_INACTIVE_VALVE)
+
                 return True
             else:
                 return False
