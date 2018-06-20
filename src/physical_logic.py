@@ -8,6 +8,7 @@ _TURN_ME_ON = 1.0
 _TURN_ME_OFF = 0.0
 _VALVES = 'Valves_active'
 _VALVES_TO_SHUT = 'Valves_to_shut'
+_PUMP = "Pump"
 
 
 class physical_logic(object):
@@ -106,3 +107,14 @@ class physical_logic(object):
                 complete = True
         print(self.valves_status)
         return complete
+
+    def shut_pumps(self, pumps):
+        pumps = pumps[_PUMP]
+        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER)
+        circulator_mode = "PUMP_MODE_CONSTANT_FLOW"
+        for pump in pumps:
+                #self.interface.setPumpControlMode(pumps, circulator_mode)
+                print("mode set in pump ", pump)
+                #self.interface.setPumpSetpoint(circulator, CompositMess)
+                print("setpoint at 0 for pump ", pump)
+        return ("All the pumps are set to constant flow and setpoint 0")
