@@ -1,9 +1,9 @@
-[Constant_Energy_Pump_Actuating]
+[PUMP_MODE_CONSTANT_PRESSURE]
 gain = 1
 kp = 2.58
 ki = 2.58
 kd = 0
-circulator_mode = PRESSURE_MODE_CONSTANT_FLOW
+
 
 [PUMP_MODE_CONSTANT_FLOW]
 gain = 1

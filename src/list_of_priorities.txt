@@ -1,0 +1,79 @@
+TODO
+- Fail safe here is to keep the supply of heat going - what for a real system though? It is the same because you are only making connections and not actuating the sources
+  for loss of comms
+- Look at web services for API Logical Layer --> just use REST
+- watchdog for Syslab Poll Server Time Out (should already be inner the controller)
+
+
+The Control Logic could be:
+start controller and a time counter for define if the controller is achieving the control objective within a decent time
+if not you do the protection routine.
+The counter restart if a new setpoint is given
+
+CHANGED
+A valve is active if it answer and not if opening > 0.1. This is a big change in the logic and is related to the fact that now is us
+that set up the circuit
+
+WARNING
+
+
+NOTE
+- You can use hot line for valve control
+- For the current system is fine but if you add a source you can't have boosting in more than one configuration, I think ? because B results occupied?
+  it is uncertain if is relevant because as per the 3 series booster there is no assurance that the middle booster is not bypassed.
+  So basically you would have random mixing of water that you don't want..
+- Doesn't make sense remove valves from lists as you won't know a priori which configuration you will be using - you could "force a configuration" but why would you do that?
+
+BUG
+REALLY IMPORTANT NOTE - Timing issue between the actuation and the next online reading -> the logic look for the matched configuration before the online_reader returns the new actuated object
+                        and so the actuation is not recorded
+                      FIX BUG --> a delay has been introduced in the logic. It is quite ugly though
+- the pumps are evaluated for each configuration although they stay the same for all of them - it is a redundant reading for sure
+- You don't need the connector or the pipeline for anything really
+- Fix the screw
+
+HARDWARE BUG
+- you may want a system that isolates pieces of booster bus bar -- or you may want another booster bar
+- circuit by pass for the pump to have complete freedom in the configuration
+
+QUESTION
+Does it make sense to have the boosting at three? In reality there is no prevention for the end source to get some water from the first
+In general, connecting sources in parallel it is not convenient as you reduce the temperature of one of the two
+
+
+NOTE
+New logic
+- request
+- find best path (this is based on actuation time)
+- actuate the selected path
+        - send list of valves and actuation signal
+        - wait for confirmation of actuation completion (wait for tcp answer)
+- check the online_configuration against the best path
+        - this doesn't need to be a multithreading process anymore - we will keep it only because is good for the user interface
+- start controller when actuation is completed
+
+NOTE
+Test 15/06/2018
+All results achieved - all pattern matches are achieved and so the booster combination
+Unclear if the Queue of the online reader get full but it shouldn't as the change in valve position is now only
+handled by ourselves so until the actuation is completed the online_reader doesn't receive an answer
+so it doesn't know if the configuration changed - TBC and to be tested when we will be able to change the valves
+
+Test 18/06/2018
+Failure - test methods were not implemented
+
+NOTE:
+Use Case Logic:
+Pump in the source is always driving unless the sinks are two.
+if there is a series of 3 the pump in the source is still driving
+if the pump in the sinks are unavailable for two bays then you have to use the valve
+you should you the hot line valve
+
+
+
+FOR 20/06/2018
+- fail safe for loss of comms
+
+FOR 21/06/2018
+- Testing the start of all controllers for all use cases
+- Lab Testing? 
