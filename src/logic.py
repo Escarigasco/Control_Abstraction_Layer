@@ -183,8 +183,7 @@ class logic(object):
             if (processed_configurations[name][_STATE] == "Inactive"):
                 self.busy_busbars.pop(name)
                 processed_configurations.pop(name)
-        #if (not self.work_q.empty()):
-        #    self.online_configuration = self.work_q.get()
+
         return processed_configurations
 
     def check_the_match(self, processed_configurations, pm, mssgr):
@@ -209,3 +208,13 @@ class logic(object):
         #sys.exit()
         feedback = self.comms.send(new_setpoint)
         print(feedback)
+
+    def clear_everything(self, processed_configurations):
+        processed_configurations_names = []
+        for name in processed_configurations.keys():
+            processed_configurations_names.append(name)
+        for name in processed_configurations_names:
+                self.busy_busbars.pop(name)
+                processed_configurations.pop(name)
+
+        return processed_configurations
