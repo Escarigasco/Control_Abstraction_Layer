@@ -13,13 +13,19 @@ from switch_board_building import switch_board_building
 import copy
 import pickle
 import select
+import signal
 import socket
 import sys
 import time
 
 _BEGIN_WITH = 0
-_HOST = 'localhost'                 # Symbolic name meaning all available interfaces
-_PORT = 50000              # Arbitrary non-privileged port
+_HOST = 'localhost'        # Symbolic name meaning all available interfaces
+_PORT = 50000              # Arbitrary non-privileged port with API
+_PORT_TO_PHYSICAL = 2000               # Arbitrary non-privileged port with physical layer
+_DESCRIPTION = "description"
+_TEST_COMMS = "4x4"
+_TIME_OUT = 10
+_RESET = 0
 
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
@@ -46,25 +52,35 @@ class logical_layer(object):
         self.logic = logic(self.comms, self.work_q, self.translator)
         new_input = False
         processed_configurations = AutoVivification()  # nothing but a dictionary
-
+        start_time = time.time()
         pb = path_builder(self.intf, self.comms, self.translator)
         pm = path_matcher()
         mssgr = message_for_controller(self.intf, self.comms, self.translator)
+        self.loss_of_comms = False
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
             # op_controller = controller()
             s.bind((_HOST, _PORT))
-            s.listen(1)
-            print("Logical Layer Listening")
+            s.listen(2)
+            # print("Logical Layer Listening")
+            # print("this is the socket ", s)
             readable = [s]  # list of readable sockets.  s is readable if a client is waiting.
 
             while True:
+                time.sleep(1)
+                # print("new loop")
                 r, w, e = select.select(readable, [], [], _BEGIN_WITH)  # the 0 here is the time out, it doesn't wait anything, it keeps cheking if the first argument is ready to be red
+                # print("this is the ready sockets from the readable ", r)
                 for rs in r:  # iterate through readable sockets - so r is a list of objects included in readable that are ready to be read - if its ready there is a call from the client
+                    # print("this is the ready readble components ", rs)
                     if rs is s:  # if one of the object ready to be red is the speified socket we are using to communicate, then we listen to it!
                         c, a = s.accept()  # this accept the first client in the queue - "c" is the socket object and "a" the ip and port object
                         print('\r{}:'.format(a), 'connected')
                         readable.append(c)  # add the connection with the client
+                        # print("this is the socket ", s)
+                        # print("this is the readable ", readable)
+                        # time.sleep(5)
+                        # print("first sleep")
                     else:
                         # read from a client represented by that readable object
                         data_from_API = rs.recv(1024)
@@ -72,27 +88,42 @@ class logical_layer(object):
                             print('\r{}:'.format(rs.getpeername()), 'disconnected')
                             readable.remove(rs)
                             rs.close()
+                            # time.sleep(5)
+                            # print("second sleep")
                         else:
                             system_input = pickle.loads(data_from_API)
                             system_input = self.logic.check_sources(system_input)
                             print(system_input)
-
                             processed_configurations = self.logic.configurations_request_analyser(processed_configurations, system_input, mssgr)
-
                             print('\r{}:'.format(rs.getpeername()), system_input)
                             new_input = True
 
-                if (new_input):
-                    new_input = False
-                    processed_configurations = self.logic.find_suitable_setup(processed_configurations, pb)
-                    processed_configurations = self.logic.actuate_suitable_setup(processed_configurations)
-                    processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr)
-                    processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations)
-                    print(processed_configurations)
-                    #TODO send the actual controller command
+                stop_time = time.time()
+                print(stop_time - start_time)
+                if ((stop_time - start_time) > 5):
+                    self.check_comms_physical_layer()
+                    start_time = time.time()
+                print("the loss of comms is ", self.loss_of_comms)
+                if not self.loss_of_comms:
+                    if (new_input):
+                        new_input = False
+                        processed_configurations = self.logic.find_suitable_setup(processed_configurations, pb)
+                        processed_configurations = self.logic.actuate_suitable_setup(processed_configurations)
+                        processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr)
+                        processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations)
+                        print(processed_configurations)
+                        #TODO send the actual controller command
+                    else:
+                        if processed_configurations:
+                            processed_configurations = self.logic.check_the_match(processed_configurations, pm, mssgr)
                 else:
-                    if processed_configurations:
-                        processed_configurations = self.logic.check_the_match(processed_configurations, pm, mssgr)
+                    print(processed_configurations)
+                    processed_configurations = self.logic.clear_everything(processed_configurations)
+                    print(processed_configurations)
+                    self.loss_of_comms = False
+                # I am checking the comms here
+
+
 
         #except(KeyboardInterrupt, SystemExit, Exception):
         #            for n in readable:
@@ -102,6 +133,32 @@ class logical_layer(object):
         #            self.online_reader.terminate()
         #            s.close()
         #            sys.exit()
+
+    def check_comms_physical_layer(self):
+        print("I am checking connection")
+        message_to_send = {_DESCRIPTION: _TEST_COMMS}
+        message_serialized = pickle.dumps(message_to_send)
+        message_received = {}
+        signal.signal(signal.SIGALRM, self.time_out_handler)
+        signal.alarm(10)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.connect((_HOST, _PORT_TO_PHYSICAL))
+                s.sendall(message_serialized)
+                while not message_received:
+                    message_received = s.recv(4096)
+                print(pickle.loads(message_received))
+                s.close()
+            except Exception:
+                while not self.loss_of_comms:
+                    print("Lost Comms", end="\r")
+        signal.alarm(0)  # this is to disable the alarm
+
+
+    def time_out_handler(self, signum, frame):
+        #print("the mate didn't respon anymore")
+        self.loss_of_comms = True
+        #sys.exit()
 
 
 if __name__ == "__main__":
