@@ -7,7 +7,9 @@ from physical_logic import physical_logic
 import pickle
 import select
 import socket
+import signal
 import sys
+import time
 
 _MULTIPLIER = 1000000
 _ACTUATE = "actuate"
@@ -26,6 +28,10 @@ _TURN_ME_ON = 1
 _SETPOINT = "setpoints"
 _CONTROLLER_NAME = "controller_name"
 _SHUTTER = "shutter"
+_TEST_COMMS = "4x4"
+_ANSWER_TO_TEST_COMMS = "16"
+_TIME_OUT = 15
+_RESET = 0
 
 
 class physical_layer(object):
@@ -38,15 +44,24 @@ class physical_layer(object):
         processes = {}
         queues = {}
         new_input = False
+        self.loss_of_comms = False
+        start_time = time.time()
+
+        signal.signal(signal.SIGALRM, self.time_out_handler)
+        signal.alarm(10)
+
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
             # op_controller = controller()
+
             s.bind((_HOST, _PORT))
-            s.listen(1)
+            s.listen(2)
             print("Physical Layer Listening")
             readable = [s]  # list of readable sockets.  s is readable if a client is waiting.
             i = 0
             while True:
+                #time.sleep(1)
+                #print(time.time() - start_time)
                 r, w, e = select.select(readable, [], [], _BEGIN_WITH)  # the 0 here is the time out, it doesn't wait anything, it keeps cheking if the first argument is ready to be red
                 for rs in r:  # iterate through readable sockets - so r is a list of objects included in readable that are ready to be read - if its ready there is a call from the client
                     if rs is s:  # is it the server - if one of the object ready to be red is the socket we are using to communicate, then we listen to it!
@@ -55,6 +70,7 @@ class physical_layer(object):
                         readable.append(c)  # add the connection with the client
                     else:
                         # read from a client represented by that readable object
+
                         data_from_API = rs.recv(4096)
                         if not data_from_API:
                             #print('\r{}:'.format(rs.getpeername()), 'disconnected')
@@ -68,6 +84,14 @@ class physical_layer(object):
                         #try:
                         if (new_input):
                             #print(inputs)
+                            if (inputs[_DESCRIPTION] == _TEST_COMMS):
+                                signal.alarm(0)
+                                print(inputs[_DESCRIPTION])
+                                inputs[_DESCRIPTION] = _ANSWER_TO_TEST_COMMS
+                                message_serialized = pickle.dumps(inputs)
+                                c.sendall(message_serialized)
+                                signal.alarm(10)
+
                             if (inputs[_DESCRIPTION] == _CREATOR):
                                 inputs.pop(_DESCRIPTION)
                                 queues[inputs[_CONTROLLER_NAME]] = Queue()
@@ -92,6 +116,7 @@ class physical_layer(object):
                                 inputs.pop(_DESCRIPTION)
                                 print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
                                 processes[inputs[_CONTROLLER_NAME]].terminate()
+                                processes.pop(inputs[_CONTROLLER_NAME])
                                 print("process terminated", inputs[_CONTROLLER_NAME])
                                 feedback = "I have killed controller " + inputs[_CONTROLLER_NAME]
                                 message_serialized = pickle.dumps(feedback)
@@ -143,6 +168,17 @@ class physical_layer(object):
                             #                    process.terminate()
                             #                    print("Stopped Process {0}".format(process))
                             #            sys.exit()
+                if self.loss_of_comms:
+                    print("If there are active processes I will terminate them")
+                    processes_names = []
+                    if processes.keys():
+                        for name in processes.keys():
+                            processes_names.append(name)
+                        for name in processes_names:
+                            processes[name].terminate()
+                            print("Stopped Process {0}".format(name))
+                            processes.pop(name)
+                    self.loss_of_comms = False
 
         #except(KeyboardInterrupt, SystemExit, Exception):
         #    if s:
@@ -150,6 +186,9 @@ class physical_layer(object):
         #        s.close()
         #    print("Physical Layer is closing")
         #    sys.exit()
+
+    def time_out_handler(self, signum, frame):
+        self.loss_of_comms = True
 
 
 if __name__ == "__main__":
