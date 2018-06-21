@@ -1,6 +1,6 @@
 import re
-import syslab
 import sys
+import syslab
 _ACTIVE = 1
 _ACTIVE_VALVE = 0  # active- inactive doesn't exist with the same previous logic
 _INACTIVE = 0
@@ -118,29 +118,34 @@ class components_status(object):
             return False
 
     def valves_evaluation(self, valves):
-        valves_for_physical_layer = {}
-        valves_for_logical_layer = {}
-        valves_dic = {}
+        try:
+            valves_for_physical_layer = {}
+            valves_for_logical_layer = {}
+            valves_dic = {}
 
-        for valve in valves:
-            valves_for_physical_layer[self.translator.components(valve.ID)] = valve.ID
-            valves_dic[valve.ID] = valve
+            for valve in valves:
+                valves_for_physical_layer[self.translator.components(valve.ID)] = valve.ID
+                valves_dic[valve.ID] = valve
 
-        valves_for_physical_layer[_DESCRIPTION] = _VALVE_STATUS
+            valves_for_physical_layer[_DESCRIPTION] = _VALVE_STATUS
 
-        valves_for_translation = self.comms.send(valves_for_physical_layer)
+            valves_for_translation = self.comms.send(valves_for_physical_layer)
 
-        for valve in valves_for_translation.keys():
-            valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
+            for valve in valves_for_translation.keys():
+                valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
 
-        if (valves_for_logical_layer):
-                for valve in valves_for_logical_layer.keys():
-                        if isinstance(valves_for_logical_layer[valve], float):
-                            valves_dic[valve].set_status(_ACTIVE)
-                            valves_dic[valve].score_calculator(valves_for_logical_layer[valve])
-                        else:
-                            valves_dic[valve].set_status(_INACTIVE)
-                            valves_dic[valve].score_calculator(_DISCARD_VALUE)
-                return True
-        else:
-            return False
+            if (valves_for_logical_layer):
+                    for valve in valves_for_logical_layer.keys():
+                            if isinstance(valves_for_logical_layer[valve], float):
+                                valves_dic[valve].set_status(_ACTIVE)
+                                valves_dic[valve].score_calculator(valves_for_logical_layer[valve])
+                            else:
+                                valves_dic[valve].set_status(_INACTIVE)
+                                valves_dic[valve].score_calculator(_DISCARD_VALUE)
+                    return True
+            else:
+                return False
+        except Exception:
+            print(valves_for_logical_layer.keys())
+            print(valves_dic.keys())
+            sys.exit()
