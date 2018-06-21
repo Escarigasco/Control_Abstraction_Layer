@@ -57,7 +57,7 @@ class configuration_reader(object):
         while True:
             try:
 
-                time.sleep(0.1)
+                time.sleep(0.2)
                 status_online_reading = ro.run_online()
                 if (status_online_reading):
 

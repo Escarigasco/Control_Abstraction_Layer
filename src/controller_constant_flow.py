@@ -9,7 +9,7 @@ import syslab
 import syslab.core.datatypes.CompositeMeasurement as CM
 import time
 _BUILDING_NAME = "716-h1"
-_CONTROL_TIME = 2
+_CONTROL_TIME = 5
 _MULTIPLIER = 1000000
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
@@ -65,8 +65,9 @@ class controller_constant_flow(object):
         for n in range(_FIRST_OF_CLASS, len(circulators)):
             #interface.setPumpControlMode(circulators[n], circulator_mode)
             print("mode set in pump ", circulators[n])
-
+        signal.signal(signal.SIGTERM, self.signal_term_handler)
         while(1):
+
             try:
                 time.sleep(_CONTROL_TIME)
                 if (not self.work_q.empty()):
@@ -78,7 +79,7 @@ class controller_constant_flow(object):
 
                 if stopper:
                     print("Control Thread {0} is ready to be stopped".format(process_ID))
-                    signal.signal(signal.SIGTERM, self.signal_term_handler)
+                    #signal.signal(signal.SIGTERM, self.signal_term_handler)
                     print(active_circuit)
                     if active_circuit:
                         self.shut_down_routine(circulators, valves)
@@ -88,6 +89,7 @@ class controller_constant_flow(object):
                     for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
                         print(n)
                         feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
+                        print(interface.getThermalPower(feedback_sensor[n]))
                         if feedback_value[n] == "NaN":
                             feedback_value[n] = 0     # --->>> really bad though
                         print("feedback taken from sensor {0} with setpoint {1} ".format(feedback_sensor[n], setpoint[n]))
@@ -114,7 +116,7 @@ class controller_constant_flow(object):
                         print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
                         error_development[n].append(error_value[n])
                         time_response[n].append(feedback_value[n])  # Save as previous error.
-                    signal.signal(signal.SIGTERM, self.signal_term_handler)
+                    #signal.signal(signal.SIGTERM, self.signal_term_handler)
                     stopper = self.minutes_threshold([x / gain for x in error_value], start_time)
 
             except (KeyboardInterrupt, SystemExit):
