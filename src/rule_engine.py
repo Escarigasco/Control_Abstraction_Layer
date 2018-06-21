@@ -323,10 +323,11 @@ if __name__ == "__main__":
         #print(selected_component.location)
 
         '''Satisfied Cases:
-        1 source - 1 sink, both pumps working, sensor assumed working always because if NaN/0 issue --> actuator Pump in constant flow in the source
-        1 source - 1 sink, pump in sink broken, sensor assumed working always because if NaN/0 issue --> actuator Pump in constant flow in the source
-        1 source - 2 sinks, all pumps working, sensor assumed working always because if NaN/0 issue --> actuator Pump in constant flow in the two sinks
-        1 source - 2 sinks, pump in sink broken, sensor assumed working always because if NaN/0 issue --> actuator valves, Pump in constant pressure at the source
+        1 source - 1 sink
+        1 source - 2 sinks
+        2 sources - 2 sinks
+        3 sources - 1 sink -- also booster
+        3 sources - 2 sinks -- also booster
 '''
 
 # with double source and one sink you control with the valve at the sink and not with the pumps at the source .. can you imagine the feedback? Avresti un hunting bestiale. In realtà sta cosa di due sources in parallelo è sbagliata
