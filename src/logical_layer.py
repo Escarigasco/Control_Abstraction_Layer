@@ -23,7 +23,7 @@ _HOST = 'localhost'        # Symbolic name meaning all available interfaces
 _PORT = 50000              # Arbitrary non-privileged port with API
 _PORT_TO_PHYSICAL = 2000               # Arbitrary non-privileged port with physical layer
 _DESCRIPTION = "description"
-_TEST_COMMS = "4x4"
+_TEST_COMMS = "4x4?"
 _TIME_OUT = 10
 _RESET = 0
 
@@ -67,7 +67,8 @@ class logical_layer(object):
             readable = [s]  # list of readable sockets.  s is readable if a client is waiting.
 
             while True:
-                time.sleep(1)
+                # time.sleep(1)
+                time.sleep(0.2)  # this is only to light the burden
                 # print("new loop")
                 r, w, e = select.select(readable, [], [], _BEGIN_WITH)  # the 0 here is the time out, it doesn't wait anything, it keeps cheking if the first argument is ready to be red
                 # print("this is the ready sockets from the readable ", r)
@@ -98,12 +99,7 @@ class logical_layer(object):
                             print('\r{}:'.format(rs.getpeername()), system_input)
                             new_input = True
 
-                stop_time = time.time()
-                print(stop_time - start_time)
-                if ((stop_time - start_time) > 5):
-                    self.check_comms_physical_layer()
-                    start_time = time.time()
-                print("the loss of comms is ", self.loss_of_comms)
+                start_time = self.time_checker(start_time)
                 if not self.loss_of_comms:
                     if (new_input):
                         new_input = False
@@ -112,15 +108,16 @@ class logical_layer(object):
                         processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr)
                         processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations)
                         print(processed_configurations)
-                        #TODO send the actual controller command
+
                     else:
                         if processed_configurations:
                             processed_configurations = self.logic.check_the_match(processed_configurations, pm, mssgr)
                 else:
                     print(processed_configurations)
-                    processed_configurations = self.logic.clear_everything(processed_configurations)
-                    print(processed_configurations)
-                    self.loss_of_comms = False
+                    if processed_configurations:
+                        processed_configurations = self.logic.clear_everything(processed_configurations)
+                        print(processed_configurations)
+                        self.loss_of_comms = False
                 # I am checking the comms here
 
 
@@ -135,7 +132,7 @@ class logical_layer(object):
         #            sys.exit()
 
     def check_comms_physical_layer(self):
-        print("I am checking connection")
+        #print("I am checking connection")
         message_to_send = {_DESCRIPTION: _TEST_COMMS}
         message_serialized = pickle.dumps(message_to_send)
         message_received = {}
@@ -147,18 +144,24 @@ class logical_layer(object):
                 s.sendall(message_serialized)
                 while not message_received:
                     message_received = s.recv(4096)
-                print(pickle.loads(message_received))
+                #print(pickle.loads(message_received)[_DESCRIPTION])
                 s.close()
             except Exception:
                 while not self.loss_of_comms:
                     print("Lost Comms", end="\r")
         signal.alarm(0)  # this is to disable the alarm
 
-
     def time_out_handler(self, signum, frame):
-        #print("the mate didn't respon anymore")
         self.loss_of_comms = True
-        #sys.exit()
+
+    def time_checker(self, start_time):
+        stop_time = time.time()
+        #print(stop_time - start_time)
+        if ((stop_time - start_time) > 5):
+            self.check_comms_physical_layer()
+            start_time = time.time()
+        #print("the loss of comms is ", self.loss_of_comms)
+        return start_time
 
 
 if __name__ == "__main__":

@@ -148,7 +148,7 @@ class logic(object):
 
         if actuating_message:
             complete = self.comms.send(actuating_message)
-        time.sleep(5)
+        time.sleep(5)                     # you need this to allow the online reader to get the new set up
         return processed_configurations
 
     def controller_starter(self, processed_configurations, pm, mssgr):
@@ -187,7 +187,6 @@ class logic(object):
         return processed_configurations
 
     def check_the_match(self, processed_configurations, pm, mssgr):
-        time.sleep(0.5)
         processed_configurations_names = []
         for name in processed_configurations.keys():
             processed_configurations_names.append(name)
