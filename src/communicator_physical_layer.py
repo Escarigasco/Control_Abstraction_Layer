@@ -5,6 +5,7 @@ import time
 _NEG = "N"
 _HOST = 'localhost'    # The remote host
 _PORT = 2000
+_TIME_OUT = 100
 
 
 class communicator_physical_layer(object):
@@ -16,12 +17,12 @@ class communicator_physical_layer(object):
             try:
                 s.connect((_HOST, _PORT))
                 s.sendall(message_serialized)
-                while not message_received:
-                    #print("I am stucked here")
-                    #TODO timeout
+                start_time = time.time()
+                stop_clock = time.time() - start_time
+                while ((not message_received) & (stop_clock < _TIME_OUT)):  # this is a routine in the really unlikely case the PL crashes after the call for online config
                     message_received = s.recv(4096)
+                    stop_clock = time.time() - start_time
                 s.close()
-                #print("Message received")
                 message_received = pickle.loads(message_received)
             except (Exception, KeyboardInterrupt):
                 try:
