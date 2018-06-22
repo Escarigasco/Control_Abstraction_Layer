@@ -69,22 +69,20 @@ class message_for_controller(object):
                                     "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
                                     "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit}
             print(input_for_controller)
-            
-            #sys.exit()
 
             #except Exception:
                 #print("There is a failure in calculate the components to be used")
                 #return _CONTROLLER_DEACTIVED
 
             try:
-                if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
+                #if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     feedback = self.comms.send(input_for_controller)
                     print("Message Sent")
                     print("Feedback: ", feedback)
                     return _CONTROLLER_ACTIVATED
-                else:
-                    print("\n Sorry I can't deliver Controller {0} as the use case is not implemented \n".format(input_for_controller["controller_name"]))
-                    return _CONTROLLER_DEACTIVED
+                #else:
+                #    print("\n Sorry I can't deliver Controller {0} as the use case is not implemented \n".format(input_for_controller["controller_name"]))
+                #    return _CONTROLLER_DEACTIVED
             except Exception:
                 print("Message sending failed")
                 return _CONTROLLER_DEACTIVED
@@ -94,7 +92,7 @@ class message_for_controller(object):
             print(input_for_controller)
 
             try:
-                if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
+                #if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
                     feedback = self.comms.send(input_for_controller)
                     print("Feedback: ", feedback)
                     return _CONTROLLER_DEACTIVED
