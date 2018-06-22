@@ -46,6 +46,7 @@ def main(argv):
 
         while(1):
             n = int(input("How many sources? \n"))
+            # controller start tested
             if n == 100:
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4"]
@@ -71,6 +72,7 @@ def main(argv):
                 parameters_two = "Energy"
                 setpoints_two = [600]
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
+            # controller start tested
             elif (n == 200):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4"]
@@ -82,7 +84,7 @@ def main(argv):
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
-                get_rid_of = {"Pumps": ["Pump_1H7"], "Sensors": [], "Valves": []}
+                get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
             elif (n == 300):
                 sinks_one = []
                 sources_one = []
@@ -95,6 +97,7 @@ def main(argv):
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
+            # controller start tested
             elif (n == 400):
                 sinks_one = ["Sink_1H7", "Sink_1H8"]
                 sources_one = ["Source_1BH4"]
@@ -106,7 +109,7 @@ def main(argv):
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
-                get_rid_of = {"Pumps": [""], "Sensors": [], "Valves": []}
+                get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
             elif (n == 450):
                 sinks_one = ["Sink_1H7", "Sink_1H8"]
                 sources_one = ["Source_1BH4"]
@@ -119,6 +122,7 @@ def main(argv):
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
+            # controller start tested
             elif (n == 500):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4", "Source_1HP5"]
@@ -131,20 +135,20 @@ def main(argv):
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
-
+            # controller start tested
             elif (n == 600):
                 sinks_one = ["Sink_1H7", "Sink_1H8"]
                 sources_one = ["Source_1BH4", "Source_1HP5"]
                 boosted_one = []
                 parameters_one = "Energy"
-                setpoints_one = [5]
+                setpoints_one = [5, 5]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
-
+            # controller start tested
             elif (n == 700):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4", "Source_1HP5", "Source_1DH6"]
@@ -157,51 +161,52 @@ def main(argv):
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
-
+            # controller start tested
             elif (n == 800):
                 sinks_one = ["Sink_1H7", "Sink_1H8"]
                 sources_one = ["Source_1BH4", "Source_1HP5", "Source_1DH6"]
                 boosted_one = []
                 parameters_one = "Energy"
-                setpoints_one = [5]
+                setpoints_one = [5, 5]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
-
+            # controller start tested
             elif (n == 1700):
                 sinks_one = ["Sink_1H7", "Sink_1H8"]
                 sources_one = ["Source_1HP5", "Source_1DH6"]
                 boosted_one = [("Source_1HP5", "Source_1DH6"), ]
                 parameters_one = "Energy"
-                setpoints_one = [5]
+                setpoints_one = [5, 5]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
-
+            # controller start tested
             elif (n == 1800):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4", "Source_1HP5", "Source_1DH6"]
                 boosted_one = [("Source_1BH4", "Source_1HP5"), ("Source_1HP5", "Source_1DH6")]
                 parameters_one = "Energy"
-                setpoints_one = [5]
+                setpoints_one = [5, 5]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []
                 parameters_two = "Energy"
                 setpoints_two = []
                 get_rid_of = {"Pumps": [], "Sensors": [], "Valves": []}
+            # controller start tested
             elif (n == 1850):
                 sinks_one = ["Sink_1H7"]
                 sources_one = ["Source_1BH4", "Source_1HP5", "Source_1DH6"]
                 boosted_one = [("Source_1BH4", "Source_1HP5"), ("Source_1HP5", "Source_1DH6")]
                 parameters_one = "Energy"
-                setpoints_one = [5000]
+                setpoints_one = [50]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []
