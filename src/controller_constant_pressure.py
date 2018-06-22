@@ -9,7 +9,7 @@ import syslab
 import syslab.core.datatypes.CompositeMeasurement as CM
 import time
 _BUILDING_NAME = "716-h1"
-_CONTROL_TIME = 2
+_CONTROL_TIME = 1
 _MULTIPLIER = 1000000
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
@@ -17,10 +17,6 @@ _MINUTES_THRESHOLDS = 100
 
 
 class controller_constant_pressure(object):
-
-    def read_feedback():
-        value = 0
-        return value
 
     def PID_controller(self, inputs, process_ID, queue):
         self.thresholds = []
@@ -34,8 +30,8 @@ class controller_constant_pressure(object):
         inputs = pickle.loads(inputs)
         print(inputs)
         self.process_ID = process_ID
-        max = 100
-        min = 0
+        max = 1
+        min = 0.1
         kp = float(inputs["kp"])
         kd = float(inputs["kd"])
         ki = float(inputs["ki"])
@@ -65,8 +61,9 @@ class controller_constant_pressure(object):
         for n in range(_FIRST_OF_CLASS, len(circulators)):
             #interface.setPumpControlMode(circulators[n], circulator_mode)
             print("mode set in pump ", circulators[n])
-
+        signal.signal(signal.SIGTERM, self.signal_term_handler)
         while(1):
+
             try:
                 time.sleep(_CONTROL_TIME)
                 if (not self.work_q.empty()):
@@ -78,7 +75,7 @@ class controller_constant_pressure(object):
 
                 if stopper:
                     print("Control Thread {0} is ready to be stopped".format(process_ID))
-                    signal.signal(signal.SIGTERM, self.signal_term_handler)
+                    #signal.signal(signal.SIGTERM, self.signal_term_handler)
                     print(active_circuit)
                     if active_circuit:
                         self.shut_down_routine(circulators, valves)
@@ -88,6 +85,7 @@ class controller_constant_pressure(object):
                     for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
                         print(n)
                         feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
+                        print(interface.getThermalPower(feedback_sensor[n]))
                         if feedback_value[n] == "NaN":
                             feedback_value[n] = 0     # --->>> really bad though
                         print("feedback taken from sensor {0} with setpoint {1} ".format(feedback_sensor[n], setpoint[n]))
@@ -101,9 +99,9 @@ class controller_constant_pressure(object):
                         windup_corrector[n] = self.controller_wind_up(actuator_signal[n], controller_output[n], ki)
                         controller_output_percentage[n] = self.pump_setpoint_converter(controller_output[n])
                         if (controller_output_percentage[n] > max):
-                            actuator_signal[n] = 100  # Limit the controller_output to maximum 100.
+                            actuator_signal[n] = 1  # Limit the controller_output to maximum 100.
                         elif (controller_output_percentage[n] < min):
-                            actuator_signal[n] = 1
+                            actuator_signal[n] = 0.111
                         else:
                             actuator_signal[n] = controller_output_percentage[n]
                         print("The actuator signal is ", actuator_signal[n])
@@ -114,7 +112,7 @@ class controller_constant_pressure(object):
                         print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
                         error_development[n].append(error_value[n])
                         time_response[n].append(feedback_value[n])  # Save as previous error.
-                    signal.signal(signal.SIGTERM, self.signal_term_handler)
+                    #signal.signal(signal.SIGTERM, self.signal_term_handler)
                     stopper = self.minutes_threshold([x / gain for x in error_value], start_time)
 
             except (KeyboardInterrupt, SystemExit):
@@ -171,9 +169,8 @@ class controller_constant_pressure(object):
             print("Valves are closed")
             #interface.setPumpSetpoint(valve, CompositMess)
 
-
 if __name__ == "__main__":
-    test = controller_constant_pressure()
+    test = controller_constant_flow()
     input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": ['Pump_Bay8', 'Pump_Bay7'], "circulator_mode":
                             'PUMP_MODE_CONSTANT_FLOW', "actuator": ['Pump_Bay8', 'Pump_Bay7'], "setpoint": [1, 2],
                             "feedback_sensor": ['Bay_8', 'Bay_7']}

@@ -50,7 +50,7 @@ class components_status(object):
         active_components = {"Pumps_active": [pump for pump in pumps_active if pump.ID not in excluded_pumps],
                              "Sensors_active": [sensor for sensor in sensors_active if sensor.ID not in excluded_sensors],
                              "Valves_active": [valve for valve in valves_active if valve.ID not in excluded_valves]}
-
+    
         how_many_where = {"Pumps_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Pumps_active"]),
                           "Pumps_in_sinks": sum(device.location == "sink" for device in active_components["Pumps_active"]),
                           "Sensors_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Sensors_active"]),

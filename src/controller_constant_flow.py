@@ -9,7 +9,7 @@ import syslab
 import syslab.core.datatypes.CompositeMeasurement as CM
 import time
 _BUILDING_NAME = "716-h1"
-_CONTROL_TIME = 5
+_CONTROL_TIME = 1
 _MULTIPLIER = 1000000
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
@@ -17,10 +17,6 @@ _MINUTES_THRESHOLDS = 100
 
 
 class controller_constant_flow(object):
-
-    def read_feedback():
-        value = 0
-        return value
 
     def PID_controller(self, inputs, process_ID, queue):
         self.thresholds = []
@@ -48,9 +44,9 @@ class controller_constant_flow(object):
         setpoint = [float(n) for n in inputs["setpoint"]]
         feedback_value = [_FIRST_OF_CLASS] * len(feedback_sensor)
         time_response = [_FIRST_OF_CLASS] * len(feedback_sensor)
-        derivative = [_FIRST_OF_CLASS] * len(actuators)
-        integral = [_FIRST_OF_CLASS] * len(actuators)
-        windup_corrector = [_FIRST_OF_CLASS] * len(actuators)
+        derivative = [_FIRST_OF_CLASS] * len(feedback_sensor)
+        integral = [_FIRST_OF_CLASS] * len(feedback_sensor)
+        windup_corrector = [_FIRST_OF_CLASS] * len(feedback_sensor)
         controller_output = [_FIRST_OF_CLASS] * len(actuators)
         controller_output_percentage = [_FIRST_OF_CLASS] * len(actuators)
         pre_error = [_FIRST_OF_CLASS] * len(feedback_sensor)

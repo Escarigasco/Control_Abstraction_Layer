@@ -57,8 +57,9 @@ class configuration_reader(object):
         while True:
             try:
 
-                time.sleep(0.2)
+                time.sleep(0.5)
                 status_online_reading = ro.run_online()
+                #print(status_online_reading)
                 if (status_online_reading):
 
                     valve_status_online = []
