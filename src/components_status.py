@@ -1,4 +1,3 @@
-import re
 import sys
 import syslab
 _ACTIVE = 1
@@ -39,37 +38,40 @@ class components_status(object):
 
         #TODO handle return true false
         #bool = self.sensor_evaluation(sensors)
-        bool = self.pumps_evaluation(pumps)
-        bool = self.valves_evaluation(valves)
+        bool_pumps = self.pumps_evaluation(pumps)
+        bool_valves = self.valves_evaluation(valves)
+        if (bool_pumps and bool_valves):
+            pumps_active = [pump for pump in pumps if pump.status == _ACTIVE]
+            sensors_active = [sensor for sensor in sensors if sensor.status == _ACTIVE]
+            valves_active = [valve for valve in valves if valve.status == _ACTIVE]
 
-        pumps_active = [pump for pump in pumps if pump.status == _ACTIVE]
-        sensors_active = [sensor for sensor in sensors if sensor.status == _ACTIVE]
-        valves_active = [valve for valve in valves if valve.status == _ACTIVE]
+            ''' Selection of components once the excluded have been removed'''
+            active_components = {"Pumps_active": [pump for pump in pumps_active if pump.ID not in excluded_pumps],
+                                 "Sensors_active": [sensor for sensor in sensors_active if sensor.ID not in excluded_sensors],
+                                 "Valves_active": [valve for valve in valves_active if valve.ID not in excluded_valves]}
 
-        ''' Selection of components once the excluded have been removed'''
-        active_components = {"Pumps_active": [pump for pump in pumps_active if pump.ID not in excluded_pumps],
-                             "Sensors_active": [sensor for sensor in sensors_active if sensor.ID not in excluded_sensors],
-                             "Valves_active": [valve for valve in valves_active if valve.ID not in excluded_valves]}
-    
-        how_many_where = {"Pumps_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Pumps_active"]),
-                          "Pumps_in_sinks": sum(device.location == "sink" for device in active_components["Pumps_active"]),
-                          "Sensors_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Sensors_active"]),
-                          "Sensors_in_sinks": sum(device.location == "sink" for device in active_components["Sensors_active"]),
-                          "Valves_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Valves_active"]),
-                          "Valves_in_sinks": sum(device.location == "sink" for device in active_components["Valves_active"])}
+            how_many_where = {"Pumps_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Pumps_active"]),
+                              "Pumps_in_sinks": sum(device.location == "sink" for device in active_components["Pumps_active"]),
+                              "Sensors_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Sensors_active"]),
+                              "Sensors_in_sinks": sum(device.location == "sink" for device in active_components["Sensors_active"]),
+                              "Valves_in_sources": sum((device.location == "source") | (device.location == "booster") for device in active_components["Valves_active"]),
+                              "Valves_in_sinks": sum(device.location == "sink" for device in active_components["Valves_active"])}
 
-        '''you only care about valves' score to determine the best combo'''
-        for valve in valves:
-            valves_score += valve.opening_score * _MULTIPLIER
-            #valves_score = 0
+            '''you only care about valves' score to determine the best combo'''
+            for valve in valves:
+                valves_score += valve.opening_score * _MULTIPLIER
+                #valves_score = 0
 
-        components_score = {"Pumps_score": pumps_score,
-                            "Sensors_score": sensors_score,
-                            "Valves_score": valves_score}
+            components_score = {"Pumps_score": pumps_score,
+                                "Sensors_score": sensors_score,
+                                "Valves_score": valves_score}
 
-        active_components = {**active_components, **how_many_where, **components_score}
+            active_components = {**active_components, **how_many_where, **components_score}
 
-        return active_components
+            return active_components
+        else:
+            active_components = []
+            return active_components
 
     def sensor_evaluation(self, sensors):
 
@@ -103,8 +105,9 @@ class components_status(object):
 
         pumps_for_translation = self.comms.send(pumps_for_physical_layer)
 
-        for pump in pumps_for_translation.keys():
-            pumps_for_logical_layer[self.translator.reverse_components(pump)] = pumps_for_translation[pump]
+        if pumps_for_translation:
+            for pump in pumps_for_translation.keys():
+                pumps_for_logical_layer[self.translator.reverse_components(pump)] = pumps_for_translation[pump]
 
         print(pumps_for_logical_layer)
         if (pumps_for_logical_layer):
@@ -131,8 +134,9 @@ class components_status(object):
 
             valves_for_translation = self.comms.send(valves_for_physical_layer)
 
-            for valve in valves_for_translation.keys():
-                valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
+            if valves_for_translation:
+                for valve in valves_for_translation.keys():
+                    valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
 
             if (valves_for_logical_layer):
                     for valve in valves_for_logical_layer.keys():

@@ -1,4 +1,3 @@
-from communicator_physical_layer import communicator_physical_layer
 from components_status import components_status
 import sys
 
@@ -23,7 +22,6 @@ class configuration_selector(object):
         self.sensors = sensors
         self.valves = valves
         self.pumps = pumps
-        #self.comms = comms
         self.system_busbars = busbars
         self.connected_devices = connected_devices
         self.system_components = {**self.sensors, **self.valves, **self.pumps, **self.connected_devices, **self.system_busbars}
@@ -68,10 +66,14 @@ class configuration_selector(object):
                     busy = True
             if not busy:
                 available_components[name] = self.c_status.run(configuration_components, excluded_components)
-                scores[name] = sum([available_components[name][_S_SCORE],
-                                    available_components[name][_V_SCORE],
-                                    available_components[name][_P_SCORE]])
 
+                '''the logic of this if tells you that there are some combination that have inactive components and so shouldn't be used'''
+                if available_components[name]:
+                    scores[name] = sum([available_components[name][_S_SCORE],
+                                        available_components[name][_V_SCORE],
+                                        available_components[name][_P_SCORE]])
+                else:
+                    pass
         #for name in scores.keys():
             #print(name)
             #print(scores[name])
