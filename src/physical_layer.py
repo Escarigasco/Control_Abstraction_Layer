@@ -39,19 +39,21 @@ class physical_layer(object):
 
     def __init__(self):
 
-        p_logic = physical_logic()
-        op_controller_flow = controller_constant_flow()
-        op_controller_pressure = controller_constant_pressure()
-        processes = {}
-        queues = {}
+        self.p_logic = physical_logic()
+        self.op_controller_flow = controller_constant_flow()
+        self.op_controller_pressure = controller_constant_pressure()
+        self.processes = {}
+        self.queues = {}
         new_input = False
         self.loss_of_comms = False
-        start_time = time.time()
+        self.methods = {_TEST_COMMS: self.test_comms, _CREATOR: self.process_create, _SETPOINT: self.change_setpoint,
+                        _KILLER: self.kill_process, _VALVE_STATUS: self.check_valves, _PUMP_STATUS: self.check_pumps,
+                        _ACTUATE: self.actuate, _SHUTTER: self.pumps_shutter}
 
         signal.signal(signal.SIGALRM, self.time_out_handler)
         signal.alarm(10)
 
-        try:
+        #try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
                 # op_controller = controller()
 
@@ -72,122 +74,39 @@ class physical_layer(object):
                         else:
                             # read from a client represented by that readable object
 
-                            data_from_API = rs.recv(4096)
-                            if not data_from_API:
+                            self.data_from_API = rs.recv(4096)
+                            if not self.data_from_API:
                                 #print('\r{}:'.format(rs.getpeername()), 'disconnected')
                                 #self.killer_routine(requested_configuration, mssgr)
                                 readable.remove(rs)
                                 rs.close()
                             else:
                                 #print("Message received")
-                                inputs = pickle.loads(data_from_API)
+                                inputs = pickle.loads(self.data_from_API)
                                 new_input = True
                             try:
                                 if (new_input):
                                     #print(inputs)
-                                    if (inputs[_DESCRIPTION] == _TEST_COMMS):
-                                        signal.alarm(0)
-                                        print(inputs[_DESCRIPTION])
-                                        inputs[_DESCRIPTION] = _ANSWER_TO_TEST_COMMS
-                                        message_serialized = pickle.dumps(inputs)
-                                        c.sendall(message_serialized)
-                                        signal.alarm(10)
 
-                                    if (inputs[_DESCRIPTION] == _CREATOR):
-                                        inputs.pop(_DESCRIPTION)
-                                        queues[inputs[_CONTROLLER_NAME]] = Queue()
-                                        input_for_controller = (data_from_API, inputs[_CONTROLLER_NAME], queues[inputs[_CONTROLLER_NAME]])
-
-                                        if (inputs[_CIRCULATOR_MODE] == 'PUMP_MODE_CONSTANT_FLOW'):
-                                            processes[inputs[_CONTROLLER_NAME]] = Process(target=op_controller_flow.PID_controller, args=input_for_controller)
-                                        else:
-                                            print("this is a constant pressure controller")
-                                            processes[inputs[_CONTROLLER_NAME]] = Process(target=op_controller_pressure.PID_controller, args=input_for_controller)
-
-                                        print("New Process started")
-                                        processes[inputs[_CONTROLLER_NAME]].start()
-                                        feedback = "I have created controller " + inputs[_CONTROLLER_NAME]
-                                        message_serialized = pickle.dumps(feedback)
-                                        c.sendall(message_serialized)
-                                        # processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
-
-                                    elif (inputs[_DESCRIPTION] == _SETPOINT):
-                                        inputs.pop(_DESCRIPTION)
-                                        print("Mi è stato detto di cambiarti setpoint Mr., ", inputs[_CONTROLLER_NAME])
-                                        queues[inputs[_CONTROLLER_NAME]].put(inputs[_SETPOINT])
-                                        feedback = "I have changed setpoint to controller {0}, the new setpoint is {1}".format(inputs[_CONTROLLER_NAME], inputs[_SETPOINT])
-                                        message_serialized = pickle.dumps(feedback)
-                                        c.sendall(message_serialized)
-
-                                    elif (inputs[_DESCRIPTION] == _KILLER):
-                                        inputs.pop(_DESCRIPTION)
-                                        print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
-                                        processes[inputs[_CONTROLLER_NAME]].terminate()
-                                        processes.pop(inputs[_CONTROLLER_NAME])
-                                        print("process terminated", inputs[_CONTROLLER_NAME])
-                                        feedback = "I have killed controller " + inputs[_CONTROLLER_NAME]
-                                        message_serialized = pickle.dumps(feedback)
-                                        c.sendall(message_serialized)
-
-                                    elif (inputs[_DESCRIPTION] == _VALVE_STATUS):
-                                        #print(inputs)
-                                        inputs.pop(_DESCRIPTION)
-                                        #valves_for_logical_layer = p_logic.get_valves_status(inputs)
-                                        valves_for_logical_layer = p_logic.get_valves_simulated_status(inputs)
-                                        message_serialized = pickle.dumps(valves_for_logical_layer)
-                                        #print(valves_for_logical_layer)
-                                        c.sendall(message_serialized)
-
-                                    elif (inputs[_DESCRIPTION] == _PUMP_STATUS):
-                                        #print(inputs)
-                                        inputs.pop(_DESCRIPTION)
-                                        #pumps_for_logical_layer = p_logic.get_pumps_status(inputs)
-                                        pumps_for_logical_layer = p_logic.get_pumps_simulated_status(inputs)
-                                        message_serialized = pickle.dumps(pumps_for_logical_layer)
-                                        #print(valves_for_logical_layer)
-                                        c.sendall(message_serialized)
-
-                                    elif (inputs[_DESCRIPTION] == _ACTUATE):
-                                        '''Here you should firs check if actuation is necessary - not really at the end of the day because it will confirm a setpoint and it's not a big issue'''
-                                        inputs.pop(_DESCRIPTION)
-                                        #complete = p_logic.set_hydraulic_circuit(inputs)
-                                        complete = p_logic.set_hydraulic_simulated_circuit(inputs)
-                                        message_serialized = pickle.dumps(complete)
-                                        c.sendall(message_serialized)
-
-                                    elif (inputs[_DESCRIPTION] == _SHUTTER):
-                                        '''Shut the pumps'''
-                                        print(inputs)
-                                        inputs.pop(_DESCRIPTION)
-                                        #complete = p_logic.set_hydraulic_circuit(inputs)
-                                        complete = p_logic.shut_pumps(inputs)
-                                        message_serialized = pickle.dumps(complete)
-                                        c.sendall(message_serialized)
+                                    method = self.methods.get(inputs[_DESCRIPTION], lambda: None)
+                                    if method:
+                                        method(inputs, c)
 
                                     new_input = False
+
                             except(KeyboardInterrupt, SystemExit, Exception):
                                         c.close()
                                         print("Now has stopped")
                                         s.shutdown(socket.SHUT_RDWR)
                                         s.close()
-                                        if processes.keys():
-                                            for process in processes.items():
+                                        if self.processes.keys():
+                                            for process in self.processes.items():
                                                 process.terminate()
                                                 print("Stopped Process {0}".format(process))
                                         sys.exit()
                     if self.loss_of_comms:
-                        signal.alarm(0)
-                        print("If there are active processes I will terminate them")
-                        processes_names = []
-                        if processes.keys():
-                            for name in processes.keys():
-                                processes_names.append(name)
-                            for name in processes_names:
-                                processes[name].terminate()
-                                print("Stopped Process {0}".format(name))
-                                processes.pop(name)
+                        self.connection_lost()
                         self.loss_of_comms = False
-                        signal.alarm(10)
 
         except(KeyboardInterrupt, SystemExit, Exception):
             if s:
@@ -196,8 +115,100 @@ class physical_layer(object):
             print("Physical Layer is closing")
             sys.exit()
 
+    def connection_lost(self):
+        signal.alarm(0)
+        print("If there are active self.processes I will terminate them")
+        processes_names = []
+        if self.processes.keys():
+            for name in self.processes.keys():
+                processes_names.append(name)
+            for name in processes_names:
+                self.processes[name].terminate()
+                print("Stopped Process {0}".format(name))
+                self.processes.pop(name)
+        signal.alarm(10)
+
     def time_out_handler(self, signum, frame):
         self.loss_of_comms = True
+
+    def test_comms(self, inputs, c):
+        signal.alarm(0)
+        print(inputs[_DESCRIPTION])
+        inputs[_DESCRIPTION] = _ANSWER_TO_TEST_COMMS
+        message_serialized = pickle.dumps(inputs)
+        c.sendall(message_serialized)
+        signal.alarm(10)
+
+    def process_create(self, inputs, c):
+        inputs.pop(_DESCRIPTION)
+        self.queues[inputs[_CONTROLLER_NAME]] = Queue()
+        input_for_controller = (self.data_from_API, inputs[_CONTROLLER_NAME], self.queues[inputs[_CONTROLLER_NAME]])
+
+        if (inputs[_CIRCULATOR_MODE] == 'PUMP_MODE_CONSTANT_FLOW'):
+            self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_flow.PID_controller, args=input_for_controller)
+        else:
+            print("this is a constant pressure controller")
+            self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_pressure.PID_controller, args=input_for_controller)
+
+        print("New Process started")
+        self.processes[inputs[_CONTROLLER_NAME]].start()
+        feedback = "I have created controller " + inputs[_CONTROLLER_NAME]
+        message_serialized = pickle.dumps(feedback)
+        c.sendall(message_serialized)
+        # self.processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+
+    def change_setpoint(self, inputs, c):
+        inputs.pop(_DESCRIPTION)
+        print("Mi è stato detto di cambiarti setpoint Mr., ", inputs[_CONTROLLER_NAME])
+        self.queues[inputs[_CONTROLLER_NAME]].put(inputs[_SETPOINT])
+        feedback = "I have changed setpoint to controller {0}, the new setpoint is {1}".format(inputs[_CONTROLLER_NAME], inputs[_SETPOINT])
+        message_serialized = pickle.dumps(feedback)
+        c.sendall(message_serialized)
+
+    def kill_process(self, inputs, c):
+        inputs.pop(_DESCRIPTION)
+        print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
+        self.processes[inputs[_CONTROLLER_NAME]].terminate()
+        self.processes.pop(inputs[_CONTROLLER_NAME])
+        print("process terminated", inputs[_CONTROLLER_NAME])
+        feedback = "I have killed controller " + inputs[_CONTROLLER_NAME]
+        message_serialized = pickle.dumps(feedback)
+        c.sendall(message_serialized)
+
+    def check_valves(self, inputs, c):
+        #print(inputs)
+        inputs.pop(_DESCRIPTION)
+        #valves_for_logical_layer = self.p_logic.get_valves_status(inputs)
+        valves_for_logical_layer = self.p_logic.get_valves_simulated_status(inputs)
+        message_serialized = pickle.dumps(valves_for_logical_layer)
+        #print(valves_for_logical_layer)
+        c.sendall(message_serialized)
+
+    def check_pumps(self, inputs, c):
+        #print(inputs)
+        inputs.pop(_DESCRIPTION)
+        #pumps_for_logical_layer = self.p_logic.get_pumps_status(inputs)
+        pumps_for_logical_layer = self.p_logic.get_pumps_simulated_status(inputs)
+        message_serialized = pickle.dumps(pumps_for_logical_layer)
+        #print(valves_for_logical_layer)
+        c.sendall(message_serialized)
+
+    def actuate(self, inputs, c):
+        '''Here you should firs check if actuation is necessary - not really at the end of the day because it will confirm a setpoint and it's not a big issue'''
+        inputs.pop(_DESCRIPTION)
+        #complete = self.p_logic.set_hydraulic_circuit(inputs)
+        complete = self.p_logic.set_hydraulic_simulated_circuit(inputs)
+        message_serialized = pickle.dumps(complete)
+        c.sendall(message_serialized)
+
+    def pumps_shutter(self, inputs, c):
+        '''Shut the pumps'''
+        print(inputs)
+        inputs.pop(_DESCRIPTION)
+        #complete = self.p_logic.set_hydraulic_circuit(inputs)
+        complete = self.p_logic.shut_pumps(inputs)
+        message_serialized = pickle.dumps(complete)
+        c.sendall(message_serialized)
 
 
 if __name__ == "__main__":
