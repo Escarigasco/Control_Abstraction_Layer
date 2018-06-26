@@ -3,6 +3,7 @@ from controller_constant_flow import controller_constant_flow
 from controller_constant_pressure import controller_constant_pressure
 from multiprocessing import Process
 from multiprocessing import Queue
+from physical_layer_online_reader import physical_layer_online_reader
 from physical_logic import physical_logic
 import pickle
 import select
@@ -14,6 +15,7 @@ import time
 _MULTIPLIER = 1000000
 _ACTUATE = "actuate"
 _BEGIN_WITH = 0
+_FIRST_OF_CLASS = 1
 _VALVE_STATUS = "valve_status"
 _PUMP_STATUS = "pump_status"
 _VALVES = 'Valves_active'
@@ -30,14 +32,21 @@ _CONTROLLER_NAME = "controller_name"
 _SHUTTER = "shutter"
 _TEST_COMMS = "4x4?"
 _ANSWER_TO_TEST_COMMS = "16"
-_TIME_OUT = 10
+_TIME_OUT = 30
 _RESET = 0
 _CIRCULATOR_MODE = "circulator_mode"
+_COMPONENTS = "components"
+_INIT = "init"
 
 
 class physical_layer(object):
 
     def __init__(self):
+        self.work_q = Queue()
+        physical_reader = physical_layer_online_reader()
+        self.physical_reader = Process(target=physical_reader.run, args=(self.work_q,))
+        self.physical_reader.daemon = True
+        self.physical_reader.start()
 
         self.p_logic = physical_logic()
         self.op_controller_flow = controller_constant_flow()
@@ -48,10 +57,10 @@ class physical_layer(object):
         self.loss_of_comms = False
         self.methods = {_TEST_COMMS: self.test_comms, _CREATOR: self.process_create, _SETPOINT: self.change_setpoint,
                         _KILLER: self.kill_process, _VALVE_STATUS: self.check_valves, _PUMP_STATUS: self.check_pumps,
-                        _ACTUATE: self.actuate, _SHUTTER: self.pumps_shutter}
+                        _ACTUATE: self.actuate, _SHUTTER: self.pumps_shutter, _INIT: self.initialization}
 
         signal.signal(signal.SIGALRM, self.time_out_handler)
-        signal.alarm(10)
+        signal.alarm(_TIME_OUT)
 
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
@@ -64,6 +73,7 @@ class physical_layer(object):
             i = 0
             while True:
                 #time.sleep(1)
+                time.sleep(0.2)
                 #print(time.time() - start_time)
                 r, w, e = select.select(readable, [], [], _BEGIN_WITH)  # the 0 here is the time out, it doesn't wait anything, it keeps cheking if the first argument is ready to be red
                 for rs in r:  # iterate through readable sockets - so r is a list of objects included in readable that are ready to be read - if its ready there is a call from the client
@@ -84,26 +94,27 @@ class physical_layer(object):
                             #print("Message received")
                             inputs = pickle.loads(self.data_from_API)
                             new_input = True
-                        try:
-                            if (new_input):
-                                #print(inputs)
+                        #try:
+                        if (new_input):
+                            #print(inputs)
 
-                                method = self.methods.get(inputs[_DESCRIPTION], lambda: None)
-                                if method:
-                                    method(inputs, c)
+                            method = self.methods.get(inputs[_DESCRIPTION], lambda: None)
+                            if method:
+                                method(inputs, c)
 
-                                new_input = False
+                            new_input = False
 
-                        except(KeyboardInterrupt, SystemExit, Exception):
-                                    c.close()
-                                    print("Now has stopped")
-                                    s.shutdown(socket.SHUT_RDWR)
-                                    s.close()
-                                    if self.processes.keys():
-                                        for process in self.processes.items():
-                                            process.terminate()
-                                            print("Stopped Process {0}".format(process))
-                                    sys.exit()
+                            #except(KeyboardInterrupt, SystemExit, Exception):
+                            #            c.close()
+                            #            print("Now has stopped")
+                            #            s.shutdown(socket.SHUT_RDWR)
+                            #            s.close()
+                            #            if self.processes.keys():
+                            #                for process in self.processes.items():
+                            #                    process.terminate()
+                            #                    print("Stopped Process {0}".format(process))
+                            #            sys.exit()
+
                 if self.loss_of_comms:
                     self.connection_lost()
                     self.loss_of_comms = False
@@ -116,7 +127,7 @@ class physical_layer(object):
         #    sys.exit()
 
     def connection_lost(self):
-        signal.alarm(0)
+        signal.alarm(_RESET)
         print("If there are active self.processes I will terminate them")
         processes_names = []
         if self.processes.keys():
@@ -126,18 +137,36 @@ class physical_layer(object):
                 self.processes[name].terminate()
                 print("Stopped Process {0}".format(name))
                 self.processes.pop(name)
-        signal.alarm(10)
+        signal.alarm(_TIME_OUT)
 
     def time_out_handler(self, signum, frame):
         self.loss_of_comms = True
 
+    def initialization(self, inputs, c):
+            inputs.pop(_DESCRIPTION)
+            processes_names = []
+            #complete = self.p_logic.set_hydraulic_circuit(inputs)
+            if self.processes:
+                for name in self.processes.keys():
+                    processes_names.append(name)
+                print(self.processes.keys())
+                for process in processes_names:
+                    self.processes[process].terminate()
+                    self.processes.pop(process)
+                    print("process terminated", process)
+
+            complete = self.p_logic.initialization(inputs)
+            self.work_q.put(complete[_FIRST_OF_CLASS])
+            message_serialized = pickle.dumps(complete[_BEGIN_WITH])
+            c.sendall(message_serialized)
+
     def test_comms(self, inputs, c):
-        signal.alarm(0)
+        signal.alarm(_RESET)
         print(inputs[_DESCRIPTION])
         inputs[_DESCRIPTION] = _ANSWER_TO_TEST_COMMS
         message_serialized = pickle.dumps(inputs)
         c.sendall(message_serialized)
-        signal.alarm(10)
+        signal.alarm(_TIME_OUT)
 
     def process_create(self, inputs, c):
         inputs.pop(_DESCRIPTION)
@@ -198,7 +227,8 @@ class physical_layer(object):
         inputs.pop(_DESCRIPTION)
         #complete = self.p_logic.set_hydraulic_circuit(inputs)
         complete = self.p_logic.set_hydraulic_simulated_circuit(inputs)
-        message_serialized = pickle.dumps(complete)
+        self.work_q.put(complete[_FIRST_OF_CLASS])
+        message_serialized = pickle.dumps(complete[_BEGIN_WITH])
         c.sendall(message_serialized)
 
     def pumps_shutter(self, inputs, c):

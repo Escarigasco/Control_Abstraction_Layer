@@ -193,7 +193,7 @@ def main(argv):
                 sources_one = ["Source_1BH4", "Source_1HP5", "Source_1DH6"]
                 boosted_one = [("Source_1BH4", "Source_1HP5"), ("Source_1HP5", "Source_1DH6")]
                 parameters_one = "Energy"
-                setpoints_one = [5, 5]
+                setpoints_one = [5]
                 sinks_two = []
                 sources_two = []
                 boosted_two = []

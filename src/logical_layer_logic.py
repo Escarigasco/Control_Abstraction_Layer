@@ -10,6 +10,7 @@ _GRAPH = "graph"
 _INPUTS = "inputs"
 _MATCH = 'match'
 _PUMPS = 'Pumps_active'
+_PUMP = "Pump"
 _SENSORS = 'Sensors_active'
 _SETPOINT = "setpoints"
 _STATE = "state"
@@ -23,15 +24,33 @@ _BEGIN_WITH = 0     # the tuple
 _END_WITH = 1   # the tuple
 _BIT_SHIFT = 1
 _LAST_ELEMENT = -1
+_INIT = "init"
+_COMPONENTS = "components"
 
 
 class logic(object):
-    def __init__(self, comms, work_q, translator):
+    def __init__(self, comms, work_q, work_pauser, translator):
         a = 0
         self.translator = translator
         self.comms = comms
         self.work_q = work_q
+        self.work_pauser = work_pauser
         self.busy_busbars = {}
+
+    def switchboard_initialization(self, interface):
+        system_pumps = interface.get_system_pumps().keys()
+        system_valves = interface.get_system_valves().keys()
+        translated_valves = []
+        translated_pumps = []
+        for valve in system_valves:
+            translated_valves.append(self.translator.components(valve))
+        for pump in system_pumps:
+            translated_pumps.append(self.translator.components(pump))
+        init_message = {_DESCRIPTION: _INIT, _PUMP: translated_pumps, _VALVES_TO_SHUT: translated_valves}
+        feedback = self.comms.send(init_message)
+        if not feedback:
+            print("Uknown status of switchboard")
+            sys.exit()
 
     '''logic --> the first one of the tuple boost the second one -- e.g. [(S2, S1),(S3,S2)] means that S3 boosts S2 that boosts S1'''
     def check_sources(self, system_input):
@@ -126,6 +145,7 @@ class logic(object):
         return processed_configurations
 
     def actuate_suitable_setup(self, processed_configurations):
+        #self.work_pauser.put(True)
         print("I actuate the suitable setup")
         actuating_message = {}
         valves_translated = []
@@ -148,10 +168,12 @@ class logic(object):
 
         if actuating_message:
             complete = self.comms.send(actuating_message)
-        time.sleep(5)                     # you need this to allow the online reader to get the new set up
+        #time.sleep(10)                     # you need this to allow the online reader to get the new set up
         return processed_configurations
 
     def controller_starter(self, processed_configurations, pm, mssgr):
+        #self.work_pauser.put(False)
+        time.sleep(5)
         what_comes_out_the_cilinder = []
         print("I check the compatibility and start the controller")
         #if (not self.work_q.empty()):

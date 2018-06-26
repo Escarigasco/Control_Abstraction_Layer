@@ -10,6 +10,7 @@ _ACTIVE_VALVE = 0.1
 _INACTIVE_VALVE = 0
 _VALVE_STATUS = "valve_status"
 _DESCRIPTION = "description"
+_PORT_ONLINE_READER = 20000
 
 
 class current_status_reader(object):
@@ -38,9 +39,12 @@ class current_status_reader(object):
                 valves_for_physical_layer[self.translator.components(valve)] = valve
             valves_for_physical_layer[_DESCRIPTION] = _VALVE_STATUS
 
-            valves_for_translation = self.comms.send(valves_for_physical_layer)
+            valves_for_translation = self.comms.send(valves_for_physical_layer, _PORT_ONLINE_READER)
 
+            #print(valves_for_translation)
             for valve in valves_for_translation.keys():
+                if valve == _DESCRIPTION:
+                    sys.exit()
                 valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
 
             if (valves_for_logical_layer):
@@ -49,7 +53,13 @@ class current_status_reader(object):
                         if (valves_for_logical_layer[valve] >= _ACTIVE_VALVE):
                             self.system_valves[valve].set_status(_ACTIVE)
                         else:
-                            self.system_valves[valve].set_status(_INACTIVE_VALVE)
+                            try:
+                                self.system_valves[valve].set_status(_INACTIVE_VALVE)
+                            except Exception:
+                                print(valves_for_logical_layer)
+                                print(self.system_valves)
+                                print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+                                sys.exit()
                     else:
                         print("{0} is not answering please check the connection - it is now setted to off but it is a non responder ".format(valve))
                         self.system_valves[valve].set_status(_INACTIVE_VALVE)

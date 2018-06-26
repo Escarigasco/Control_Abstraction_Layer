@@ -31,7 +31,7 @@ class configuration_reader(object):
         # system_bays = self.config_reader.get_hydraulic_bays()
         self.comms = communicator_physical_layer()
 
-    def run(self, worker_q):
+    def run(self, worker_q, work_pauser):
         self.Graph = nx.DiGraph()
         self.UpdatedGraph = nx.DiGraph()
         system_pumps = self.config_reader.get_system_pumps()
@@ -48,6 +48,7 @@ class configuration_reader(object):
         cold_start = 1
         valve_status_online = []
         valve_status_previous = []
+        pause = False
 
         #TODO handle the boolean return
         ro = current_status_reader(self.comms, system_pumps, system_sensors, system_valves)
@@ -55,9 +56,10 @@ class configuration_reader(object):
         plt.show()
 
         while True:
-            try:
+            #try:
 
                 time.sleep(0.5)
+
                 status_online_reading = ro.run_online()
                 #print(status_online_reading)
                 if (status_online_reading):
@@ -217,11 +219,11 @@ class configuration_reader(object):
                             #print(self.UpdatedGraph.nodes())
                 else:
                     pass
-            except (KeyboardInterrupt, SystemExit, Exception):
-                print("Online reader Thread Stopped")
-                print("Process Error. Stopped")
-                worker_q.close()
-                sys.exit()
+            #except (KeyboardInterrupt, SystemExit, Exception):
+            #    print("Online reader Thread Stopped")
+            #    print("Process Error. Stopped")
+            #    worker_q.close()
+            #    sys.exit()
 
         #print(self.UpdatedGraph.nodes())
         #print(self.Graph.nodes())

@@ -18,7 +18,6 @@ class name_translator(object):
             'Valve_2H7': "Bay_7H-Busbar_1F", 'Valve_1H7': "Bay_7H-Busbar_2F", 'Valve_2C7': "Bay_7L-Busbar_1R", 'Valve_1C7': "Bay_7L-Busbar_2R",
             'Valve_2H8': "Bay_8H-Busbar_1F", 'Valve_1H8': "Bay_8H-Busbar_2F", 'Valve_2C8': "Bay_8L-Busbar_1R", 'Valve_1C8': "Bay_8L-Busbar_2R"}
         self.reversed_components_name_translator = {v: k for k, v in self.components_name_translator.items()}
-        
 
     def components(self, valve):
             return self.components_name_translator[valve]

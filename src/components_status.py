@@ -121,7 +121,7 @@ class components_status(object):
             return False
 
     def valves_evaluation(self, valves):
-        try:
+        #try:
             valves_for_physical_layer = {}
             valves_for_logical_layer = {}
             valves_dic = {}
@@ -149,7 +149,7 @@ class components_status(object):
                     return True
             else:
                 return False
-        except Exception:
-            print(valves_for_logical_layer.keys())
-            print(valves_dic.keys())
-            sys.exit()
+        #except Exception:
+        #    print(valves_for_logical_layer.keys())
+        #    print(valves_dic.keys())
+        #    sys.exit()

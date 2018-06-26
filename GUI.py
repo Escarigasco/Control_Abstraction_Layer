@@ -1,11 +1,10 @@
-
-
 import tkinter as tk
 
 
 class GUI(tk.Tk):
 
-    def __init__(self):
+    def __init__(self,test):
+        print(test)
         tk.Tk.__init__(self)
         self.L1 = tk.Label(self, text="Parameter")
         self.L1.grid(row=0, column=0)

@@ -1,6 +1,7 @@
 import syslab
 import syslab.core.datatypes.CompositeMeasurement as CM
 import time
+import sys
 
 _BUILDING_NAME = "716-h1"
 _MULTIPLIER = 1000000
@@ -29,6 +30,31 @@ class physical_logic(object):
 
         #self.interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
 
+    def initialization(self, inputs):
+        print("Initialization of the equipment")
+        valves_status_checker = {}
+        complete = False
+        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER)
+        circulator_mode = "PUMP_MODE_CONSTANT_FLOW"
+        opening_threshold = 0.05
+        for pump in inputs[_PUMP]:
+                    #self.interface.setPumpControlMode(pumps, circulator_mode)
+                    print("mode set in pump ", pump)
+                    #self.interface.setPumpSetpoint(circulator, CompositMess_Shut)
+                    print("setpoint at 0 for pump ", pump)
+        while not complete:
+            for valve in inputs[_VALVES_TO_SHUT]:
+                self.valves_status[valve] = 0.0
+                print("setpoint at 0 for valve", valve)
+                #self.interface.setValvePosition(valve, CompositMess_Shut)
+            #time.sleep(10)
+            for valve in inputs[_VALVES_TO_SHUT]:
+                valves_status_checker[valve] = 0.0 #self.interface.getValvePosition(valve)
+                if ((sum(opening for opening in valves_status_checker.values()) <= opening_threshold)):
+                    complete = True
+        return [complete, self.valves_status]
+
+
     def get_pumps_status(self, pumps_for_physical_layer):
         print("I am reading pumps")
         pumps_for_logical_layer = {}
@@ -52,7 +78,7 @@ class physical_logic(object):
             valves_for_logical_layer[valve] = opening.value
         return valves_for_logical_layer
 
-    def get_valves_simulated_status(self, valves_for_physical_layer):
+    def get_valves_simulated_status(self, valves_for_physical_layer, queue=None):
         #print("I am reading simulated circuit")
         valves_for_logical_layer = {}
         for valve in valves_for_physical_layer.keys():
@@ -87,7 +113,7 @@ class physical_logic(object):
 
     def set_hydraulic_simulated_circuit(self, inputs):
         print("I am setting simulated circuit")
-        time.sleep(1)
+        #time.sleep(1)
         valves = inputs[_VALVES]
         valves_to_shut = inputs[_VALVES_TO_SHUT]
         valves_status = {}
@@ -106,7 +132,7 @@ class physical_logic(object):
            & (sum(opening for opening in valves_to_shut_status.values()) <= closing_threshold)):
                 complete = True
         print(self.valves_status)
-        return complete
+        return [complete, self.valves_status]
 
     def shut_pumps(self, pumps):
         pumps = pumps[_PUMP]
@@ -115,6 +141,9 @@ class physical_logic(object):
         for pump in pumps:
                 #self.interface.setPumpControlMode(pumps, circulator_mode)
                 print("mode set in pump ", pump)
-                #self.interface.setPumpSetpoint(circulator, CompositMess)
+                #self.interface.setPumpSetpoint(circulator, CompositMess_Shut)
                 print("setpoint at 0 for pump ", pump)
         return ("All the pumps are set to constant flow and setpoint 0")
+
+    def update_valves(self, valves):
+        self.valves_status = valves

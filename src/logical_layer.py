@@ -24,8 +24,9 @@ _PORT = 50000              # Arbitrary non-privileged port with API
 _PORT_TO_PHYSICAL = 2000               # Arbitrary non-privileged port with physical layer
 _DESCRIPTION = "description"
 _TEST_COMMS = "4x4?"
-_TIME_OUT = 10
+_TIME_OUT = 30
 _RESET = 0
+
 
 #  from IPython.core.debugger import Tracer
 #  Tracer()()
@@ -39,17 +40,20 @@ class logical_layer(object):
         self.building_config = switch_board_building(self.buildingID)
         self.intf = interface(self.building_config, self.SwitchID)
         cfg = configuration_reader(self.intf)
-        self.work_q = Queue()
-        self.online_reader = Process(target=cfg.run, args=(self.work_q,))
-        self.online_reader.daemon = True
-        self.online_reader.start()
         self.comms = communicator_physical_layer()
         self.translator = name_translator()
         self.busy_busbars = {}
+        self.work_q = Queue()
+        self.work_pauser = Queue()
+        self.logic = logic(self.comms, self.work_q, self.work_pauser, self.translator)
+        self.logic.switchboard_initialization(self.intf)
+        self.online_reader = Process(target=cfg.run, args=(self.work_q, self.work_pauser))
+        self.online_reader.daemon = True
+        self.online_reader.start()
+
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
     def run(self):
-        self.logic = logic(self.comms, self.work_q, self.translator)
         new_input = False
         processed_configurations = AutoVivification()  # nothing but a dictionary
         start_time = time.time()
@@ -137,7 +141,7 @@ class logical_layer(object):
         message_serialized = pickle.dumps(message_to_send)
         message_received = {}
         signal.signal(signal.SIGALRM, self.time_out_handler)
-        signal.alarm(10)
+        signal.alarm(_TIME_OUT)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.connect((_HOST, _PORT_TO_PHYSICAL))
@@ -146,10 +150,11 @@ class logical_layer(object):
                     message_received = s.recv(4096)
                 #print(pickle.loads(message_received)[_DESCRIPTION])
                 s.close()
+                self.loss_of_comms = False
             except Exception:
                 while not self.loss_of_comms:
                     print("Lost Comms", end="\r")
-        signal.alarm(0)  # this is to disable the alarm
+        signal.alarm(_RESET)  # this is to disable the alarm
 
     def time_out_handler(self, signum, frame):
         self.loss_of_comms = True
@@ -157,12 +162,11 @@ class logical_layer(object):
     def time_checker(self, start_time):
         stop_time = time.time()
         #print(stop_time - start_time)
-        if ((stop_time - start_time) > 5):
+        if ((stop_time - start_time) > 10):
             self.check_comms_physical_layer()
             start_time = time.time()
         #print("the loss of comms is ", self.loss_of_comms)
         return start_time
-
 
 if __name__ == "__main__":
     start_time = time.time()
