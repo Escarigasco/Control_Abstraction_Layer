@@ -74,6 +74,7 @@ you should you the hot line valve
 FOR 20/06/2018
 - fail safe for loss of comms
 
-FOR 21/06/2018
-- Testing the start of all controllers for all use cases
-- Lab Testing? 
+FOR 26/06/2018
+- check back the stashing and see what happen.
+- you should differentiate the socket you use for the logical layer and the online reader or that is going to screw you
+  because of the overlapping of messages - if you remember the keys error is because they intercept a message that is not for them
