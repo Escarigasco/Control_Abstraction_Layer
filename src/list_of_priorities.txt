@@ -37,8 +37,8 @@ HARDWARE BUG
 - circuit by pass for the pump to have complete freedom in the configuration
 
 QUESTION
-Does it make sense to have the boosting at three? In reality there is no prevention for the end source to get some water from the first
-In general, connecting sources in parallel it is not convenient as you reduce the temperature of one of the two
+- Does it make sense to have the boosting at three? In reality there is no prevention for the end source to get some water from the first
+- In general, connecting sources in parallel it is not convenient either as you reduce the temperature of one of the two.
 
 
 NOTE
@@ -49,7 +49,7 @@ New logic
         - send list of valves and actuation signal
         - wait for confirmation of actuation completion (wait for tcp answer)
 - check the online_configuration against the best path
-        - this doesn't need to be a multithreading process anymore - we will keep it only because is good for the user interface
+        - this doesn't need to be a multithreading process anymore - we will keep it only because is good for the user interface!
 - start controller when actuation is completed
 
 NOTE
@@ -60,7 +60,9 @@ handled by ourselves so until the actuation is completed the online_reader doesn
 so it doesn't know if the configuration changed - TBC and to be tested when we will be able to change the valves
 
 Test 18/06/2018
-Failure - test methods were not implemented
+Failure - test methods were not implemented - Oliver to confirm
+
+Test 22/06/2018
 
 NOTE:
 Use Case Logic:
@@ -70,6 +72,7 @@ if the pump in the sinks are unavailable for two bays then you have to use the v
 you should you the hot line valve
 
 
+<<<<<<< Updated upstream
 
 FOR 20/06/2018
 - fail safe for loss of comms
@@ -78,3 +81,28 @@ FOR 26/06/2018
 - check back the stashing and see what happen.
 - you should differentiate the socket you use for the logical layer and the online reader or that is going to screw you
   because of the overlapping of messages - if you remember the keys error is because they intercept a message that is not for them
+=======
+FOR 22/06/2018
+- Test the loss of comms of online reader
+- Testing the start of all controllers for all use cases
+
+FOR 25/06/2018
+- Rule for broken components 3)
+- start at boot routine where you shut everything down and close valves and so on 2) https://askubuntu.com/questions/228304/how-do-i-run-a-script-at-start-up
+- you need to handle a non return from the physical layer when the logical is after component status 4) done?
+- Buy components
+- Read papello sulla comunicazione
+- Drawings
+FOR 26/06/2018
+- Rules for broken components
+FOR 27/06/2018
+- Find the bug
+FOR 28/06/2018
+- Controllers
+FOR 29/06/2018
+- Work?
+
+OLIVER RETURN
+API Webservice - REST
+Set Shit Methods
+>>>>>>> Stashed changes
