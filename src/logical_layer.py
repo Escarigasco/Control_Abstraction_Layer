@@ -24,7 +24,7 @@ _PORT = 50000              # Arbitrary non-privileged port with API
 _PORT_TO_PHYSICAL = 2000               # Arbitrary non-privileged port with physical layer
 _DESCRIPTION = "description"
 _TEST_COMMS = "4x4?"
-_TIME_OUT = 30
+_TIME_OUT = 60
 _RESET = 0
 
 
