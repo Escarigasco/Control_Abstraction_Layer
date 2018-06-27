@@ -18,7 +18,7 @@ _CREATOR = "creator"
 _HOT_FLOW = "H"
 _VALVE = "Valve"
 _PUMP = "Pump"
-_SHUTTER = "shutter"
+_SHUTTER = "shut_all_pumps"
 
 
 class message_for_controller(object):
@@ -43,7 +43,8 @@ class message_for_controller(object):
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
 
-            self.shut_the_pumps_up(available_components["Pumps_active"], self.comms)
+            #self.shut_the_pumps_up(available_components["Pumps_active"], self.comms)
+            pumps_of_circuit = [pump.ID for pump in available_components["Pumps_active"]]
         #    try:
             valves_of_circuit = self.components_name_translator([valve.ID for valve in available_components["Valves_active"]])
             print(valves_of_circuit)
@@ -56,6 +57,7 @@ class message_for_controller(object):
             feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
             #print(feedback_sensors)
             act_circulator["pumps"] = self.components_name_translator(act_circulator["pumps"])
+            pumps_of_circuit = self.components_name_translator(pumps_of_circuit)
             #print(act_circulator)
             feedback_sensors["sensors"] = self.components_name_translator(feedback_sensors["sensors"])
             #print(feedback_sensors)
@@ -65,9 +67,10 @@ class message_for_controller(object):
             # self.controller_name = act_circulator["mode"]
 
             input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _CREATOR, "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
-                                    "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
-                                    "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
-                                    "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit}
+                                    "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"), "pumps_of_circuit": pumps_of_circuit,
+                                    "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"], "actuator": actuators["actuators"],
+                                    "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit}
+
             print(input_for_controller)
 
             #except Exception:
@@ -128,6 +131,7 @@ class message_for_controller(object):
             for location in ideal_pump.location:
                 locations.append(location.data)
             for pump in pumps:
+                print(pump.location)
                 if (pump.location in locations):
                     circulation_pumps.append(pump.get_name())
             pumps_mode = {"pumps": circulation_pumps, "mode": ideal_pump.mode.data}
@@ -141,7 +145,8 @@ class message_for_controller(object):
             for sensor in sensors:
                 if ((sensor.location in locations) & (sensor.variable == variable)):
                     feedback_sensors.append(sensor.get_name())
-
+                    if (ideal_sensor.number == len(feedback_sensors)):
+                        break
             sensors_feed = {"sensors": feedback_sensors}
             return sensors_feed
 

@@ -32,6 +32,7 @@ class controller_constant_flow(object):
         self.process_ID = process_ID
         max = 100
         min = 0
+        pumps_of_circuit = inputs["pumps_of_circuit"]
         kp = float(inputs["kp"])
         kd = float(inputs["kd"])
         ki = float(inputs["ki"])
@@ -58,9 +59,12 @@ class controller_constant_flow(object):
         time_response = [[] for n in range(len(feedback_sensor))]
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
-        for n in range(_FIRST_OF_CLASS, len(circulators)):
-            #interface.setPumpControlMode(circulators[n], circulator_mode)
-            print("mode set in pump ", circulators[n])
+        shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER)
+        for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
+            #interface.setPumpControlMode(pumps_of_circuit[n], circulator_mode)
+            #interface.setPumpSetpoint(pumps_of_circuit[n], shut_mess)
+            print("mode set in pump ", pumps_of_circuit[n], "with setpoint to 0")
+
         signal.signal(signal.SIGTERM, self.signal_term_handler)
         while(1):
 
@@ -117,9 +121,8 @@ class controller_constant_flow(object):
 
             except (KeyboardInterrupt, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
-                CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
                 for circulator in circulators:
-                    #interface.setPumpSetpoint(circulator, CompositMess)
+                    #interface.setPumpSetpoint(circulator, shut_mess)
                     print("Circulator {0} is now at zero flow".format(circulator))
                 sys.exit(0)
             except Exception:
