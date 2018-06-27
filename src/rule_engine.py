@@ -169,9 +169,10 @@ class System_Configurator(KnowledgeEngine):
     '''this is a rule that state that when actuator is selected but there are not enough pumps in the sinks'''
     @Rule(Actuator_facts(pumps_sources=MATCH.n_pumps_sources, pumps_sinks=MATCH.n_pumps_sinks),
           Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
-          TEST(lambda n_pumps_sources, n_pumps_sinks: n_pumps_sources >= n_pumps_sinks),
-          TEST(lambda n_sources, n_sinks: n_sources < n_sinks),
+          TEST(lambda n_sinks, n_pumps_sinks: n_sinks > n_pumps_sinks),
+          #TEST(lambda n_sources, n_sinks: n_sources <= n_sinks),
           Actuator_facts(actuator_type=Actuator_type.PUMP),
+          Actuator_facts(actuator_location=Location.SINK),
           Actuator_facts(obj=MATCH.actuator),
           Pump_facts(obj=MATCH.pump))
     def not_enough_pumps(self, actuator, pump):
@@ -185,19 +186,22 @@ class System_Configurator(KnowledgeEngine):
           Bays(sources=P(lambda n_sources: n_sources == _FIRST_OF_CLASS)),
           TEST(lambda n_sources, n_sinks: n_sinks == n_sources),
           Actuator_facts(actuator_type=Actuator_type.PUMP),
+          #NOT(System_facts(boosted="delivered")),
           Actuator_facts(obj=MATCH.actuator),
           Pump_facts(obj=MATCH.pump))
     def more_pumps_in_sources(self, actuator, pump, n_sinks):
         print("if it is one to one we prefer the source")
         actuator.location = Location.SOURCE
         pump.location = Location.SOURCE
+        print(self.facts)
 
     @Rule(System_facts(boosted=P(lambda booster: booster == _BOOSTED)),
           Sensors_facts(sensors_sources=MATCH.n_sensors_sources, sensors_sinks=MATCH.n_sensors_sinks),
           Actuator_facts(obj=MATCH.actuator),
           Pump_facts(obj=MATCH.pump),
-          Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks))
-    def is_it_booster(self, actuator, pump, n_sinks, n_sensors_sources, n_sensors_sinks):
+          Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
+          Actuator_facts(pumps_sources=MATCH.n_pumps_sources, pumps_sinks=MATCH.n_pumps_sinks))
+    def is_it_booster(self, actuator, pump, n_sinks, n_sensors_sources, n_sensors_sinks, n_pumps_sources, n_pumps_sinks):
         print("I am the booster to hell")
         actuator.type = Actuator_type.PUMP
         pump.mode = Pump_Mode.CONSTANT_FLOW
@@ -207,6 +211,8 @@ class System_Configurator(KnowledgeEngine):
         self.declare(Actuator_facts(actuator_type=actuator.type))
         self.declare(Bays(sources=_FIRST_OF_CLASS, sinks=n_sinks))
         self.declare(Sensors_facts(sensors_sources=n_sensors_sources, sensors_sinks=n_sensors_sinks))
+        self.declare(Actuator_facts(pumps_sources=n_pumps_sources, pumps_sinks=n_pumps_sinks))
+        #self.declare(System_facts(boosted="delivered"))
         self.run()                                                       # very nice move
 
 
