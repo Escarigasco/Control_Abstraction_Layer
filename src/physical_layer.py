@@ -1,4 +1,5 @@
-# Create two threads as follow
+#!~/Desktop/SwitchBoard/SwitchBoard/bin/activate python
+
 from controller_constant_flow import controller_constant_flow
 from controller_constant_pressure import controller_constant_pressure
 from multiprocessing import Process
@@ -32,7 +33,7 @@ _CONTROLLER_NAME = "controller_name"
 _SHUTTER = "shutter"
 _TEST_COMMS = "4x4?"
 _ANSWER_TO_TEST_COMMS = "16"
-_TIME_OUT = 60
+_TIME_OUT = 10
 _RESET = 0
 _CIRCULATOR_MODE = "circulator_mode"
 _COMPONENTS = "components"
@@ -59,8 +60,8 @@ class physical_layer(object):
                         _KILLER: self.kill_process, _VALVE_STATUS: self.check_valves, _PUMP_STATUS: self.check_pumps,
                         _ACTUATE: self.actuate, _SHUTTER: self.pumps_shutter, _INIT: self.initialization}
 
-        signal.signal(signal.SIGALRM, self.time_out_handler)
-        signal.alarm(_TIME_OUT)
+        #signal.signal(signal.SIGALRM, self.time_out_handler)
+        #signal.alarm(_TIME_OUT)
 
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
@@ -115,9 +116,9 @@ class physical_layer(object):
                             #                    print("Stopped Process {0}".format(process))
                             #            sys.exit()
 
-                if self.loss_of_comms:
-                    self.connection_lost()
-                    self.loss_of_comms = False
+                #if self.loss_of_comms:
+                #    self.connection_lost()
+                #    self.loss_of_comms = False
 
         #except(KeyboardInterrupt, SystemExit, Exception):
         #    if s:
@@ -126,21 +127,21 @@ class physical_layer(object):
         #    print("Physical Layer is closing")
         #    sys.exit()
 
-    def connection_lost(self):
-        signal.alarm(_RESET)
-        print("If there are active self.processes I will terminate them")
-        processes_names = []
-        if self.processes.keys():
-            for name in self.processes.keys():
-                processes_names.append(name)
-            for name in processes_names:
-                self.processes[name].terminate()
-                print("Stopped Process {0}".format(name))
-                self.processes.pop(name)
-        signal.alarm(_TIME_OUT)
+    #def connection_lost(self):
+    #    signal.alarm(_RESET)
+    #    print("If there are active self.processes I will terminate them")
+    #    processes_names = []
+    #    if self.processes.keys():
+    #        for name in self.processes.keys():
+    #            processes_names.append(name)
+    #        for name in processes_names:
+    #            self.processes[name].terminate()
+    #            print("Stopped Process {0}".format(name))
+    #            self.processes.pop(name)
+    #    signal.alarm(_TIME_OUT)
 
-    def time_out_handler(self, signum, frame):
-        self.loss_of_comms = True
+    #def time_out_handler(self, signum, frame):
+    #    self.loss_of_comms = True
 
     def initialization(self, inputs, c):
             inputs.pop(_DESCRIPTION)
@@ -161,29 +162,37 @@ class physical_layer(object):
             c.sendall(message_serialized)
 
     def test_comms(self, inputs, c):
-        signal.alarm(_RESET)
+        #signal.alarm(_RESET)
         print(inputs[_DESCRIPTION])
         inputs[_DESCRIPTION] = _ANSWER_TO_TEST_COMMS
         message_serialized = pickle.dumps(inputs)
         c.sendall(message_serialized)
-        signal.alarm(_TIME_OUT)
+        #signal.alarm(_TIME_OUT)
 
     def process_create(self, inputs, c):
         inputs.pop(_DESCRIPTION)
-        self.queues[inputs[_CONTROLLER_NAME]] = Queue()
-        input_for_controller = (self.data_from_API, inputs[_CONTROLLER_NAME], self.queues[inputs[_CONTROLLER_NAME]])
+        name = inputs[_CONTROLLER_NAME]
+        if name not in self.processes.keys():
+            self.queues[inputs[_CONTROLLER_NAME]] = Queue()
+            input_for_controller = (self.data_from_API, inputs[_CONTROLLER_NAME], self.queues[inputs[_CONTROLLER_NAME]])
 
-        if (inputs[_CIRCULATOR_MODE] == 'PUMP_MODE_CONSTANT_FLOW'):
-            self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_flow.PID_controller, args=input_for_controller)
+            if (inputs[_CIRCULATOR_MODE] == 'PUMP_MODE_CONSTANT_FLOW'):
+                self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_flow.PID_controller, args=input_for_controller)
+            else:
+                print("this is a constant pressure controller")
+                self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_pressure.PID_controller, args=input_for_controller)
+
+            print("New Process started")
+            self.processes[inputs[_CONTROLLER_NAME]].start()
+            feedback = "I have created controller " + inputs[_CONTROLLER_NAME]
+            message_serialized = pickle.dumps(feedback)
+            c.sendall(message_serialized)
         else:
-            print("this is a constant pressure controller")
-            self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_pressure.PID_controller, args=input_for_controller)
-
-        print("New Process started")
-        self.processes[inputs[_CONTROLLER_NAME]].start()
-        feedback = "I have created controller " + inputs[_CONTROLLER_NAME]
-        message_serialized = pickle.dumps(feedback)
-        c.sendall(message_serialized)
+            print("Process {0} is already running".format(name))
+            feedback = "Controller was there already - " + inputs[_CONTROLLER_NAME]
+            message_serialized = pickle.dumps(feedback)
+            c.sendall(message_serialized)
+            pass
         # self.processes[n].join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
     def change_setpoint(self, inputs, c):
@@ -196,13 +205,20 @@ class physical_layer(object):
 
     def kill_process(self, inputs, c):
         inputs.pop(_DESCRIPTION)
-        print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
-        self.processes[inputs[_CONTROLLER_NAME]].terminate()
-        self.processes.pop(inputs[_CONTROLLER_NAME])
-        print("process terminated", inputs[_CONTROLLER_NAME])
-        feedback = "I have killed controller " + inputs[_CONTROLLER_NAME]
-        message_serialized = pickle.dumps(feedback)
-        c.sendall(message_serialized)
+        name = inputs[_CONTROLLER_NAME]
+        if name in self.processes.keys():
+            print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
+            self.processes[inputs[_CONTROLLER_NAME]].terminate()
+            self.processes.pop(inputs[_CONTROLLER_NAME])
+            print("process terminated", inputs[_CONTROLLER_NAME])
+            feedback = "I have killed controller " + inputs[_CONTROLLER_NAME]
+            message_serialized = pickle.dumps(feedback)
+            c.sendall(message_serialized)
+        else:
+            print("There is no one here called ", name)
+            feedback = "There is no one here called " + inputs[_CONTROLLER_NAME]
+            message_serialized = pickle.dumps(feedback)
+            c.sendall(message_serialized)
 
     def check_valves(self, inputs, c):
         #print(inputs)
