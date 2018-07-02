@@ -1,3 +1,5 @@
+
+import pickle
 import sys
 import time
 
@@ -36,6 +38,7 @@ class logic(object):
         self.work_q = work_q
         self.work_pauser = work_pauser
         self.busy_busbars = {}
+
 
     def switchboard_initialization(self, interface):
         system_pumps = interface.get_system_pumps().keys()
@@ -127,6 +130,8 @@ class logic(object):
         return processed_configurations
 
     def find_suitable_setup(self, processed_configurations, pb):
+        self.work_pauser.put(False)
+
         print("I look for a suitable setup")
         for name, attributes in processed_configurations.copy().items():
             if (processed_configurations[name][_STATE] == "Inactive"):
@@ -145,7 +150,7 @@ class logic(object):
         return processed_configurations
 
     def actuate_suitable_setup(self, processed_configurations):
-        #self.work_pauser.put(True)
+
         print("I actuate the suitable setup")
         actuating_message = {}
         valves_translated = []
@@ -168,16 +173,15 @@ class logic(object):
 
         if actuating_message:
             complete = self.comms.send(actuating_message)
-        #time.sleep(10)                     # you need this to allow the online reader to get the new set up
+        self.work_pauser.put(True)
+        time.sleep(5)                     # you need this to allow the online reader to get the new set up
+
         return processed_configurations
 
-    def controller_starter(self, processed_configurations, pm, mssgr):
-        #self.work_pauser.put(False)
-        time.sleep(5)
+    def controller_starter(self, processed_configurations, pm, mssgr, latest_configuration_file_write):
+
         what_comes_out_the_cilinder = []
         print("I check the compatibility and start the controller")
-        #if (not self.work_q.empty()):
-        #    self.online_configuration = self.work_q.get()
         while not self.work_q.empty():
             what_comes_out_the_cilinder.append(self.work_q.get())
         if what_comes_out_the_cilinder:
@@ -189,6 +193,8 @@ class logic(object):
                     if (processed_configurations[name][_MATCH] == "Matched"):
                         print("Preparing Message")
                         processed_configurations[name][_STATE] = mssgr.run(processed_configurations[name][_AVAILABLE_COMPONENTS], processed_configurations[name][_INPUTS], name)
+                        if (processed_configurations[name][_STATE] == "Active"):
+                            self.print_on_file(processed_configurations, latest_configuration_file_write)
                     else:
                         print("There is no match between request and Switchboad setting. Configuration {0} deleted".format(processed_configurations[name]))
 
@@ -196,6 +202,22 @@ class logic(object):
                     print("Skipped")
 
         return processed_configurations
+
+    def controller_restarter(self, processed_configurations, pm, mssgr):
+        print("I am restarting the processes")
+        what_comes_out_the_cilinder = []
+        if (processed_configurations):
+            while not self.work_q.empty():
+                what_comes_out_the_cilinder.append(self.work_q.get())
+            if what_comes_out_the_cilinder:
+                self.online_configuration = what_comes_out_the_cilinder[_LAST_ELEMENT]
+            for name, attributes in processed_configurations.items():
+                    processed_configurations[name][_MATCH] = pm.run(processed_configurations[name][_GRAPH], self.online_configuration)
+                    if (processed_configurations[name][_MATCH] == "Matched"):
+                        processed_configurations[name][_STATE] = mssgr.run(processed_configurations[name][_AVAILABLE_COMPONENTS], processed_configurations[name][_INPUTS], name)
+                        self.busy_busbars[name] = processed_configurations[name][_BUSBARS]
+
+            return processed_configurations
 
     def inactive_configuration_cleaner(self, processed_configurations):
         processed_configurations_names = []
@@ -209,6 +231,13 @@ class logic(object):
         return processed_configurations
 
     def check_the_match(self, processed_configurations, pm, mssgr):
+        #print("I check the match and match won")
+        what_comes_out_the_cilinder = []
+        while not self.work_q.empty():
+            what_comes_out_the_cilinder.append(self.work_q.get())
+        if what_comes_out_the_cilinder:
+            self.online_configuration = what_comes_out_the_cilinder[_LAST_ELEMENT]
+
         processed_configurations_names = []
         for name in processed_configurations.keys():
             processed_configurations_names.append(name)
@@ -238,4 +267,7 @@ class logic(object):
                 self.busy_busbars.pop(name)
                 processed_configurations.pop(name)
 
-        return processed_configurations
+    def print_on_file(self, processed_configurations, latest_configuration_file_write):
+        latest_configuration_file_write.truncate(_BEGIN_WITH) # redundant the load get rid of the contents anyway
+        data = pickle.dump(processed_configurations, latest_configuration_file_write)
+        #file.write(data)

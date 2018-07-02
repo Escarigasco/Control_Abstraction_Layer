@@ -1,3 +1,6 @@
+#!~/Desktop/SwitchBoard/SwitchBoard/bin/activate python
+
+
 from communicator_physical_layer import communicator_physical_layer
 from configuration_reader import configuration_reader
 from interface import interface
@@ -24,7 +27,7 @@ _PORT = 50000              # Arbitrary non-privileged port with API
 _PORT_TO_PHYSICAL = 2000               # Arbitrary non-privileged port with physical layer
 _DESCRIPTION = "description"
 _TEST_COMMS = "4x4?"
-_TIME_OUT = 60
+_TIME_OUT = 10
 _RESET = 0
 
 
@@ -46,20 +49,37 @@ class logical_layer(object):
         self.work_q = Queue()
         self.work_pauser = Queue()
         self.logic = logic(self.comms, self.work_q, self.work_pauser, self.translator)
-        self.logic.switchboard_initialization(self.intf)
+        #self.logic.switchboard_initialization(self.intf)
         self.online_reader = Process(target=cfg.run, args=(self.work_q, self.work_pauser))
         self.online_reader.daemon = True
         self.online_reader.start()
 
+        #with open('file.txt', 'w') as file:
+        #    file.write(pickle.dumps(exDict))
+
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
     def run(self):
-        new_input = False
-        processed_configurations = AutoVivification()  # nothing but a dictionary
-        start_time = time.time()
+        time.sleep(4)
         pb = path_builder(self.intf, self.comms, self.translator)
         pm = path_matcher()
         mssgr = message_for_controller(self.intf, self.comms, self.translator)
+        new_input = False
+        processed_configurations = AutoVivification()  # nothing but a dictionary
+        self.latest_configuration_file_read = open("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/configurations.txt", "rb")
+        try:
+            processed_configurations = pickle.load(self.latest_configuration_file_read)
+            print("read")
+            processed_configurations = self.logic.controller_restarter(processed_configurations, pm, mssgr)
+            print(processed_configurations)
+            self.latest_configuration_file_read.close()
+        except Exception:
+            print("There was nothing online")
+            pass
+        self.latest_configuration_file_write = open("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/configurations.txt", 'wb')
+        #self.logic.print_on_file(processed_configurations, self.latest_configuration_file_write)
+        start_time = time.time()
+
         self.loss_of_comms = False
         #try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # https://stackoverflow.com/questions/45927337/recieve-data-only-if-available-in-python-sockets
@@ -104,29 +124,40 @@ class logical_layer(object):
                             new_input = True
 
                 start_time = self.time_checker(start_time)
-                if not self.loss_of_comms:
-                    if (new_input):
+                if (new_input):
+                    if not self.loss_of_comms:
                         new_input = False
                         processed_configurations = self.logic.find_suitable_setup(processed_configurations, pb)
+                        time.sleep(1)
                         processed_configurations = self.logic.actuate_suitable_setup(processed_configurations)
-                        processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr)
+                        time.sleep(1)
+                        processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr, self.latest_configuration_file_write)
+                        time.sleep(1)
                         processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations)
-                        print(processed_configurations)
+                        time.sleep(1)
+                        #self.logic.print_on_file(self.latest_configuration_file_write, processed_configurations)
 
-                    else:
-                        if processed_configurations:
-                            processed_configurations = self.logic.check_the_match(processed_configurations, pm, mssgr)
-                else:
-                    print(processed_configurations)
-                    if processed_configurations:
-                        processed_configurations = self.logic.clear_everything(processed_configurations)
                         print(processed_configurations)
-                        self.loss_of_comms = False
+                    else:
+                        print("Comms lost with physical layer, configuration {0} not delivered".format(system_input))
+
+                else:
+                    time.sleep(2)
+
+                    if processed_configurations:
+                        processed_configurations = self.logic.check_the_match(processed_configurations, pm, mssgr)
+                 #else:
+                #    print(processed_configurations)
+                #    if processed_configurations:
+                #        processed_configurations = self.logic.clear_everything(processed_configurations)
+                #        print(processed_configurations)
+                #        self.loss_of_comms = False
                 # I am checking the comms here
 
 
 
         #except(KeyboardInterrupt, SystemExit, Exception):
+        #            self.logic.print_on_file(self.latest_configuration_file_write, processed_configurations)
         #            for n in readable:
         #                n.close()
         #            print("Logical Layer Isolated")
