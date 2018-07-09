@@ -140,7 +140,7 @@ class logical_layer(object):
                         print(processed_configurations)
                     else:
                         print("Comms lost with physical layer, configuration {0} not delivered".format(system_input))
-
+                        
                 else:
                     time.sleep(2)
 
@@ -166,6 +166,15 @@ class logical_layer(object):
         #            s.close()
         #            sys.exit()
 
+    def time_checker(self, start_time):
+        stop_time = time.time()
+        #print(stop_time - start_time)
+        if ((stop_time - start_time) > 10):
+            self.check_comms_physical_layer()
+            start_time = time.time()
+        #print("the loss of comms is ", self.loss_of_comms)
+        return start_time
+
     def check_comms_physical_layer(self):
         #print("I am checking connection")
         message_to_send = {_DESCRIPTION: _TEST_COMMS}
@@ -190,14 +199,7 @@ class logical_layer(object):
     def time_out_handler(self, signum, frame):
         self.loss_of_comms = True
 
-    def time_checker(self, start_time):
-        stop_time = time.time()
-        #print(stop_time - start_time)
-        if ((stop_time - start_time) > 10):
-            self.check_comms_physical_layer()
-            start_time = time.time()
-        #print("the loss of comms is ", self.loss_of_comms)
-        return start_time
+
 
 if __name__ == "__main__":
     start_time = time.time()

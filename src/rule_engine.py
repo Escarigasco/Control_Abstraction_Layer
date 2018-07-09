@@ -29,12 +29,12 @@ class Number(Flags):
 class Pump_Mode(Flags):
     """this will also be the controller name"""
     # OFF = ["OFF"] does this exist?
-    CONSTANT_SPEED = ["PUMP_MODE_CONSTANT_SPEED"]               # 0
-    CONSTANT_FREQUENCY = ["PUMP_MODE_CONSTANT_FREQUENCY"]       # 1
-    CONSTANT_HEAD = ["PUMP_MODE_CONSTANT_HEAD"]                 # 2
-    CONSTANT_PRESSURE = ["PUMP_MODE_CONSTANT_PRESSURE"]         # 3
-    CONSTANT_FLOW = ["PUMP_MODE_CONSTANT_FLOW"]                 # 4
-    CONSTANT_TEMP = ["PUMP_MODE_CONSTANT_TEMP"]                 # 5
+    CONSTANT_SPEED = ["0"]               # 0
+    CONSTANT_FREQUENCY = ["1"]       # 1
+    CONSTANT_HEAD = ["2"]                 # 2
+    CONSTANT_PRESSURE = ["3"]         # 3
+    CONSTANT_FLOW = ["4"]                 # 4
+    CONSTANT_TEMP = ["5"]                 # 5
 
 
 class Actuator_type(Flags):
