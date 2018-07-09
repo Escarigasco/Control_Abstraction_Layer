@@ -176,7 +176,7 @@ class physical_layer(object):
             self.queues[inputs[_CONTROLLER_NAME]] = Queue()
             input_for_controller = (self.data_from_API, inputs[_CONTROLLER_NAME], self.queues[inputs[_CONTROLLER_NAME]])
 
-            if (inputs[_CIRCULATOR_MODE] == 'PUMP_MODE_CONSTANT_FLOW'):
+            if (inputs[_CIRCULATOR_MODE] == '4'):
                 self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_flow.PID_controller, args=input_for_controller)
             else:
                 print("this is a constant pressure controller")

@@ -1,5 +1,6 @@
 import syslab
 import syslab.core.datatypes.CompositeMeasurement as CM
+import syslab.core.datatypes.HeatCirculationPumpMode as PM
 import time
 import sys
 
@@ -10,6 +11,9 @@ _TURN_ME_OFF = 0.0
 _VALVES = 'Valves_active'
 _VALVES_TO_SHUT = 'Valves_to_shut'
 _PUMP = "Pump"
+_SOURCE = 1
+_VALIDITY = 1
+_ZERO = 0
 
 
 class physical_logic(object):
@@ -34,8 +38,9 @@ class physical_logic(object):
         print("Initialization of the equipment")
         valves_status_checker = {}
         complete = False
-        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER)
-        circulator_mode = "PUMP_MODE_CONSTANT_FLOW"
+        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        circulator_mode = 4
+        circulator_mode = PM(circulator_mode, time.time() * _MULTIPLIER)
         opening_threshold = 0.05
         for pump in inputs[_PUMP]:
                     #self.interface.setPumpControlMode(pumps, circulator_mode)
@@ -53,7 +58,6 @@ class physical_logic(object):
                 if ((sum(opening for opening in valves_status_checker.values()) <= opening_threshold)):
                     complete = True
         return [complete, self.valves_status]
-
 
     def get_pumps_status(self, pumps_for_physical_layer):
         print("I am reading pumps")
@@ -92,8 +96,8 @@ class physical_logic(object):
         valves_to_shut_status = {}
         opening_threshold = len(valves) * 0.9
         closing_threshold = len(valves_status) * 0.1
-        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER)
-        CompositMess = CM(_TURN_ME_ON, time.time() * _MULTIPLIER)
+        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        CompositMess = CM(_TURN_ME_ON, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         complete = False
         for valve in valves_to_shut:
             self.interface.setValvePosition(valve, CompositMess_Shut)
@@ -136,7 +140,7 @@ class physical_logic(object):
 
     def shut_pumps(self, pumps):
         pumps = pumps[_PUMP]
-        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER)
+        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         circulator_mode = "PUMP_MODE_CONSTANT_FLOW"
         for pump in pumps:
                 #self.interface.setPumpControlMode(pumps, circulator_mode)
