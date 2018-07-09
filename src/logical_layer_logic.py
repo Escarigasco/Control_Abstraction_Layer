@@ -193,14 +193,14 @@ class logic(object):
                     if (processed_configurations[name][_MATCH] == "Matched"):
                         print("Preparing Message")
                         processed_configurations[name][_STATE] = mssgr.run(processed_configurations[name][_AVAILABLE_COMPONENTS], processed_configurations[name][_INPUTS], name)
-                        if (processed_configurations[name][_STATE] == "Active"):
-                            self.print_on_file(processed_configurations, latest_configuration_file_write)
+            #            if (processed_configurations[name][_STATE] == "Active"):
                     else:
                         print("There is no match between request and Switchboad setting. Configuration {0} deleted".format(processed_configurations[name]))
 
                 else:
                     print("Skipped")
 
+            self.print_on_file(processed_configurations, latest_configuration_file_write)
         return processed_configurations
 
     def controller_restarter(self, processed_configurations, pm, mssgr):
@@ -216,7 +216,6 @@ class logic(object):
                     if (processed_configurations[name][_MATCH] == "Matched"):
                         processed_configurations[name][_STATE] = mssgr.run(processed_configurations[name][_AVAILABLE_COMPONENTS], processed_configurations[name][_INPUTS], name)
                         self.busy_busbars[name] = processed_configurations[name][_BUSBARS]
-
             return processed_configurations
 
     def inactive_configuration_cleaner(self, processed_configurations):
