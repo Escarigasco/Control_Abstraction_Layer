@@ -2,23 +2,44 @@
 # remember that additional gain can be added by multiplying the error by a constant
 # you could initialize this controller as a class when you initialize the logical layer and then call the method that start the thread every time you need it
 '''''''YOU HAVE TO DO SOMETHING TO CONSIDER THE PRESSURE SETPOINT AT THE PUMP THAT YOU MAY WANT TO REDUCE/INCREASE TO BOOST/REDUCE THE MAX FLOW POINT'''
+import matplotlib.pyplot as plt
+import numpy
 import pickle
 import signal
 import sys
 import syslab
 import syslab.core.datatypes.CompositeMeasurement as CM
+import syslab.core.datatypes.HeatCirculationPumpMode as PM
 import time
 _BUILDING_NAME = "716-h1"
 _CONTROL_TIME = 1
-_MULTIPLIER = 1000000
+_MULTIPLIER = 0.000001
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
 _MINUTES_THRESHOLDS = 100
+_SOURCE = 1
+_VALIDITY = 1
+_ZERO = 0
 
 
 class controller_constant_pressure(object):
 
     def PID_controller(self, inputs, process_ID, queue):
+        plt.show()
+        plt.ion()
+        self.xdata = [[], []]
+        self.ydata = [[], []]
+        f, (self.ax1, self.ax2) = plt.subplots(2, 1)
+        self.ax1.set_xlim(0, 100)
+        self.ax1.set_ylim(-50, +50)
+        self.ax2.set_xlim(0, 100)
+        self.ax2.set_ylim(-50, +50)
+        self.line, = self.ax1.plot(self.xdata[0], self.ydata[0], 'r-')
+        self.line2, = self.ax2.plot(self.xdata[1] * 2, self.ydata[1], 'b-')
+        self.line.set_xdata(self.xdata)
+        self.line.set_ydata(self.ydata)
+        self.plot_array = [self.ax1, self.ax2]
+        self.line_array = [self.line, self.line2]
         self.thresholds = []
         start_time = time.time()
         self.n = 0
@@ -38,7 +59,7 @@ class controller_constant_pressure(object):
         ki = float(inputs["ki"])
         gain = float(inputs["gain"])
         circulators = inputs["circulator"]
-        circulator_mode = inputs["circulator_mode"]
+        circulator_mode = int(inputs["circulator_mode"])
         feedback_sensor = inputs["feedback_sensor"]
         actuators = inputs["actuator"]
         valves = inputs["valves"]
@@ -57,11 +78,22 @@ class controller_constant_pressure(object):
         CompositMess = [_FIRST_OF_CLASS] * len(actuators)
         error_development = [[] for n in range(len(feedback_sensor))]
         time_response = [[] for n in range(len(feedback_sensor))]
+
+        for n in range(0, len(feedback_sensor)):
+            title = "Time Response Signal Sensor " + feedback_sensor[n]
+            self.plot_array[n].set_title(title)
+        if len(feedback_sensor) < len(self.plot_array):
+            title = "No more sensors"
+            self.plot_array[-1].set_title(title)
+
+
         #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
-        shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER)
+        shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
-            #interface.setPumpControlMode(pumps_of_circuit[n], circulator_mode)
+            print(circulator_mode)
+            mode = PM(circulator_mode, time.time() * _MULTIPLIER)
+            #interface.setPumpControlMode(pumps_of_circuit[n], mode)
             #interface.setPumpSetpoint(pumps_of_circuit[n], shut_mess)
             print("mode set in pump ", pumps_of_circuit[n], "with setpoint to 0")
         signal.signal(signal.SIGTERM, self.signal_term_handler)
@@ -101,17 +133,21 @@ class controller_constant_pressure(object):
                     else:
                         actuator_signal[n] = controller_output_percentage[n]
                     print("The actuator signal is ", actuator_signal[n])
-                    CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER)
+                    CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
                     pre_error[n] = error_value[n]
                 for n in range(_FIRST_OF_CLASS, len(actuators)):
                     #interface.setPumpSetpoint(actuators[n], CompositMess[n])
                     print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
-                    error_development[n].append(error_value[n])
-                    time_response[n].append(feedback_value[n])  # Save as previous error.
+                    self.ydata[n].append(feedback_value[n])  # Save as previous error.
+                    self.xdata[n].append(time.time() - start_time)
+                    error_development[n] = error_value[n]
+                    time_response[n] = feedback_value[n]  # Save as previous error.
+
+                self.update_line(time_response, error_development, start_time)
 
             except (KeyboardInterrupt, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
-                CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
+                CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
                 for circulator in circulators:
                     #interface.setPumpSetpoint(circulator, CompositMess)
                     print("Circulator {0} is now at zero flow".format(circulator))
@@ -130,13 +166,13 @@ class controller_constant_pressure(object):
         sys.exit(0)
 
     def pump_setpoint_converter(self, volume_flow):
-        pump_max_volume_flow = 10 # this is correct
+        pump_max_volume_flow = 10  # this is correct
         volume_flow_in_percent = 100 * (volume_flow / pump_max_volume_flow)
         return volume_flow_in_percent
 
     def shut_down_routine(self, circulators, valves):
         shut_down_signal = 0
-        CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER)
+        CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         for circulator in circulators:
             print("Circulators are off")
             #interface.setPumpSetpoint(circulator, CompositMess)
@@ -144,8 +180,31 @@ class controller_constant_pressure(object):
             print("Valves are closed")
             #interface.setPumpSetpoint(valve, CompositMess)
 
+    def update_line(self, time_response, error_development, start_time):
+        max_dimension = 50
+        removable = 20
+        limits = 20
+        stop_time = time.time()
+        stop_watch = stop_time - start_time
+        n = 0
+        #print(len(self.xdata[0]))
+        for plot in self.plot_array:
+            if (self.xdata[n]):
+                    plot.set_xlim(max(self.xdata[n]) - limits, max(self.xdata[n]) + limits)
+                    plot.set_ylim(max(self.ydata[n]) - limits, max(self.ydata[n]) + limits)
+                    self.line_array[n].set_xdata(self.xdata[n])
+                    self.line_array[n].set_ydata(self.ydata[n])
+                    if len(self.xdata[n]) > max_dimension:
+                        del self.xdata[n][:removable]
+                        del self.ydata[n][:removable]
+
+            n += 1
+        plt.draw()
+        plt.pause(1e-17)
+
+
 if __name__ == "__main__":
-    test = controller_constant_flow()
+    test = controller_constant_pressure()
     input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": ['Pump_Bay8', 'Pump_Bay7'], "circulator_mode":
                             'PUMP_MODE_CONSTANT_FLOW', "actuator": ['Pump_Bay8', 'Pump_Bay7'], "setpoint": [1, 2],
                             "feedback_sensor": ['Bay_8', 'Bay_7']}
