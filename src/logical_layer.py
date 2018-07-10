@@ -48,7 +48,7 @@ class logical_layer(object):
         self.busy_busbars = {}
         self.work_q = Queue()
         self.work_pauser = Queue()
-        self.logic = logic(self.comms, self.work_q, self.work_pauser, self.translator)
+        self.logic = logic(self.comms, self.work_q, self.work_pauser, self.translator, self.intf)
         #self.logic.switchboard_initialization(self.intf)
         self.online_reader = Process(target=cfg.run, args=(self.work_q, self.work_pauser))
         self.online_reader.daemon = True
@@ -140,7 +140,7 @@ class logical_layer(object):
                         print(processed_configurations)
                     else:
                         print("Comms lost with physical layer, configuration {0} not delivered".format(system_input))
-                        
+
                 else:
                     time.sleep(2)
 

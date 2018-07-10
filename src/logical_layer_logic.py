@@ -28,21 +28,24 @@ _BIT_SHIFT = 1
 _LAST_ELEMENT = -1
 _INIT = "init"
 _COMPONENTS = "components"
+_SHUTTER = "shutter"
 
 
 class logic(object):
-    def __init__(self, comms, work_q, work_pauser, translator):
+    def __init__(self, comms, work_q, work_pauser, translator, interface):
         a = 0
         self.translator = translator
         self.comms = comms
         self.work_q = work_q
         self.work_pauser = work_pauser
         self.busy_busbars = {}
-
+        self.interface = interface
+        self.system_pumps = self.interface.get_system_pumps()
+        self.system_valves = self.interface.get_system_valves()
 
     def switchboard_initialization(self, interface):
-        system_pumps = interface.get_system_pumps().keys()
-        system_valves = interface.get_system_valves().keys()
+        system_pumps = self.system_pumps.keys()
+        system_valves = self.system_valves.keys()
         translated_valves = []
         translated_pumps = []
         for valve in system_valves:
@@ -150,6 +153,22 @@ class logic(object):
         return processed_configurations
 
     def actuate_suitable_setup(self, processed_configurations):
+        '''this is slightly redundant as when a controller is shutted the pumps are turned off'''
+        print("Let me shut down some pumps first")
+        configuration_pumps = []
+        translated_pumps = []
+        for name in processed_configurations.keys():
+            configuration_pumps += processed_configurations[name][_AVAILABLE_COMPONENTS][_PUMPS]
+        configuration_pumps = [pump.ID for pump in configuration_pumps]
+        print("These are the pumps I am going to use ", configuration_pumps)
+        all_other_pumps = self.system_pumps.keys()
+        pumps_to_shut = [pump for pump in all_other_pumps if pump not in configuration_pumps]
+        print("These are the pumps to shut ", pumps_to_shut)
+        for pump in pumps_to_shut:
+            translated_pumps.append(self.translator.components(pump))
+        init_message = {_DESCRIPTION: _SHUTTER, _PUMP: translated_pumps}
+        feedback = self.comms.send(init_message)
+        print(feedback)
 
         print("I actuate the suitable setup")
         actuating_message = {}
