@@ -43,7 +43,7 @@ class current_status_reader(object):
 
             #print(valves_for_translation)
             for valve in valves_for_translation.keys():
-                if valve == _DESCRIPTION:
+                if valve == _DESCRIPTION:  # check routine
                     sys.exit()
                 valves_for_logical_layer[self.translator.reverse_components(valve)] = valves_for_translation[valve]
 
