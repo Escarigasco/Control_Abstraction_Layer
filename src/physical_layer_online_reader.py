@@ -3,6 +3,7 @@ from physical_logic import physical_logic
 import pickle
 import select
 import socket
+import sys
 import time
 
 
@@ -46,25 +47,25 @@ class physical_layer_online_reader(object):
                             new_input = True
                             print("request received")
 
-                        #try:
-                        if not self.queue.empty():
-                            self.p_logic.update_valves(self.queue.get())
-                        if (new_input):
-                            #print(inputs)
-                            self.check_valves(inputs, c)
+                        try:
+                            if not self.queue.empty():
+                                self.p_logic.update_valves(self.queue.get())
+                            if (new_input):
+                                #print(inputs)
+                                self.check_valves(inputs, c)
 
-                            new_input = False
+                                new_input = False
 
-                            #except(KeyboardInterrupt, SystemExit, Exception):
-                            #            c.close()
-                            #            print("Now has stopped")
-                            #            s.shutdown(socket.SHUT_RDWR)
-                            #            s.close()
-                            #            if self.processes.keys():
-                            #                for process in self.processes.items():
-                            #                    process.terminate()
-                            #                    print("Stopped Process {0}".format(process))
-                            #            sys.exit()
+                        except(KeyboardInterrupt, SystemExit, Exception):
+                                c.close()
+                                print("Now has stopped")
+                                s.shutdown(socket.SHUT_RDWR)
+                                s.close()
+                                if self.processes.keys():
+                                    for process in self.processes.items():
+                                        process.terminate()
+                                        print("Stopped Process {0}".format(process))
+                                sys.exit()
 
 
         #except(KeyboardInterrupt, SystemExit, Exception):

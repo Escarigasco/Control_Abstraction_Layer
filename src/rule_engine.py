@@ -131,7 +131,8 @@ class System_Configurator(KnowledgeEngine):
 
     '''this is the first macro domain of n_sources > n_sinks'''
     @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
-          TEST(lambda n_sources, n_sinks: n_sources > n_sinks),
+          AND(TEST(lambda n_sources, n_sinks: n_sources >= n_sinks),
+          TEST(lambda n_sources: n_sources > _FIRST_OF_CLASS)),
           Actuator_facts(actuator_type=Actuator_type.__all_flags__),
           Pump_facts(pump_mode=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__),
           Actuator_facts(obj=MATCH.actuator),
@@ -150,7 +151,8 @@ class System_Configurator(KnowledgeEngine):
 
     '''this is the second macro domain of n_sources <= n_sinks'''
     @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
-          TEST(lambda n_sources, n_sinks: n_sinks >= n_sources),
+          AND(TEST(lambda n_sources, n_sinks: n_sinks >= n_sources),
+          TEST(lambda n_sources: n_sources == _FIRST_OF_CLASS)),
           Actuator_facts(actuator_type=Actuator_type.__all_flags__),
           Pump_facts(pump_mode=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__),
           Actuator_facts(obj=MATCH.actuator),
