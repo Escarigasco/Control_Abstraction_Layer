@@ -54,7 +54,7 @@ class physical_logic(object):
                 #self.interface.setValvePosition(valve, CompositMess_Shut)
             #time.sleep(10)
             for valve in inputs[_VALVES_TO_SHUT]:
-                valves_status_checker[valve] = 0.0 #self.interface.getValvePosition(valve)
+                valves_status_checker[valve] = 0.0  #self.interface.getValvePosition(valve)
                 if ((sum(opening for opening in valves_status_checker.values()) <= opening_threshold)):
                     complete = True
         return [complete, self.valves_status]
@@ -94,24 +94,34 @@ class physical_logic(object):
         valves_to_shut = inputs[_VALVES_TO_SHUT]
         valves_status = {}
         valves_to_shut_status = {}
-        opening_threshold = len(valves) * 0.9
-        closing_threshold = len(valves_status) * 0.1
+        opening_threshold = len(valves) * 0.95
+        closing_threshold = len(valves_to_shut) * 0.1
         CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-        CompositMess = CM(_TURN_ME_ON, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        CompositMess_Open = CM(_TURN_ME_ON, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         complete = False
         for valve in valves_to_shut:
+            time.sleep(0.1)
             self.interface.setValvePosition(valve, CompositMess_Shut)
+            print("I have set to 0 valve ", valve)
         for valve in valves:
-            self.interface.setValvePosition(valve, CompositMess)
+            time.sleep(0.1)
+            self.interface.setValvePosition(valve, CompositMess_Open)
+            print("I have set to 1 valve ", valve)
+        time.sleep(5)
         while not complete:
+            time.sleep(1)
             for valve in valves:
                 valves_status[valve] = self.interface.getValvePosition(valve).value
-                time.sleep(0.2)
+                print("valves status")
+                print(valves_status)
+                time.sleep(0.1)
             for valve in valves_to_shut:
                 valves_to_shut_status[valve] = self.interface.getValvePosition(valve).value
-                time.sleep(0.2)
-            if ((sum(opening for opening in valves_status.values()) >= opening_threshold)
-               & (sum(opening for opening in valves_to_shut_status.values()) <= closing_threshold)):
+                print("valves to shut status")
+                print(valves_to_shut_status)
+                time.sleep(0.1)
+            if ((sum(opening for opening in valves_status.values()) > opening_threshold) &
+               (sum(opening for opening in valves_to_shut_status.values()) < closing_threshold)):
                 complete = True
         return complete
 
