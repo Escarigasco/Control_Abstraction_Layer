@@ -218,8 +218,8 @@ class logic(object):
 
                 else:
                     print("Skipped")
-
-            self.print_on_file(processed_configurations, latest_configuration_file_write)
+            print(self.busy_busbars)
+            self.print_on_file(latest_configuration_file_write, processed_configurations)
         return processed_configurations
 
     def controller_restarter(self, processed_configurations, pm, mssgr):
@@ -235,9 +235,10 @@ class logic(object):
                     if (processed_configurations[name][_MATCH] == "Matched"):
                         processed_configurations[name][_STATE] = mssgr.run(processed_configurations[name][_AVAILABLE_COMPONENTS], processed_configurations[name][_INPUTS], name)
                         self.busy_busbars[name] = processed_configurations[name][_BUSBARS]
+
             return processed_configurations
 
-    def inactive_configuration_cleaner(self, processed_configurations):
+    def inactive_configuration_cleaner(self, processed_configurations, latest_configuration_file_write):
         processed_configurations_names = []
         for name in processed_configurations.keys():
             processed_configurations_names.append(name)
@@ -245,7 +246,8 @@ class logic(object):
             if (processed_configurations[name][_STATE] == "Inactive"):
                 self.busy_busbars.pop(name)
                 processed_configurations.pop(name)
-
+        if not processed_configurations:
+            self.print_on_file(latest_configuration_file_write)
         return processed_configurations
 
     def check_the_match(self, processed_configurations, pm, mssgr):
@@ -285,7 +287,10 @@ class logic(object):
                 self.busy_busbars.pop(name)
                 processed_configurations.pop(name)
 
-    def print_on_file(self, processed_configurations, latest_configuration_file_write):
-        latest_configuration_file_write.truncate(_BEGIN_WITH) # redundant the load get rid of the contents anyway
-        data = pickle.dump(processed_configurations, latest_configuration_file_write)
-        #file.write(data)
+    def print_on_file(self, latest_configuration_file_write, processed_configurations=[]):
+        if processed_configurations:
+            latest_configuration_file_write.truncate(_BEGIN_WITH)  # redundant the load get rid of the contents anyway - no fundamental not to keep witing configurations onf the top of the other
+            data = pickle.dump(processed_configurations, latest_configuration_file_write)
+            #file.write(data)
+        else:
+            latest_configuration_file_write.truncate(_BEGIN_WITH)  # redundant the load get rid of the contents anyway - no fundamental not to keep witing configurations onf the top of the other

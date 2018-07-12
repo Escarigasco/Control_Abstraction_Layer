@@ -77,6 +77,8 @@ class logical_layer(object):
             print("There was nothing online")
             pass
         self.latest_configuration_file_write = open("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/configurations.txt", 'wb')
+        if processed_configurations:
+            self.logic.print_on_file(self.latest_configuration_file_write, processed_configurations)
         #self.logic.print_on_file(processed_configurations, self.latest_configuration_file_write)
         start_time = time.time()
 
@@ -133,7 +135,7 @@ class logical_layer(object):
                         time.sleep(1)
                         processed_configurations = self.logic.controller_starter(processed_configurations, pm, mssgr, self.latest_configuration_file_write)
                         time.sleep(1)
-                        processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations)
+                        processed_configurations = self.logic.inactive_configuration_cleaner(processed_configurations, self.latest_configuration_file_write)
                         time.sleep(1)
                         #self.logic.print_on_file(self.latest_configuration_file_write, processed_configurations)
 
