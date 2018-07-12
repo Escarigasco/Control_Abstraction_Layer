@@ -95,26 +95,26 @@ class physical_layer(object):
                             #print("Message received")
                             inputs = pickle.loads(self.data_from_API)
                             new_input = True
-                        #try:
-                        if (new_input):
-                            #print(inputs)
+                        try:
+                            if (new_input):
+                                #print(inputs)
 
-                            method = self.methods.get(inputs[_DESCRIPTION], lambda: None)
-                            if method:
-                                method(inputs, c)
+                                method = self.methods.get(inputs[_DESCRIPTION], lambda: None)
+                                if method:
+                                    method(inputs, c)
 
-                            new_input = False
+                                new_input = False
 
-                            #except(KeyboardInterrupt, SystemExit, Exception):
-                            #            c.close()
-                            #            print("Now has stopped")
-                            #            s.shutdown(socket.SHUT_RDWR)
-                            #            s.close()
-                            #            if self.processes.keys():
-                            #                for process in self.processes.items():
-                            #                    process.terminate()
-                            #                    print("Stopped Process {0}".format(process))
-                            #            sys.exit()
+                        except(KeyboardInterrupt, SystemExit, Exception):
+                                    c.close()
+                                    print("Now has stopped")
+                                    s.shutdown(socket.SHUT_RDWR)
+                                    s.close()
+                                    if self.processes.keys():
+                                        for process in self.processes.items():
+                                            process.terminate()
+                                            print("Stopped Process {0}".format(process))
+                                    sys.exit()
 
                 #if self.loss_of_comms:
                 #    self.connection_lost()
@@ -206,9 +206,12 @@ class physical_layer(object):
     def kill_process(self, inputs, c):
         inputs.pop(_DESCRIPTION)
         name = inputs[_CONTROLLER_NAME]
+        killed = False
         if name in self.processes.keys():
             print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
-            self.processes[inputs[_CONTROLLER_NAME]].terminate()
+            while self.processes[inputs[_CONTROLLER_NAME]].is_alive():
+                time.sleep(0.1)
+                self.processes[inputs[_CONTROLLER_NAME]].terminate()
             self.processes.pop(inputs[_CONTROLLER_NAME])
             print("process terminated", inputs[_CONTROLLER_NAME])
             feedback = "I have killed controller " + inputs[_CONTROLLER_NAME]
@@ -238,6 +241,7 @@ class physical_layer(object):
         #print(valves_for_logical_layer)
         c.sendall(message_serialized)
 
+    '''if you want to move to the simulator, you have to uncomment all the below'''
     def actuate(self, inputs, c):
         '''Here you should firs check if actuation is necessary - not really at the end of the day because it will confirm a setpoint and it's not a big issue'''
         inputs.pop(_DESCRIPTION)
@@ -245,6 +249,7 @@ class physical_layer(object):
         complete = self.p_logic.set_hydraulic_simulated_circuit(inputs)
         self.work_q.put(complete[_FIRST_OF_CLASS])
         message_serialized = pickle.dumps(complete[_BEGIN_WITH])
+        #message_serialized = pickle.dumps(complete)
         c.sendall(message_serialized)
 
     def pumps_shutter(self, inputs, c):
@@ -259,7 +264,6 @@ class physical_layer(object):
 
 if __name__ == "__main__":
     test = physical_layer()
-
 
 # the circulator is selected automatically - what about the operation mode?
 # where actuator is specified?
