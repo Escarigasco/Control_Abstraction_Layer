@@ -25,6 +25,7 @@ _ZERO = 0
 class controller_constant_flow(object):
 
     def PID_controller(self, inputs, process_ID, queue):
+        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
         plt.ion()
         self.xdata = [[], []]
@@ -88,7 +89,6 @@ class controller_constant_flow(object):
             title = "No more sensors"
             self.plot_array[-1].set_title(title)
 
-        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
         shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
@@ -113,9 +113,9 @@ class controller_constant_flow(object):
             print("Control Thread {0} running".format(process_ID))
             for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
                 print(n)
+                feedback_value[n] = 1
                 #feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
                 #print(interface.getThermalPower(feedback_sensor[n]))
-                feedback_value[n] = 1
                 if feedback_value[n] == "NaN":
                     feedback_value[n] = 0     # --->>> really bad though
                 print("feedback taken from sensor {0} with setpoint {1} ".format(feedback_sensor[n], setpoint[n]))
@@ -183,7 +183,7 @@ class controller_constant_flow(object):
     def update_line(self, time_response, error_development, start_time):
         max_dimension = 50
         removable = 20
-        limits = 20
+        limits = 10
         stop_time = time.time()
         stop_watch = stop_time - start_time
         n = 0

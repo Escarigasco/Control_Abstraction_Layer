@@ -25,6 +25,7 @@ _ZERO = 0
 class controller_constant_pressure(object):
 
     def PID_controller(self, inputs, process_ID, queue):
+        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
         plt.ion()
         self.xdata = [[], []]
@@ -86,8 +87,6 @@ class controller_constant_pressure(object):
             title = "No more sensors"
             self.plot_array[-1].set_title(title)
 
-
-        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         shut_down_signal = 0
         shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
@@ -183,7 +182,7 @@ class controller_constant_pressure(object):
     def update_line(self, time_response, error_development, start_time):
         max_dimension = 50
         removable = 20
-        limits = 20
+        limits = 10
         stop_time = time.time()
         stop_watch = stop_time - start_time
         n = 0
