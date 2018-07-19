@@ -92,12 +92,16 @@ class controller_constant_flow(object):
 
         shut_down_signal = 0
         shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-        for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
+        '''for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
             print(circulator_mode)
-            mode = PM(circulator_mode, time.time() * _MULTIPLIER)
-            #interface.setPumpControlMode(pumps_of_circuit[n], mode)
-            #interface.setPumpSetpoint(pumps_of_circuit[n], shut_mess)
-            print("mode set in pump ", pumps_of_circuit[n], "with setpoint to 0")
+            interface.stopPump(pumps_of_circuit[n])
+            print("Pump ", pumps_of_circuit[n], "was stopped")'''
+        half_power_signal = 0.01
+        '''half_power = CM(half_power_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        for pump in circulators:
+            interface.startPump(pump)
+            interface.setPumpSetpoint(pump, half_power)
+            print("Pump ", pumps_of_circuit[n], "was started")'''
 
         start_time = time.time()
         signal.signal(signal.SIGTERM, self.signal_term_handler)

@@ -32,7 +32,7 @@ class physical_logic(object):
             "Pump_Bay7": 0.0,
             "Pump_Bay8": 0.0}
 
-        #self.interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        self.interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
 
     def initialization(self, inputs):
         print("Initialization of the equipment")
@@ -150,13 +150,10 @@ class physical_logic(object):
 
     def shut_pumps(self, pumps):
         pumps = pumps[_PUMP]
-        CompositMess_Shut = CM(_TURN_ME_OFF, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-        # circulator_mode = "PUMP_MODE_CONSTANT_FLOW"
         for pump in pumps:
-                #self.interface.setPumpControlMode(pumps, circulator_mode)
-                #self.interface.setPumpSetpoint(circulator, CompositMess_Shut)
-                print("setpoint at 0 for pump ", pump)
-        return ("All the pumps not in use are with setpoint 0")
+                self.interface.stopPump(pump)
+                print("Pump ", pump, " was stopped")
+        return ("All the pumps not in use have been stopped")
 
     def update_valves(self, valves):
         self.valves_status = valves
