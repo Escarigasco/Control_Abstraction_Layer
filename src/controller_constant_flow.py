@@ -3,6 +3,7 @@
 # you could initialize this controller as a class when you initialize the logical layer and then call the method that start the thread every time you need it
 '''THE CONTROL TIME WILL EVENTUALLY GO IN THE CONFIGURATION FILE AS IT WILL BE DIFFERENT FROM CONTANT PRESSURE TO CONSTANT FLOW OR WHATEVER'''
 import matplotlib.pyplot as plt
+from multiprocessing import Queue
 import numpy
 import pickle
 import signal
@@ -205,8 +206,10 @@ class controller_constant_flow(object):
 
 if __name__ == "__main__":
     test = controller_constant_flow()
-    input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": ['Pump_Bay8', 'Pump_Bay7'], "circulator_mode":
-                            'PUMP_MODE_CONSTANT_FLOW', "actuator": ['Pump_Bay8', 'Pump_Bay7'], "setpoint": [1, 2],
-                            "feedback_sensor": ['Bay_8', 'Bay_7']}
+    input_for_controller = {'controller_name': "['Source_1BH4']['Sink_1H7']N", 'description': 'creator',
+                            'gain': '1', 'kp': '2.58', 'ki': '2.58', 'kd': '0', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay7'],
+                            'circulator': ['Pump_Bay4'], 'circulator_mode': '4', 'actuator': ['Pump_Bay4'], 'setpoint': [2],
+                            'feedback_sensor': ['Bay_7'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_7H-Busbar_2F', 'Bay_7L-Busbar_1R']}
+    queue = Queue()
     inputs = pickle.dumps(input_for_controller)
-    test.PID_controller(inputs, "test_controller")
+    test.PID_controller(inputs, input_for_controller['controller_name'], queue)

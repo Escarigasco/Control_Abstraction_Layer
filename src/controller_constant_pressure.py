@@ -3,6 +3,7 @@
 # you could initialize this controller as a class when you initialize the logical layer and then call the method that start the thread every time you need it
 '''''''YOU HAVE TO DO SOMETHING TO CONSIDER THE PRESSURE SETPOINT AT THE PUMP THAT YOU MAY WANT TO REDUCE/INCREASE TO BOOST/REDUCE THE MAX FLOW POINT'''
 import matplotlib.pyplot as plt
+from multiprocessing import Queue
 import numpy
 import pickle
 import signal
@@ -12,7 +13,7 @@ import syslab.core.datatypes.CompositeMeasurement as CM
 import syslab.core.datatypes.HeatCirculationPumpMode as PM
 import time
 _BUILDING_NAME = "716-h1"
-_CONTROL_TIME = 1
+_CONTROL_TIME = 15
 _MULTIPLIER = 0.000001
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
@@ -25,7 +26,7 @@ _ZERO = 0
 class controller_constant_pressure(object):
 
     def PID_controller(self, inputs, process_ID, queue):
-        #interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
+        interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
         plt.ion()
         self.xdata = [[], []]
@@ -53,7 +54,7 @@ class controller_constant_pressure(object):
         print(inputs)
         self.process_ID = process_ID
         max = 1
-        min = 0.1
+        min = 0.111
         pumps_of_circuit = inputs["pumps_of_circuit"]
         kp = float(inputs["kp"])
         kd = float(inputs["kd"])
@@ -89,16 +90,21 @@ class controller_constant_pressure(object):
 
         shut_down_signal = 0
         shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-        for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
+        '''for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
             print(circulator_mode)
-            mode = PM(circulator_mode, time.time() * _MULTIPLIER)
-            #interface.setPumpControlMode(pumps_of_circuit[n], mode)
-            #interface.setPumpSetpoint(pumps_of_circuit[n], shut_mess)
-            print("mode set in pump ", pumps_of_circuit[n], "with setpoint to 0")
+            mode = PM(circulator_mode, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+            interface.setPumpControlMode(pumps_of_circuit[n], mode)
+            interface.setPumpSetpoint(pumps_of_circuit[n], shut_mess)
+            print("mode set in pump ", pumps_of_circuit[n], "with setpoint to 0")'''
+        half_power_signal = 0.01
+        '''half_power = CM(half_power_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        for pump in circulators:
+            interface.setPumpSetpoint(pump, half_power)'''
+
         signal.signal(signal.SIGTERM, self.signal_term_handler)
         while(1):
 
-            try:
+            #try:
                 time.sleep(_CONTROL_TIME)
                 if (not self.work_q.empty()):
                     received_setpoint = self.work_q.get()
@@ -110,8 +116,8 @@ class controller_constant_pressure(object):
                 print("Control Thread {0} running".format(process_ID))
                 for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
                     print(n)
-                    feedback_value[n] = 1
-                    #feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
+                    #feedback_value[n] = 1
+                    feedback_value[n] = interface.getThermalPower(feedback_sensor[n]).value
                     #print(interface.getThermalPower(feedback_sensor[n]))
                     if feedback_value[n] == "NaN":
                         feedback_value[n] = 0     # --->>> really bad though
@@ -119,44 +125,47 @@ class controller_constant_pressure(object):
                     #feedback_value[n] = 0
                     print(feedback_value[n])
                     error_value[n] = gain * (setpoint[n] - feedback_value[n])       # Calculate the error
+                    print("the error is ", error_value[n])
+                    if (abs(error_value[n]) >= 0.05):
+                        integral[n] = (integral[n] + error_value[n]) - windup_corrector[n]              # Calculate integral
+                        derivative[n] = error_value[n] - pre_error[n]           # Calculate derivative
+                        controller_output[n] = (kp * error_value[n]) + (ki * integral[n]) + (kd * derivative[n])  # Calculate the controller_output, pwm.
+                        print("The controller output is ", controller_output[n])
+                        windup_corrector[n] = self.controller_wind_up(actuator_signal[n], controller_output[n], ki)
+                        controller_output_percentage[n] = self.pump_setpoint_converter(controller_output[n])
+                        controller_output_percentage[n] = controller_output[n]
+                        if (controller_output_percentage[n] > max):
+                            actuator_signal[n] = 0.8  # Limit the controller_output to maximum 100.
+                        elif (controller_output_percentage[n] < min):
+                            actuator_signal[n] = 0.2
+                        else:
+                            actuator_signal[n] = controller_output_percentage[n]
+                        print("The actuator signal is ", actuator_signal[n])
+                        CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                        pre_error[n] = error_value[n]
+                if (abs(error_value[n]) >= 0.05):
+                    for n in range(_FIRST_OF_CLASS, len(actuators)):
+                        #interface.setValvePosition(actuators[n], CompositMess[n])
+                        print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
+                        self.ydata[n].append(feedback_value[n])  # Save as previous error.
+                        self.xdata[n].append(time.time() - start_time)
 
-                    integral[n] = (integral[n] + error_value[n]) - windup_corrector[n]              # Calculate integral
-                    derivative[n] = error_value[n] - pre_error[n]           # Calculate derivative
-                    controller_output[n] = (kp * error_value[n]) + (ki * integral[n]) + (kd * derivative[n])  # Calculate the controller_output, pwm.
-                    windup_corrector[n] = self.controller_wind_up(actuator_signal[n], controller_output[n], ki)
-                    controller_output_percentage[n] = self.pump_setpoint_converter(controller_output[n])
-                    if (controller_output_percentage[n] > max):
-                        actuator_signal[n] = 1  # Limit the controller_output to maximum 100.
-                    elif (controller_output_percentage[n] < min):
-                        actuator_signal[n] = 0.111
-                    else:
-                        actuator_signal[n] = controller_output_percentage[n]
-                    print("The actuator signal is ", actuator_signal[n])
-                    CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-                    pre_error[n] = error_value[n]
-                for n in range(_FIRST_OF_CLASS, len(actuators)):
-                    #interface.setPumpSetpoint(actuators[n], CompositMess[n])
-                    print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
-                    self.ydata[n].append(feedback_value[n])  # Save as previous error.
-                    self.xdata[n].append(time.time() - start_time)
-                    error_development[n] = error_value[n]
-                    time_response[n] = feedback_value[n]  # Save as previous error.
 
-                self.update_line(time_response, error_development, start_time)
+                self.update_line()
 
-            except (KeyboardInterrupt, SystemExit):
+            #except (KeyboardInterrupt, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
-                CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-                for circulator in circulators:
+            #    CompositMess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+            #    for circulator in circulators:
                     #interface.setPumpSetpoint(circulator, CompositMess)
-                    print("Circulator {0} is now at zero flow".format(circulator))
-                sys.exit(0)
-            except Exception:
+            #        print("Circulator {0} is now at zero flow".format(circulator))
+            #    sys.exit(0)
+            #except Exception:
                 '''there is the condition because it will keep except'''
-                self.shut_down_routine(circulators, valves)
+            #    self.shut_down_routine(circulators, valves)
 
     def controller_wind_up(self, actuator_signal, controller_output, ki):
-        error_saturation = actuator_signal - controller_output
+        error_saturation = controller_output - actuator_signal
         windup_corrector = error_saturation / ki
         return windup_corrector
 
@@ -179,12 +188,10 @@ class controller_constant_pressure(object):
             print("Valves are closed")
             #interface.setPumpSetpoint(valve, CompositMess)
 
-    def update_line(self, time_response, error_development, start_time):
+    def update_line(self):
         max_dimension = 50
         removable = 20
-        limits = 10
-        stop_time = time.time()
-        stop_watch = stop_time - start_time
+        limits = 1
         n = 0
         #print(len(self.xdata[0]))
         for plot in self.plot_array:
@@ -204,8 +211,11 @@ class controller_constant_pressure(object):
 
 if __name__ == "__main__":
     test = controller_constant_pressure()
-    input_for_controller = {"gain": 1, "kp": 2.58, "ki": 2.58, "kd": 0, "circulator": ['Pump_Bay8', 'Pump_Bay7'], "circulator_mode":
-                            'PUMP_MODE_CONSTANT_FLOW', "actuator": ['Pump_Bay8', 'Pump_Bay7'], "setpoint": [1, 2],
-                            "feedback_sensor": ['Bay_8', 'Bay_7']}
+    input_for_controller = {'controller_name': "['Source_1DH6']['Sink_1H7']N", 'description': 'creator',
+                            'gain': '1', 'kp': '2.58', 'ki': '1.5', 'kd': '0', 'pumps_of_circuit': ['Pump_Bay6', 'Pump_Bay7'],
+                            'circulator': ['Pump_Bay6'], 'circulator_mode': '2', 'actuator': ['Bay_7H-Busbar_2F'],
+                            'setpoint': [0.3], 'feedback_sensor': ['Bay_7'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_7H-Busbar_2F', 'Bay_7L-Busbar_1R']}
+
+    queue = Queue()
     inputs = pickle.dumps(input_for_controller)
-    test.PID_controller(inputs, "test_controller")
+    test.PID_controller(inputs, input_for_controller['controller_name'], queue)
