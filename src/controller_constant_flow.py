@@ -14,6 +14,7 @@ import syslab.core.datatypes.HeatCirculationPumpMode as PM
 import time
 _BUILDING_NAME = "716-h1"
 _CONTROL_TIME = 40
+_ACQUISITION_TIME = 1
 _MULTIPLIER = 0.000001
 _OFF = "OFF"
 _FIRST_OF_CLASS = 0
@@ -21,6 +22,8 @@ _MINUTES_THRESHOLDS = 100
 _SOURCE = 1
 _VALIDITY = 1
 _ZERO = 0
+_MAX_SAT = 0.1
+_MIN_SAT = 9
 
 
 class controller_constant_flow(object):
@@ -80,8 +83,6 @@ class controller_constant_flow(object):
         error_value = [_FIRST_OF_CLASS] * len(feedback_sensor)
         self.thresholds = [_FIRST_OF_CLASS] * len(feedback_sensor)
         CompositMess = [_FIRST_OF_CLASS] * len(actuators)
-        error_development = [[] for n in range(len(feedback_sensor))]
-        time_response = [[] for n in range(len(feedback_sensor))]
 
         for n in range(0, len(feedback_sensor)):
             title = "Time Response Signal Sensor " + feedback_sensor[n]
@@ -93,7 +94,6 @@ class controller_constant_flow(object):
         shut_down_signal = 0
         shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         mode = PM(circulator_mode, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-        #for n in range(_FIRST_OF_CLASS, len(pumps_of_circuit)):
         for pump in pumps_of_circuit:
             if pump not in circulators:
                 print(circulator_mode)
@@ -108,10 +108,12 @@ class controller_constant_flow(object):
             print("Pump ", pumps_of_circuit[n], "was started")
 
         start_time = time.time()
+        counter_time = time.time()
         signal.signal(signal.SIGTERM, self.signal_term_handler)
         while(1):
 
             #try:
+            stop_time = time.time()
             if (not self.work_q.empty()):
                 received_setpoint = self.work_q.get()
                 setpoint = [float(n) for n in received_setpoint]
@@ -127,41 +129,27 @@ class controller_constant_flow(object):
                 if feedback_value[n] == "NaN":
                     feedback_value[n] = 0     # --->>> really bad though
                 print("feedback taken from sensor {0} with setpoint {1} ".format(feedback_sensor[n], setpoint[n]))
-                #feedback_value[n] = 0
-                print(feedback_value[n])
-                error_value[n] = setpoint[n] - feedback_value[n]    # Calculate the error
-
-                integral[n] = (integral[n] + error_value[n]) # - windup_corrector[n]              # Calculate integral
-                print("The integral error is ", integral[n])
-                derivative[n] = error_value[n] - pre_error[n]           # Calculate derivative
-                #controller_output[n] = (kp * error_value[n]) + (ki * integral[n]) + (kd * derivative[n])  # Calculate the controller_output, pwm.
-                actuator_signal[n] = integral[n]
-                if actuator_signal[n] < 0:
-                    actuator_signal[n] = 0.1
-                elif actuator_signal[n] > 9:
-                    actuator_signal[n] = 9
-
-                #windup_corrector[n] = self.controller_wind_up(actuator_signal[n], controller_output[n], ki)
-                #controller_output_percentage[n] = self.pump_setpoint_converter(controller_output[n])
-                #if (controller_output_percentage[n] > max):
-                #    actuator_signal[n] = 100  # Limit the controller_output to maximum 100.
-                #elif (controller_output_percentage[n] < min):
-                #    actuator_signal[n] = 1
-                #else:
-                #    actuator_signal[n] = controller_output_percentage[n]
-                print("The actuator signal is ", actuator_signal[n])
-                CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-                interface.setMaxFlowLimit(actuators[n], CompositMess[n])
-                #pre_error[n] = error_value[n]
-            for n in range(_FIRST_OF_CLASS, len(actuators)):
-                #interface.setPumpSetpoint(actuators[n], CompositMess[n])
                 print("Setpoint {0} was sent to actuator {1}".format(actuator_signal[n], actuators[n]))
                 self.ydata[n].append(feedback_value[n])  # Save as previous error.
                 self.xdata[n].append(time.time() - start_time)
-                error_development[n] = error_value[n]
-                time_response[n] = feedback_value[n]  # Save as previous error.
-            self.update_line(time_response, error_development, start_time)
-            time.sleep(_CONTROL_TIME)
+                #feedback_value[n] = 0
+                print(feedback_value[n])
+                self.update_line()
+
+            if stop_time - counter_time > _CONTROL_TIME:
+                for n in range(_FIRST_OF_CLASS, len(feedback_sensor)):
+                    error_value[n] = setpoint[n] - feedback_value[n]    # Calculate the error
+                    integral[n] = ki * (integral[n] + error_value[n])  # - windup_corrector[n]              # Calculate integral
+                    integral[n] = self.anti_windup(integral[n])
+                    print("The integral error is ", integral[n])
+                    actuator_signal[n] = integral[n]
+                    actuator_signal[n] = self.saturation(actuator_signal[n])
+                    print("The actuator signal is ", actuator_signal[n])
+                    CompositMess[n] = CM(actuator_signal[n], time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                    interface.setMaxFlowLimit(actuators[n], CompositMess[n])
+                counter_time = time.time()
+
+            time.sleep(_ACQUISITION_TIME)
 
             #except (KeyboardInterrupt, SystemExit):
                 #interface.setPumpMode(actuators[_FIRST_OF_CLASS], _OFF) I don't think exist
@@ -173,10 +161,24 @@ class controller_constant_flow(object):
             #    '''there is the condition because it will keep except'''
             #    self.shut_down_routine(circulators, valves)
 
-    def controller_wind_up(self, actuator_signal, controller_output, ki):
-        error_saturation = actuator_signal - controller_output
-        windup_corrector = error_saturation / ki
-        return windup_corrector
+    def anti_windup(self, integral_error):
+        '''to be confirmed if we want a minimum of wind up tolerance'''
+        if integral_error > _MAX_SAT:
+            integral_error = integral_error - (integral_error - _MAX_SAT)
+        elif integral_error < _MIN_SAT:
+            integral_error = integral_error + (_MIN_SAT - integral_error)
+        else:
+            pass
+        return integral_error
+
+    def saturation(self, actuator_signal):
+        min = 0
+        max = 9
+        if actuator_signal <= min:
+            actuator_signal = _MIN_SAT
+        elif actuator_signal >= max:
+            actuator_signal = _MAX_SAT
+        return actuator_signal
 
     def signal_term_handler(self, signal, frame):
         print('got SIGTERM - the process was killed as the configuration was not matched any more')
@@ -197,12 +199,10 @@ class controller_constant_flow(object):
             print("Valves are closed")
             #interface.setPumpSetpoint(valve, CompositMess)
 
-    def update_line(self, time_response, error_development, start_time):
+    def update_line(self):
         max_dimension = 50
         removable = 20
         limits = 10
-        stop_time = time.time()
-        stop_watch = stop_time - start_time
         n = 0
         #print(len(self.xdata[0]))
         for plot in self.plot_array:
@@ -223,7 +223,7 @@ class controller_constant_flow(object):
 if __name__ == "__main__":
     test = controller_constant_flow()
     input_for_controller = {'controller_name': "['Source_1BH4']['Sink_1H7']N", 'description': 'creator',
-                            'gain': '1', 'kp': '2.58', 'ki': '2.58', 'kd': '0', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay7'],
+                            'gain': '1', 'kp': '2.58', 'ki': '1', 'kd': '0', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay7'],
                             'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [0.5],
                             'feedback_sensor': ['Bay_7'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_7H-Busbar_2F', 'Bay_7L-Busbar_1R']}
     queue = Queue()
