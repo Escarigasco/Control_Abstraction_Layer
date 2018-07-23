@@ -95,26 +95,26 @@ class physical_layer(object):
                             #print("Message received")
                             inputs = pickle.loads(self.data_from_API)
                             new_input = True
-                        try:
-                            if (new_input):
-                                #print(inputs)
+                        #try:
+                        if (new_input):
+                            #print(inputs)
 
-                                method = self.methods.get(inputs[_DESCRIPTION], lambda: None)
-                                if method:
-                                    method(inputs, c)
+                            method = self.methods.get(inputs[_DESCRIPTION], lambda: None)
+                            if method:
+                                method(inputs, c)
 
-                                new_input = False
+                            new_input = False
 
-                        except(KeyboardInterrupt, SystemExit, Exception):
-                                    c.close()
-                                    print("Now has stopped")
-                                    s.shutdown(socket.SHUT_RDWR)
-                                    s.close()
-                                    if self.processes.keys():
-                                        for process in self.processes.items():
-                                            process.terminate()
-                                            print("Stopped Process {0}".format(process))
-                                    sys.exit()
+                        #except(KeyboardInterrupt, SystemExit, Exception):
+                        #            c.close()
+                        #            print("Now has stopped")
+                        #            s.shutdown(socket.SHUT_RDWR)
+                        #            s.close()
+                        #            if self.processes.keys():
+                        #                for process in self.processes.items():
+                        #                    process.terminate()
+                        #                    print("Stopped Process {0}".format(process))
+                        #            sys.exit()
 
                 #if self.loss_of_comms:
                 #    self.connection_lost()
@@ -197,11 +197,18 @@ class physical_layer(object):
 
     def change_setpoint(self, inputs, c):
         inputs.pop(_DESCRIPTION)
+        name = inputs[_CONTROLLER_NAME]
         print("Mi è stato detto di cambiarti setpoint Mr., ", inputs[_CONTROLLER_NAME])
-        self.queues[inputs[_CONTROLLER_NAME]].put(inputs[_SETPOINT])
-        feedback = "I have changed setpoint to controller {0}, the new setpoint is {1}".format(inputs[_CONTROLLER_NAME], inputs[_SETPOINT])
-        message_serialized = pickle.dumps(feedback)
-        c.sendall(message_serialized)
+        if name in self.processes.keys():
+            self.queues[name].put(inputs[_SETPOINT])
+            feedback = "I have changed setpoint to controller {0}, the new setpoint is {1}".format(name, inputs[_SETPOINT])
+            message_serialized = pickle.dumps(feedback)
+            c.sendall(message_serialized)
+        else:
+            print("There is no one here called ", name)
+            feedback = "There is no one here called " + name
+            message_serialized = pickle.dumps(feedback)
+            c.sendall(message_serialized)
 
     def kill_process(self, inputs, c):
         inputs.pop(_DESCRIPTION)

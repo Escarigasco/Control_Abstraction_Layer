@@ -112,11 +112,15 @@ class physical_logic(object):
             time.sleep(1)
             for valve in valves:
                 valves_status[valve] = self.interface.getValvePosition(valve).value
+                if not isinstance(valves_status[valve], float):
+                    valves_status[valve] = 0
                 print("valves status")
                 print(valves_status)
                 time.sleep(0.1)
             for valve in valves_to_shut:
                 valves_to_shut_status[valve] = self.interface.getValvePosition(valve).value
+                if not isinstance(valves_to_shut_status[valve], float):
+                    valves_to_shut_status[valve] = 0
                 print("valves to shut status")
                 print(valves_to_shut_status)
                 time.sleep(0.1)
@@ -151,8 +155,8 @@ class physical_logic(object):
     def shut_pumps(self, pumps):
         pumps = pumps[_PUMP]
         for pump in pumps:
-                self.interface.stopPump(pump)
-                print("Pump ", pump, " was stopped")
+            self.interface.stopPump(pump)
+            print("Pump ", pump, " was stopped")
         return ("All the pumps not in use have been stopped")
 
     def update_valves(self, valves):

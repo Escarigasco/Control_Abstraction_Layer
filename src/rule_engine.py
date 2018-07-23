@@ -31,8 +31,8 @@ class Pump_Mode(Flags):
     # OFF = ["OFF"] does this exist?
     CONSTANT_SPEED = ["0"]               # 0
     CONSTANT_FREQUENCY = ["1"]       # 1
-    CONSTANT_HEAD = ["2"]                 # 2
-    CONSTANT_PRESSURE = ["4"]         # 3
+    CONSTANT_HEAD = ["3"]                 # 2
+    CONSTANT_PRESSURE = ["3"]         # 3
     CONSTANT_FLOW = ["0"]                 # 4
     CONSTANT_TEMP = ["5"]                 # 5
 

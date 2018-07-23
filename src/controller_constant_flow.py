@@ -100,6 +100,7 @@ class controller_constant_flow(object):
                 print(circulator_mode)
                 interface.setPumpControlMode(pump, mode)
                 interface.stopPump(pump)
+                time.sleep(0.2)
                 print("Pump ", pump, "has been stopped")
         full_power_signal = 100
         full_power = CM(full_power_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
@@ -108,6 +109,7 @@ class controller_constant_flow(object):
             interface.startPump(pump)
             interface.setPumpControlMode(pump, mode)
             interface.setPumpSetpoint(pump, full_power)
+            time.sleep(0.2)
             print("Pump ", pump, "was started")
 
         start_time = time.time()

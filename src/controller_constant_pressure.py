@@ -108,6 +108,7 @@ class controller_constant_pressure(object):
             if pump not in circulators:
                 print(circulator_mode)
                 interface.stopPump(pump)
+                time.sleep(0.2)
                 print("Pump ", pump, "has been stopped")
         full_power_signal = 100
         flow_limit_signal = 9
@@ -118,6 +119,7 @@ class controller_constant_pressure(object):
             interface.setPumpControlMode(pump, mode)
             interface.setPumpSetpoint(pump, full_power)
             interface.setMaxFlowLimit(pump, flow_limit)
+            time.sleep(0.2)
             print("Pump ", pumps_of_circuit[n], "was started")
 
         start_time = time.time()
