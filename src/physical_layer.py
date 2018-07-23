@@ -176,7 +176,7 @@ class physical_layer(object):
             self.queues[inputs[_CONTROLLER_NAME]] = Queue()
             input_for_controller = (self.data_from_API, inputs[_CONTROLLER_NAME], self.queues[inputs[_CONTROLLER_NAME]])
 
-            if (inputs[_CIRCULATOR_MODE] == '4'):
+            if (inputs[_CIRCULATOR_MODE] == '0'):
                 self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_flow.PID_controller, args=input_for_controller)
             else:
                 print("this is a constant pressure controller")
@@ -226,8 +226,8 @@ class physical_layer(object):
     def check_valves(self, inputs, c):
         #print(inputs)
         inputs.pop(_DESCRIPTION)
-        #valves_for_logical_layer = self.p_logic.get_valves_status(inputs)
-        valves_for_logical_layer = self.p_logic.get_valves_simulated_status(inputs)
+        valves_for_logical_layer = self.p_logic.get_valves_status(inputs)
+        #valves_for_logical_layer = self.p_logic.get_valves_simulated_status(inputs)
         message_serialized = pickle.dumps(valves_for_logical_layer)
         #print(valves_for_logical_layer)
         c.sendall(message_serialized)
@@ -245,11 +245,11 @@ class physical_layer(object):
     def actuate(self, inputs, c):
         '''Here you should firs check if actuation is necessary - not really at the end of the day because it will confirm a setpoint and it's not a big issue'''
         inputs.pop(_DESCRIPTION)
-        #complete = self.p_logic.set_hydraulic_circuit(inputs)
-        complete = self.p_logic.set_hydraulic_simulated_circuit(inputs)
-        self.work_q.put(complete[_FIRST_OF_CLASS])
-        message_serialized = pickle.dumps(complete[_BEGIN_WITH])
-        #message_serialized = pickle.dumps(complete)
+        complete = self.p_logic.set_hydraulic_circuit(inputs)
+        message_serialized = pickle.dumps(complete)
+        #complete = self.p_logic.set_hydraulic_simulated_circuit(inputs)
+        #self.work_q.put(complete[_FIRST_OF_CLASS])
+        #message_serialized = pickle.dumps(complete[_BEGIN_WITH])
         c.sendall(message_serialized)
 
     def pumps_shutter(self, inputs, c):

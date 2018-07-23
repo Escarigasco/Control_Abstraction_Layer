@@ -1,12 +1,14 @@
-[PUMP_MODE_CONSTANT_PRESSURE]
+[3]
+name = constant_pressure
 gain = 1
-kp = 2.58
-ki = 2.58
+kp = 0.1
+ki = 0.1
 kd = 0
 
 
-[PUMP_MODE_CONSTANT_FLOW]
+[0]
+name = constant_flow
 gain = 1
-kp = 2.58
-ki = 2.58
+kp = 1
+ki = 1
 kd = 0

@@ -75,7 +75,7 @@ class physical_logic(object):
         return pumps_for_logical_layer
 
     def get_valves_status(self, valves_for_physical_layer):
-        print("I am reading circuit")
+        #print("I am reading circuit")
         valves_for_logical_layer = {}
         for valve in valves_for_physical_layer.keys():
             opening = self.interface.getValvePosition(valve)
