@@ -36,8 +36,8 @@ class controller_constant_curve(object):
         print(inputs)
         inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']N", 'description': 'creator',
                   'gain': '1', 'kp': '5', 'ki': '8', 'kd': '0', 'ki_valve': '0.1', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
-                  'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [3],
-                  'feedback_sensor': ['Bay_4'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R']}
+                  'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [1.5],
+                  'feedback_sensor': ['Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R']}
         print("Controller Constant Flow Started")
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
@@ -77,6 +77,7 @@ class controller_constant_curve(object):
         gain = float(inputs["gain"])
         circulators = inputs["circulator"]
         circulator_mode = int(inputs["circulator_mode"])
+        circulator_mode_P = 4
         print(circulator_mode)
         feedback_sensor = inputs["feedback_sensor"]
         actuators = inputs["actuator"]
@@ -107,11 +108,12 @@ class controller_constant_curve(object):
 
         shut_down_signal = 0
         shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-        mode = PM(circulator_mode, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        mode_C = PM(circulator_mode, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        mode_P = PM(circulator_mode_P, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         for pump in pumps_of_circuit:
             if pump not in circulators:
                 print(circulator_mode)
-                interface.setPumpControlMode(pump, mode)
+                interface.setPumpControlMode(pump, mode_C)
                 interface.stopPump(pump)
                 time.sleep(0.2)
                 print("Pump ", pump, "has been stopped")
@@ -121,7 +123,7 @@ class controller_constant_curve(object):
         n = 0
         for pump in circulators:
             interface.startPump(pump)
-            interface.setPumpControlMode(pump, mode)
+            interface.setPumpControlMode(pump, mode_C)
             interface.setPumpSetpoint(pump, half_power)
             time.sleep(0.2)
             print("Pump ", pump, "was started")
@@ -185,6 +187,11 @@ class controller_constant_curve(object):
                                 print("I am heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeer")
                                 integral_valve[0] = interface.getValvePosition("Bay_3L-Busbar_1R").value
                                 valve_reg = True
+                                interface.setPumpControlMode(actuators[n], mode_P)
+                                print("Pump {0} was set to {1}".format(actuators[n], mode_P))
+                                pressure_setpoint = CM(interface.getPumpHead(actuators[n]).value, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                                interface.setPumpSetpoint(actuators[n], pressure_setpoint)
+
                         else:
                             counter_time = time.time()
                             first_call = True
@@ -206,10 +213,13 @@ class controller_constant_curve(object):
                         if ((error_value[n] > _TOLERANCE) and (actuator_signal[n] <= _MIN_SAT_PUMP) and (valve_position >= 0.9)):
                                 valve_reg = False
                                 first_call = True
+                                interface.setPumpControlMode(actuators[n], mode_C)
+                                curve_setpoint = CM(_MIN_SAT_PUMP, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                                interface.setPumpSetpoint(actuators[n], curve_setpoint)
+                                print("Pump {0} was set to {1}".format(actuators[n], mode_C))
                                 integral[_BEGIN_WITH] = _MIN_SAT_PUMP
                         else:
                             counter_time = time.time()
-
 
                 time.sleep(_ACQUISITION_TIME)
 
