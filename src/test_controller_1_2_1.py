@@ -35,8 +35,8 @@ class controller_constant_curve(object):
         inputs = pickle.loads(inputs)
         print(inputs)
         inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']N", 'description': 'creator',
-                  'gain': '1', 'kp': '5', 'ki': '8', 'kd': '0', 'ki_valve': '0.1', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
-                  'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [1.5],
+                  'gain': '1', 'kp': '4', 'ki': '7', 'kd': '0', 'ki_valve': '0.1', 'pumps_of_circuit': ['Pump_Bay6', 'Pump_Bay3', 'Pump_Bay4'],
+                  'circulator': ['Pump_Bay4', 'Pump_Bay6'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4', 'Pump_Bay6' ], 'setpoint': [4],
                   'feedback_sensor': ['Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R']}
         print("Controller Constant Flow Started")
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
@@ -57,6 +57,7 @@ class controller_constant_curve(object):
         self.line_array = [self.line, self.line2]
 
         self.thresholds = []
+        control_time = 25
         start_time = time.time()
         self.n = 0
         self.work_q = queue
@@ -132,6 +133,7 @@ class controller_constant_curve(object):
         counter_time = time.time()
         counter_time_valve = time.time()
         signal.signal(signal.SIGTERM, self.signal_term_handler)
+        time.sleep(12.5)
         while(1):
 
             #try:
@@ -162,7 +164,7 @@ class controller_constant_curve(object):
                     #feedback_value[n] = 0
                     self.update_line()
 
-                if stop_time - counter_time > _CONTROL_TIME:
+                if stop_time - counter_time > control_time:
                     if not valve_reg:
                         print("I am actuating with pump")
                         for n in range(_BEGIN_WITH, len(feedback_sensor)):
@@ -187,6 +189,7 @@ class controller_constant_curve(object):
                                 print("I am heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeer")
                                 integral_valve[0] = interface.getValvePosition("Bay_3L-Busbar_1R").value
                                 valve_reg = True
+                                control_time = 45
                                 interface.setPumpControlMode(actuators[n], mode_P)
                                 print("Pump {0} was set to {1}".format(actuators[n], mode_P))
                                 pressure_setpoint = CM(interface.getPumpHead(actuators[n]).value, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
@@ -212,6 +215,7 @@ class controller_constant_curve(object):
                         #counter_time = time.time()
                         if ((error_value[n] > _TOLERANCE) and (actuator_signal[n] <= _MIN_SAT_PUMP) and (valve_position >= 0.9)):
                                 valve_reg = False
+                                control_time = 25
                                 first_call = True
                                 interface.setPumpControlMode(actuators[n], mode_C)
                                 curve_setpoint = CM(_MIN_SAT_PUMP, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
