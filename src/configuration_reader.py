@@ -38,6 +38,7 @@ class configuration_reader(object):
         system_sensors = self.config_reader.get_system_sensors()
         system_valves = self.config_reader.get_system_valves()
         system_lines = self.config_reader.get_system_lines()
+        print(system_lines)
         system_pipes = self.config_reader.get_system_pipes()
         system_connected_devices = self.config_reader.get_connected_devices()
         # self.system_bays = self.config_reader.get_hydraulic_bays()
@@ -128,6 +129,7 @@ class configuration_reader(object):
                                                             line_devices = {**line.line_sensors, **line.pumps}.values()
                                                             sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                                             iterate_sensor = system_valves[valve]
+
                                                             for line_device in sorted_devices:
                                                                 # if (sensors[sensor].get_status()):
 
@@ -177,13 +179,19 @@ class configuration_reader(object):
                                                                 pass
 
                                                 elif (system_valves[valve].get_flow() == _COLD_FLOW):
+
                                                     lines = line_position[bay]
+                                                    print(lines)
                                                     for line in lines:
                                                         if (line.flow_type == _COLD_FLOW):
-
+                                                            print(valve)
                                                             line_devices = {**line.line_sensors, **line.pumps}.values()
                                                             sorted_devices = sorted(line_devices, key=lambda line_object: line_object.position)  # this is to respect the imposed order
                                                             iterate_sensor = system_valves[valve]
+                                                            print(line)
+                                                            print(bay)
+                                                            print(line_devices)
+                                                            print(sorted_devices)
                                                             for line_device in sorted_devices:
                                                                 # if (sensors[sensor].get_status()):
 

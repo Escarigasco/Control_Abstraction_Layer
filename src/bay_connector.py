@@ -1,7 +1,6 @@
 # connector class - abstraction of the container of the two lines
 # connector lines are specified in order to distinguish among sending and return
 
-
 from connector_line import connector_line
 from system_sensor import system_sensor
 from connected_device import connected_device

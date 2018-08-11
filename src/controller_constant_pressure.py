@@ -34,6 +34,13 @@ _MAX_WIN = 0.20
 class controller_constant_pressure(object):
 
     def PID_controller(self, inputs, process_ID, queue):
+        inputs = pickle.loads(inputs)
+        print(inputs)
+        inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']['Sink_1DL2']N", 'description': 'creator',
+                  'gain': '1', 'kp': '0.2', 'ki': '0.1', 'kd': '0', 'ki_valve': '0.1', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
+                  'circulator': ['Pump_Bay4'], 'circulator_mode': '4', 'actuator': ['Bay_2L-Busbar_1R', 'Bay_3L-Busbar_1R'], 'setpoint': [2, 2],
+                  'feedback_sensor': ['Bay_2', 'Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
+                  'sources_meters': ['Bay_4']}
         print("Controller Constant Pressure Started")
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
@@ -60,7 +67,7 @@ class controller_constant_pressure(object):
         active_circuit = True
         print("Control Process {0} started".format(process_ID))
         print("I am process", process_ID)
-        inputs = pickle.loads(inputs)
+        #inputs = pickle.loads(inputs)
         print(inputs)
         self.process_ID = process_ID
         max = 100
@@ -114,6 +121,7 @@ class controller_constant_pressure(object):
         flow_limit_signal = 9
         full_power = CM(full_power_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
         flow_limit = CM(flow_limit_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+        #optimum_pressure = self.find_optimum_pressure(circulators, interface, sources_meters)
         for pump in circulators:
             interface.startPump(pump)
             interface.setPumpControlMode(pump, mode)
@@ -260,6 +268,30 @@ class controller_constant_pressure(object):
 
         plt.draw()
         plt.pause(1e-17)
+
+    '''if you set the pressure at the top you are fine because you will be running over the last rmp'''
+    def find_optimum_pressure(self, circulators, interface, sources_meters):
+        print("I am looking for the optimum")
+        pressure = 95
+        try_flow = 0
+        cumulative_flow = 0
+        while pressure < 100:
+            pressure += 5
+            print("The pump setpoint is ", pressure)
+            for pump in circulators:
+                CompositPressure = CM(pressure, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                interface.setPumpSetpoint(pump, CompositPressure)
+            time.sleep(1)
+            for meter in sources_meters:
+                cumulative_flow += interface.getFlow(meter).value
+                print("the cumulative flow is ", cumulative_flow)
+            if cumulative_flow > try_flow:
+                try_flow = cumulative_flow
+                optimum_pressure = pressure
+                print("the optimum_pressure is ", optimum_pressure)
+            cumulative_flow = 0
+
+        return optimum_pressure
 
 
 if __name__ == "__main__":

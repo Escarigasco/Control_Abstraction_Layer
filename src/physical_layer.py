@@ -2,6 +2,7 @@
 
 from controller_constant_flow import controller_constant_flow
 from controller_constant_pressure import controller_constant_pressure
+from test_controller_1_2_1 import controller_constant_curve
 from multiprocessing import Process
 from multiprocessing import Queue
 from physical_layer_online_reader import physical_layer_online_reader
@@ -52,6 +53,7 @@ class physical_layer(object):
         self.p_logic = physical_logic()
         self.op_controller_flow = controller_constant_flow()
         self.op_controller_pressure = controller_constant_pressure()
+        self.op_controller_pressure = controller_constant_curve()
         self.processes = {}
         self.queues = {}
         new_input = False
@@ -177,7 +179,7 @@ class physical_layer(object):
             input_for_controller = (self.data_from_API, inputs[_CONTROLLER_NAME], self.queues[inputs[_CONTROLLER_NAME]])
 
             if (inputs[_CIRCULATOR_MODE] == '0'):
-                self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_flow.PID_controller, args=input_for_controller)
+                self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_curve.PID_controller, args=input_for_controller)
             else:
                 print("this is a constant pressure controller")
                 self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_pressure.PID_controller, args=input_for_controller)
