@@ -24,10 +24,10 @@ _VALIDITY = 1
 _ZERO = 0
 _MIN_SAT_PUMP = 41
 _MAX_SAT_PUMP = 100
-_MIN_SAT_VALVE = 0.3
+_MIN_SAT_VALVE = 0.25
 _MAX_SAT_VALVE = 1
-_TOLERANCE = 0.1
-_FEEDFORWARD_KICK = 1
+_TOLERANCE = -0.1
+_FEEDFORWARD_KICK = 0.7
 _DENSITY = 999
 _Cp = 4.186
 _HOUR_CONVERTER = 3600
@@ -36,6 +36,8 @@ _RPM_MAX = 3500
 _PERCENT = 100
 _PUMP = "pump"
 _VALVE = "valve"
+_MAX_HEAD = 6
+_READING_CORRECTOR = 10
 
 
 class controller_constant_curve(object):
@@ -44,7 +46,7 @@ class controller_constant_curve(object):
         inputs = pickle.loads(inputs)
         print(inputs)
         inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']N", 'description': 'creator',
-                  'gain': '1', 'kp': '4', 'ki': '7', 'kd': '0', 'ki_valve': '0.1', 'pumps_of_circuit': ['Pump_Bay6', 'Pump_Bay3', 'Pump_Bay4'],
+                  'gain': '1', 'kp': '3', 'ki': '4', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
                   'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [4],
                   'feedback_sensor': ['Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
                   'actuator_valve': "Bay_3L-Busbar_1R"}
@@ -52,19 +54,19 @@ class controller_constant_curve(object):
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
         plt.ion()
-        self.xdata = [[], []]
-        self.ydata = [[], []]
-        f, (self.ax1, self.ax2) = plt.subplots(2, 1)
+        self.xdata = []
+        self.ydata = []
+        f, self.ax1 = plt.subplots(1, 1)
         self.ax1.set_xlim(0, 100)
         self.ax1.set_ylim(-50, +50)
-        self.ax2.set_xlim(0, 100)
-        self.ax2.set_ylim(-50, +50)
-        self.line, = self.ax1.plot(self.xdata[0], self.ydata[0], 'r-')
-        self.line2, = self.ax2.plot(self.xdata[1] * 2, self.ydata[1], 'b-')
+        self.ax1.set_xlabel('Time [s]', fontsize=10)
+        self.ax1.set_ylabel('Thermal Power [kW]', fontsize=10)
+        self.line, = self.ax1.plot(self.xdata, self.ydata, 'b-')
+
         self.line.set_xdata(self.xdata)
         self.line.set_ydata(self.ydata)
-        self.plot_array = [self.ax1, self.ax2]
-        self.line_array = [self.line, self.line2]
+        self.plot_array = self.ax1
+        self.line_array = self.line
 
         control_time = 25
         start_time = time.time()
@@ -90,10 +92,12 @@ class controller_constant_curve(object):
         circulator_mode_P = 4
         print(circulator_mode)
         feedback_sensor = inputs["feedback_sensor"]
+        feedback_sensor = feedback_sensor[_BEGIN_WITH]
         actuator_valve = inputs['actuator_valve']
         actuators = inputs["actuator"]
         valves = inputs["valves"]
-        setpoint = float(inputs["setpoint"])
+        setpoint = [float(n) for n in inputs["setpoint"]]
+        setpoint = setpoint[_BEGIN_WITH]
         feedback_value = 0
         integral = _MIN_SAT_PUMP
         integral_valve = 0
@@ -104,12 +108,10 @@ class controller_constant_curve(object):
         error_value = 0
         CompositMess = 0
 
-        for n in range(0, len(feedback_sensor)):
-            title = "Time Response Signal Sensor " + feedback_sensor[n]
-            self.plot_array[n].set_title(title)
-        if len(feedback_sensor) < len(self.plot_array):
-            title = "No more sensors"
-            self.plot_array[-1].set_title(title)
+
+        title = "Time Response Signal Sensor " + feedback_sensor
+        self.plot_array.set_title(title)
+
 
         shut_down_signal = 0
         shut_mess = CM(shut_down_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
@@ -138,14 +140,15 @@ class controller_constant_curve(object):
         counter_time = time.time()
         counter_time_valve = time.time()
         signal.signal(signal.SIGTERM, self.signal_term_handler)
-        time.sleep(12.5)
+        time.sleep(30)
         while(1):
 
             #try:
                 stop_time = time.time()
                 if (not self.work_q.empty()):
                     received_setpoint = self.work_q.get()
-                    setpoint = float(received_setpoint)
+                    setpoint = [float(n) for n in inputs["setpoint"]]
+                    setpoint = setpoint[_BEGIN_WITH]
                     self.n = 0
 
                 print("Control Thread {0} running".format(process_ID))
@@ -154,13 +157,16 @@ class controller_constant_curve(object):
                 if not isinstance(feedback_value, float):
                     feedback_value = 0     # --->>> really bad though
                 print("feedback taken from sensor {0} with setpoint {1} is kW {2}".format(feedback_sensor, setpoint, feedback_value))
-                print("The error is {0}".format(error_value))
+                print("The error is {0}".format(setpoint - feedback_value))
                 print("The integral for pump is {0} and the actuator signal for pump is {1}".format(integral, actuator_signal))
                 print("The actuator signal for valve is ", actuator_signal_valve)
                 print("Setpoint {0} was sent to actuator {1}".format(actuator_signal, actuators))
+                print("The current FLow is ", interface.getFlow(feedback_sensor).value)
+                print("The current RPM is ", interface.getPumpRPM("Pump_Bay4").value)
+                print("I am actuating with valve ", valve_reg)
 
-                self.ydata[n].append(feedback_value)  # Save as previous error.
-                self.xdata[n].append(time.time() - start_time)
+                self.ydata.append(feedback_value)  # Save as previous error.
+                self.xdata.append(time.time() - start_time)
                 #feedback_value[n] = 0
                 self.update_line()
 
@@ -168,7 +174,7 @@ class controller_constant_curve(object):
                     if not valve_reg:
                         print("I am actuating with pump")
                         error_value = setpoint - feedback_value    # Calculate the error
-                        if error_value > _FEEDFORWARD_KICK:
+                        if abs(error_value) > _FEEDFORWARD_KICK:
                             integral = self.feedforward(interface, setpoint, feedback_sensor, actuators)
                             actuator_signal = integral
                             CompositMess = CM(actuator_signal, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
@@ -187,7 +193,8 @@ class controller_constant_curve(object):
 
                         counter_time = time.time()
 
-                        if (abs(error_value > _TOLERANCE) and (actuator_signal <= _MIN_SAT_PUMP) and not valve_reg):
+                        if ((error_value < _TOLERANCE) and (actuator_signal <= _MIN_SAT_PUMP) and not valve_reg):
+                            print("I am cheking if is the case of using the valves")
                             if first_call:
                                 print("60s start from here")
                                 start_time = time.time()
@@ -197,11 +204,12 @@ class controller_constant_curve(object):
                                 integral_valve = interface.getValvePosition(actuator_valve).value
                                 valve_reg = True
                                 control_time = 50
-                                interface.setPumpControlMode(actuators, mode_P)
-                                print("Pump {0} was set to {1}".format(actuators, mode_P))
-                                pressure_setpoint = interface.getPumpHead(actuator[_BEGIN_WITH]).value
-                                pressure_setpoint = CM(, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-                                interface.setPumpSetpoint(actuators, pressure_setpoint)
+                                for actuator in actuators:
+                                    interface.setPumpControlMode(actuator, mode_P)
+                                    print("Pump {0} was set to {1}".format(actuator, mode_P))
+                                    pressure_setpoint = 0
+                                    pressure_setpoint = CM(pressure_setpoint, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                                    interface.setPumpSetpoint(actuator, pressure_setpoint)
 
                         else:
                             counter_time = time.time()
@@ -210,7 +218,7 @@ class controller_constant_curve(object):
                     if valve_reg:
                         print("I am actuating with valve")
                         error_value = setpoint - feedback_value    # Calculate the error
-                        integral_valve = integral_valve + ki_valve * error_value  #              # Calculate integral
+                        integral_valve = integral_valve + ki_valve * error_value  # Calculate integral
                         integral_valve = self.anti_windup(integral_valve, _VALVE)
                         print("The valve integral error is ", integral_valve)
                         actuator_signal_valve = integral_valve
@@ -225,10 +233,10 @@ class controller_constant_curve(object):
                                 control_time = 25
                                 first_call = True
                                 for actuator in actuators:
-                                    interface.setPumpControlMode(actuators, mode_C)
+                                    interface.setPumpControlMode(actuator, mode_C)
                                     curve_setpoint = CM(_MIN_SAT_PUMP, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-                                    interface.setPumpSetpoint(actuators, curve_setpoint)
-                                    print("Pump {0} was set to {1}".format(actuators, mode_C))
+                                    interface.setPumpSetpoint(actuator, curve_setpoint)
+                                    print("Pump {0} was set to {1}".format(actuator, mode_C))
                                     integral = _MIN_SAT_PUMP
                         else:
                             counter_time = time.time()
@@ -296,20 +304,28 @@ class controller_constant_curve(object):
 
     def feedforward(self, interface, setpoint, feedback_sensor, actuators):
 
-        T_f = interface.getBackTemperature(feedback_sensor)
-        T_r = interface.getBackTemperature(feedback_sensor)
-        Q_current = interface.getFlow(feedback_sensor)
+        T_f = interface.getFwdTemperature(feedback_sensor).value
+        T_r = interface.getBackTemperature(feedback_sensor).value
+        Q_current = interface.getFlow(feedback_sensor).value
         DT = T_f - T_r
-        RPM_current = interface.getPumpRPM(actuators[_BEGIN_WITH])
+        print(T_f)
+        print(T_r)
+        print(DT)
+        RPM_current = interface.getPumpRPM(actuators[_BEGIN_WITH]).value
         Q_needed = setpoint / (_Cp * _DENSITY * DT)
         Q_needed = Q_needed * _HOUR_CONVERTER * _LITER_CONVERTER
         RPM_needed = RPM_current * Q_needed / Q_current
-        RPM_percentage = (RPM_needed * _PERCENT) / RPM_MAX
+        print("The RPM currently are ", RPM_current)
+        print("The RPM needed are ", RPM_needed)
+        RPM_percentage = (RPM_needed * _PERCENT) / _RPM_MAX
+        if RPM_percentage < _MIN_SAT_PUMP:
+            RPM_percentage = _MIN_SAT_PUMP
+        elif RPM_percentage > _MAX_SAT_PUMP:
+            RPM_percentage = _MAX_SAT_PUMP
 
+        print("The RPM percentage is ", RPM_percentage)
         return RPM_percentage
 
-
-        return integral
 
     def shut_down_routine(self, pumps_of_circuit, valves, interface):
         shut_down_signal = 0
@@ -326,17 +342,16 @@ class controller_constant_curve(object):
         removable = 20
         limits = 10
         n = 0
-        #print(len(self.xdata[0]))
-        for plot in self.plot_array:
-            if (self.xdata[n]):
-                    plot.set_xlim(max(self.xdata[n]) - limits, max(self.xdata[n]) + limits)
-                    plot.set_ylim(max(self.ydata[n]) - limits, max(self.ydata[n]) + limits)
-                    self.line_array[n].set_xdata(self.xdata[n])
-                    self.line_array[n].set_ydata(self.ydata[n])
-                    if len(self.xdata[n]) > max_dimension:
-                        del self.xdata[n][:removable]
-                        del self.ydata[n][:removable]
-            n += 1
+
+        if (self.xdata):
+                self.plot_array.set_xlim(max(self.xdata) - limits, max(self.xdata) + limits)
+                self.plot_array.set_ylim(max(self.ydata) - limits, max(self.ydata) + limits)
+                self.line_array.set_xdata(self.xdata)
+                self.line_array.set_ydata(self.ydata)
+                if len(self.xdata) > max_dimension:
+                    del self.xdata[:removable]
+                    del self.ydata[:removable]
+                n += 1
 
         plt.draw()
         plt.pause(1e-17)
