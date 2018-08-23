@@ -1,6 +1,31 @@
 ﻿<?xml version="1.0"?>
 <switch_board_building id="Building716">
   <switch_board id="Switch_Board_1">
+      <bay id="Bay_2" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
+           <pipe id="Pipeline_1C2" busbar="1C" type="normal" direction="out">
+               <valve id="Valve_1C2" connection="1C" flow="C"></valve>
+           </pipe>
+           <pipe id="Pipeline_2C2" busbar="2C" type="normal" direction="out">
+              <valve id="Valve_2C2" connection="2C" flow="C"></valve>
+           </pipe>
+           <pipe id="Pipeline_1H2" busbar="1H" type="normal" direction="in">
+              <valve id="Valve_1H2" connection="1H" flow="H" ></valve>
+           </pipe>
+           <pipe id="Pipeline_2H2" busbar="2H" type="normal" direction="in">
+              <valve id="Valve_2H2" connection="2H" flow="H" ></valve>
+           </pipe>
+           <connector id="Connector_2">
+                    <line id="line_1H2" type="H">
+                        <sensor id="Sensor_1HT2" variable="T" embedded="Sensor_1E2"  line_position="1"> </sensor>
+                    </line>
+                    <line id="line_1C2" type="C" >
+                        <sensor id="Sensor_1CT2" variable="T" embedded="Sensor_1E2"  line_position="1"> </sensor>
+                        <sensor id="Sensor_1CF2" variable="F" embedded="Sensor_1E2"  line_position="2"> </sensor>
+                        <sensor id="Sensor_1E2" variable="Energy" embedded="No"  line_position="3"> </sensor>
+                    </line>
+                    <connected_device id="Sink_1DL2" type="dump_load" rating="0"></connected_device>
+          </connector>
+      </bay>
       <bay id="Bay_3" pipes_in="3" pipes_out="3" valves_to_device="6" connected_device="sink">
            <pipe id="Pipeline_1C3" busbar="1C" type="normal" direction="out">
                <valve id="Valve_1C3" connection="1C" flow="C"></valve>

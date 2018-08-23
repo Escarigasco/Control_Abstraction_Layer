@@ -78,7 +78,7 @@ class configuration_selector(object):
             #print(name)
             #print(scores[name])
         if scores:
-            selected_configuration = max(scores, key=scores.get)  # this is to find the key that has the smallest value
+            selected_configuration = max(scores, key=scores.get)  # this is to find the key that has the largest value
             print("The winner is.... ", selected_configuration)
         else:
             print("You are already using all the busbars.. don't be greedy")

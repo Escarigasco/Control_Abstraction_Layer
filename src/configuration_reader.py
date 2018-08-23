@@ -228,7 +228,7 @@ class configuration_reader(object):
                                 self.UpdatedGraph.clear()
                                 # print("I am updatingggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
                                 plt.clf()
-                                plt.title('Online Configuration')
+                                plt.title('Online Reading')
                                 self.UpdatedGraph = nx.union(self.UpdatedGraph, self.Graph)
                                 self.Graph.clear()
                                 nx.draw_kamada_kawai(self.UpdatedGraph, font_size=8, node_size=40, alpha=0.5, node_color="blue", with_labels=True)
