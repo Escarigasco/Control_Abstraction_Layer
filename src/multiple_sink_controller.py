@@ -46,7 +46,7 @@ class controller_constant_pressure(object):
         print(inputs)
         inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']['Sink_1DL2']N", 'description': 'creator',
                   'gain': '1', 'kp': '0', 'ki': '0.07', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
-                  'circulator': ['Pump_Bay4'], 'circulator_mode': '4', 'actuator': ['Bay_2L-Busbar_1R', 'Bay_3L-Busbar_1R'], 'setpoint': [5, 3],
+                  'circulator': ['Pump_Bay4'], 'circulator_mode': '4', 'actuator': ['Bay_2L-Busbar_1R', 'Bay_3L-Busbar_1R'], 'setpoint': [4, 2],
                   'feedback_sensor': ['Bay_2', 'Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
                   'sources_meters': ['Bay_4']}
         print("Controller Constant Pressure Started")

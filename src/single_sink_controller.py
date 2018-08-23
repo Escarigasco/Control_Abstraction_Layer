@@ -46,7 +46,7 @@ class controller_constant_curve(object):
         inputs = pickle.loads(inputs)
         print(inputs)
         inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']N", 'description': 'creator',
-                  'gain': '1', 'kp': '3', 'ki': '4', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
+                  'gain': '1', 'kp': '4', 'ki': '7', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
                   'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [4],
                   'feedback_sensor': ['Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
                   'actuator_valve': "Bay_3L-Busbar_1R"}
@@ -204,11 +204,12 @@ class controller_constant_curve(object):
                                 integral_valve = interface.getValvePosition(actuator_valve).value
                                 valve_reg = True
                                 control_time = 50
+                                pressure_setpoint = 0
+                                pressure_setpoint = CM(pressure_setpoint, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
                                 for actuator in actuators:
                                     interface.setPumpControlMode(actuator, mode_P)
                                     print("Pump {0} was set to {1}".format(actuator, mode_P))
-                                    pressure_setpoint = 0
-                                    pressure_setpoint = CM(pressure_setpoint, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                                    time.sleep(0.2)
                                     interface.setPumpSetpoint(actuator, pressure_setpoint)
 
                         else:
@@ -232,9 +233,10 @@ class controller_constant_curve(object):
                                 valve_reg = False
                                 control_time = 25
                                 first_call = True
+                                curve_setpoint = CM(_MIN_SAT_PUMP, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
                                 for actuator in actuators:
                                     interface.setPumpControlMode(actuator, mode_C)
-                                    curve_setpoint = CM(_MIN_SAT_PUMP, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
+                                    time.sleep(0.2)
                                     interface.setPumpSetpoint(actuator, curve_setpoint)
                                     print("Pump {0} was set to {1}".format(actuator, mode_C))
                                     integral = _MIN_SAT_PUMP
