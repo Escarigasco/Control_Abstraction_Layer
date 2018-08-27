@@ -77,7 +77,7 @@ class System_Configurator(KnowledgeEngine):
 
     @DefFacts()
     def first(self):
-        yield Actuator_facts(actuator_type=Actuator_type.__all_flags__)
+        yield Actuator_facts(actuator_type=Actuator_type.__all_flags__, secondary_type=Actuator_type.__all_flags__ )
         yield Pump_facts(pump_mode=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__)
         yield Sensors_facts(sensor_location=Location.__all_flags__)
         yield Actuator_facts(obj=self.actuator)
@@ -89,7 +89,8 @@ class System_Configurator(KnowledgeEngine):
     # the P() is to self test the variable against some value
     # the TEST is to compare two different MATCHED variables
 
-    '''this is just to select the sensors that are always in the sink for the moment'''
+    '''
+    # this is just to select the sensors that are always in the sink for the moment
     @Rule(Sensors_facts(sensor_location=P(lambda sensor_location: sensor_location == Location.__all_flags__)),
           Actuator_facts(actuator_type=P(lambda actuator_type: actuator_type != Actuator_type.__all_flags__)),
           Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
@@ -102,7 +103,7 @@ class System_Configurator(KnowledgeEngine):
         self.declare(Sensors_facts(sensor_location=sensor.location, sensor_number=sensor.number))
         print(self.facts)
 
-    '''this is backup a sensor if the one in the sink is broken - but it only works for the 1 to 1 - the rest you just can't do it!'''
+    # this is backup a sensor if the one in the sink is broken - but it only works for the 1 to 1 - the rest you just can't do it!
     @Rule(Sensors_facts(sensors_sources=MATCH.n_sensors_sources, sensors_sinks=MATCH.n_sensors_sinks),
           Sensors_facts(sensor_location=Location.SINK, sensor_number=1),
           Actuator_facts(actuator_type=P(lambda actuator_type: actuator_type != Actuator_type.__all_flags__)),
@@ -122,14 +123,14 @@ class System_Configurator(KnowledgeEngine):
         sensor.number = n_sinks
         #self.declare(Sensors_facts(location=sensor.location, number=sensor.number))
 
-    '''this is to check the number of actuators which again are the number of sinks'''
+    # this is to check the number of actuators which again are the number of sinks
     @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
           Actuator_facts(obj=MATCH.actuator))
     def actuator_number(self, actuator, n_sinks):
         print("Now I will tell you how many actuators")
         actuator.number = n_sinks
 
-    '''this is the first macro domain of n_sources > n_sinks'''
+    # this is the first macro domain of n_sources > n_sinks
     @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
           AND(TEST(lambda n_sources, n_sinks: n_sources >= n_sinks),
           TEST(lambda n_sources: n_sources > _FIRST_OF_CLASS)),
@@ -149,7 +150,7 @@ class System_Configurator(KnowledgeEngine):
         self.retract(_ALL_FLAGS_PUMP_LOCATION_MODE)
         print(self.facts)
 
-    '''this is the second macro domain of n_sources <= n_sinks'''
+    # this is the second macro domain of n_sources <= n_sinks
     @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
           AND(TEST(lambda n_sources, n_sinks: n_sinks >= n_sources),
           TEST(lambda n_sources: n_sources == _FIRST_OF_CLASS)),
@@ -168,7 +169,7 @@ class System_Configurator(KnowledgeEngine):
         self.declare(Actuator_facts(actuator_type=actuator.type))
         self.declare(Actuator_facts(actuator_location=actuator.location))
 
-    '''this is a rule that state that when actuator is selected but there are not enough pumps in the sinks'''
+    # this is a rule that state that when actuator is selected but there are not enough pumps in the sinks
     @Rule(Actuator_facts(pumps_sources=MATCH.n_pumps_sources, pumps_sinks=MATCH.n_pumps_sinks),
           Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
           TEST(lambda n_sinks, n_pumps_sinks: n_sinks > n_pumps_sinks),
@@ -216,7 +217,64 @@ class System_Configurator(KnowledgeEngine):
         self.declare(Actuator_facts(pumps_sources=n_pumps_sources, pumps_sinks=n_pumps_sinks))
         #self.declare(System_facts(boosted="delivered"))
         self.run()                                                       # very nice move
+        '''
 
+    # this is the first macro domain of n_sources > n_sinks
+    @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
+          TEST(lambda n_sinks: n_sinks > _FIRST_OF_CLASS),
+          Actuator_facts(actuator_type=Actuator_type.__all_flags__),
+          Pump_facts(pump_mode=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__),
+          Actuator_facts(obj=MATCH.actuator),
+          Pump_facts(obj=MATCH.pump))
+    def multiple_sinks(self, actuator, pump, n_sinks, n_sources):
+        print("sinks larger than 1")
+        actuator.type = actuator.type & Actuator_type.VALVE
+        pump.mode = pump.mode & Pump_Mode.CONSTANT_PRESSURE
+        pump.location = pump.location & Location.SOURCE
+        actuator.location = actuator.location & Location.SINK
+        actuator.number = n_sinks
+        actuator.secondary_type = actuator.secondary_type & Actuator_type.PUMP
+        actuator.secondary_number = n_sources
+        actuator.secondary_location = Location.SOURCE
+        self.declare(Actuator_facts(actuator_type=actuator.type))
+        self.declare(Actuator_facts(actuator_location=actuator.location))
+        self.retract(_ALL_FLAGS_ACTUATOR_TYPE)
+        self.retract(_ALL_FLAGS_PUMP_LOCATION_MODE)
+        print(self.facts)
+
+    @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
+          TEST(lambda n_sinks: n_sinks == _FIRST_OF_CLASS),
+          Actuator_facts(actuator_type=Actuator_type.__all_flags__),
+          Pump_facts(pump_mode=Pump_Mode.__all_flags__, pump_location=Location.__all_flags__),
+          Actuator_facts(obj=MATCH.actuator),
+          Pump_facts(obj=MATCH.pump))
+    def single_sink(self, actuator, pump, n_sinks, n_sources):
+        print("sinks equal to 1")
+        actuator.type = actuator.type & Actuator_type.PUMP
+        pump.mode = pump.mode & Pump_Mode.CONSTANT_SPEED
+        pump.location = pump.location & Location.SOURCE
+        actuator.location = actuator.location & Location.SOURCE
+        actuator.number = n_sources
+        actuator.secondary_type = actuator.secondary_type & Actuator_type.VALVE
+        actuator.secondary_number = n_sinks
+        actuator.secondary_location = Location.SINK
+        self.declare(Actuator_facts(actuator_type=actuator.type))
+        self.declare(Actuator_facts(actuator_location=actuator.location))
+        self.retract(_ALL_FLAGS_ACTUATOR_TYPE)
+        self.retract(_ALL_FLAGS_PUMP_LOCATION_MODE)
+        print(self.facts)
+
+    @Rule(Sensors_facts(sensor_location=P(lambda sensor_location: sensor_location == Location.__all_flags__)),
+          Actuator_facts(actuator_type=P(lambda actuator_type: actuator_type != Actuator_type.__all_flags__)),
+          Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
+          Sensors_facts(obj=MATCH.sensor))
+    def sensor_selection(self, sensor, n_sinks):
+        print("Sensor selection")
+        sensor.location = Location.SINK
+        sensor.number = n_sinks
+        self.retract(_ALL_FLAGS_SENSOR_LOCATION_NUMBER)
+        self.declare(Sensors_facts(sensor_location=sensor.location, sensor_number=sensor.number))
+        print(self.facts)
 
 class Pump_obj(object):
     def __init__(self):
@@ -235,6 +293,9 @@ class Actuator_obj(object):
     def __init__(self):
         self.location = Location.__all_flags__
         self.type = Actuator_type.__all_flags__
+        self.secondary_type = Actuator_type.__all_flags__
+        self.secondary_number = 0
+        self.secondary_location = Location.__all_flags__
         self.number = 0
 
 
@@ -275,6 +336,7 @@ class rule_engine(object):
         print("the actuator is the ", engine.actuator.type)
         print("the actuator/s are located in ", engine.actuator.location)
         print("the actuator needed are ", engine.actuator.number)
+        print("the secondary actuators are ", engine.actuator.secondary_type)
         print("the sensor/s are located in ", engine.sensor.location)
         print("the sensors needed are ", engine.sensor.number)
         ideal_components = {"Ideal_Pump": engine.pump,
@@ -286,7 +348,7 @@ class rule_engine(object):
 if __name__ == "__main__":
         test = rule_engine()
         system_input = {"sinks": ["Sink_1H7"], "parameters": "Energy",
-                        "setpoints": 30, "sources": ["Source_1C4"],
+                        "setpoints": 30, "sources": ["Source_1C4", "test_source"],
                         "boosted": "N"}
         available_components = {"Pumps_active": ["Pump_1C4", "Pump_1H7"],
                                 "Sensors_active": ["Sensor_1E4", "Sensor_1E7"],
