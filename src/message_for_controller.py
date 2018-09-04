@@ -16,6 +16,7 @@ _DESCRIPTION = "description"
 _KILLER = "killer"
 _CREATOR = "creator"
 _HOT_FLOW = "H"
+_COLD_FLOW = "C"
 _VALVE = "Valve"
 _PUMP = "Pump"
 _SHUTTER = "shut_all_pumps"
@@ -62,14 +63,15 @@ class message_for_controller(object):
             feedback_sensors["sensors"] = self.components_name_translator(feedback_sensors["sensors"])
             #print(feedback_sensors)
             actuators["actuators"] = self.components_name_translator(actuators["actuators"])
+            actuators["secondary_actuators"] = self.components_name_translator(actuators["secondary_actuators"])
             #print(actuators)
             controller_mode = act_circulator["mode"]
             # self.controller_name = act_circulator["mode"]
 
             input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _CREATOR, "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
-                                    "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"), "pumps_of_circuit": pumps_of_circuit,
+                                    "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"), "ki_valve": config.get(controller_mode, "ki_valve"), "pumps_of_circuit": pumps_of_circuit,
                                     "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"], "actuator": actuators["actuators"],
-                                    "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit}
+                                    "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit, "secondary_actuators": actuators["secondary_actuators"]}
 
             print(input_for_controller)
 
@@ -79,7 +81,8 @@ class message_for_controller(object):
 
             try:
                 #if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    feedback = self.comms.send(input_for_controller)
+                    #feedback = self.comms.send(input_for_controller)
+                    feedback = 0
                     print("Message Sent")
                     print("Feedback: ", feedback)
                     return _CONTROLLER_ACTIVATED
@@ -155,17 +158,31 @@ class message_for_controller(object):
             actuators = valves + pumps
             print(actuators)
             active_actuators = []
+            secondary_active_actuators = []
             locations = []
+            secondary_locations = []
             for location in ideal_actuator.location:
                 locations.append(location.data)
+            for location in ideal_actuator.secondary_location:
+                secondary_locations.append(location.data)
             for actuator in actuators:
                 if ((actuator.object_type == ideal_actuator.type.data) & (actuator.location in locations)):
                     if (actuator.object_type == _VALVE):
-                        if (actuator.flow == _HOT_FLOW):
+                        if (actuator.flow == _COLD_FLOW):
                             active_actuators.append(actuator.get_name())
                     elif (actuator.object_type == _PUMP):
                         active_actuators.append(actuator.get_name())
                 if (ideal_actuator.number == len(active_actuators)):
                     break
-            acts = {"actuators": active_actuators}
+            for actuator in actuators:
+                if ((actuator.object_type == ideal_actuator.secondary_type.data) & (actuator.location in secondary_locations)):
+                    if (actuator.object_type == _VALVE):
+                        if (actuator.flow == _COLD_FLOW):
+                            secondary_active_actuators.append(actuator.get_name())
+                    elif (actuator.object_type == _PUMP):
+                        secondary_active_actuators.append(actuator.get_name())
+                if (ideal_actuator.secondary_number == len(active_actuators)):
+                    break
+
+            acts = {"actuators": active_actuators, "secondary_actuators": secondary_active_actuators}
             return acts
