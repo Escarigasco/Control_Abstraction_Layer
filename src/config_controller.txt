@@ -1,14 +1,16 @@
 [3]
-name = constant_pressure
+name = multiple_sink
 gain = 1
-kp = 0.1
-ki = 0.1
+kp = 0
+ki = 0
 kd = 0
+ki_valve = 0.07
 
 
 [0]
-name = constant_flow
+name = single_sink
 gain = 1
-kp = 1
-ki = 1
+kp = 4
+ki = 7
 kd = 0
+ki_valve = 0.07
