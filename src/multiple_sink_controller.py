@@ -48,7 +48,7 @@ class controller_constant_pressure(object):
                   'gain': '1', 'kp': '0', 'ki': '0.07', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
                   'circulator': ['Pump_Bay4'], 'circulator_mode': '4', 'actuator': ['Bay_2L-Busbar_1R', 'Bay_3L-Busbar_1R'], 'setpoint': [4, 2],
                   'feedback_sensor': ['Bay_2', 'Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
-                  'sources_meters': ['Bay_4']}
+                  'sources_meters': ['Bay_4'], 'secondary_actuators': []}
         print("Controller Constant Pressure Started")
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
@@ -86,7 +86,7 @@ class controller_constant_pressure(object):
         pumps_of_circuit = inputs["pumps_of_circuit"]
         kp = float(inputs["kp"])
         kd = float(inputs["kd"])
-        ki = float(inputs["ki"])
+        ki = float(inputs["ki_valve"])
         gain = float(inputs["gain"])
         circulators = inputs["circulator"]
         circulator_mode = int(inputs["circulator_mode"])
@@ -235,7 +235,7 @@ class controller_constant_pressure(object):
                             elif optimum_pressure < 0:
                                 optimum_pressure = 0
                             optimum_pressure = CM(optimum_pressure, time.time() * _MULTIPLIER, _ZERO, _ZERO, _VALIDITY, _SOURCE)
-                            print("Pump {0} was reduced to {1}".format(pump, optimum_pressure))
+                            print("Pump {0} was changed to {1}".format(pump, optimum_pressure))
                             for pump in circulators:
                                 interface.setPumpSetpoint(pump, optimum_pressure)
                         start_time = time.time()

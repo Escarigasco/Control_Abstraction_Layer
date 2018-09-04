@@ -49,7 +49,7 @@ class controller_constant_curve(object):
                   'gain': '1', 'kp': '4', 'ki': '7', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
                   'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [4],
                   'feedback_sensor': ['Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
-                  'actuator_valve': "Bay_3L-Busbar_1R"}
+                  'secondary_actuators': "Bay_3L-Busbar_1R"}
         print("Controller Constant Flow Started")
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
