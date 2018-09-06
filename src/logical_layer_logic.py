@@ -101,8 +101,8 @@ class logic(object):
         if processed_configurations_names:
             for name in processed_configurations_names:
                 if (name in requested_configurations_names):
-                    print(processed_configurations[name][_INPUTS][_SETPOINT])
-                    print(requested_configuration[name][_SETPOINT])
+                    #print(processed_configurations[name][_INPUTS][_SETPOINT])
+                    #print(requested_configuration[name][_SETPOINT])
                     if (processed_configurations[name][_INPUTS][_SETPOINT] != requested_configuration[name][_SETPOINT]):
                         self.set_point_changer(name, requested_configuration[name][_SETPOINT])
                         processed_configurations[name][_INPUTS][_SETPOINT] = requested_configuration[name][_SETPOINT]
@@ -182,8 +182,8 @@ class logic(object):
                     for valve in processed_configurations[name][_AVAILABLE_COMPONENTS][_VALVES_TO_SHUT]:
                         valves_to_shut_translated.append(self.translator.components(valve.ID))
                     actuating_message = {_DESCRIPTION: _ACTUATE, _VALVES: valves_translated, _VALVES_TO_SHUT: valves_to_shut_translated}
-                    print(actuating_message[_VALVES])
-                    print(actuating_message[_VALVES_TO_SHUT])
+                    #print(actuating_message[_VALVES])
+                    #print(actuating_message[_VALVES_TO_SHUT])
 #                    sys.exit()
                     #if (complete):
                         #processed_configurations[name][_MATCH] = "Matched"
@@ -218,7 +218,7 @@ class logic(object):
 
                 else:
                     print("Skipped")
-            print(self.busy_busbars)
+            #print(self.busy_busbars)
             self.print_on_file(latest_configuration_file_write, processed_configurations)
         return processed_configurations
 
@@ -273,6 +273,7 @@ class logic(object):
         return processed_configurations
 
     def set_point_changer(self, name, setpoint):
+        print("I am changing the setpoint")
         new_setpoint = {_DESCRIPTION: _SETPOINT, _CONTROLLER_NAME: name, _SETPOINT: setpoint}
         print(new_setpoint)
         #sys.exit()

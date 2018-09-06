@@ -14,7 +14,7 @@ class connector_line(object):
         self.line_sensors = {}
         self.pumps = {}
         self.line = line
-        print(self.ID)
+        #print(self.ID)
 
         sensors = self.line.find_all("sensor")
         pumps = self.line.find_all("pump")

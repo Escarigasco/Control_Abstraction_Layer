@@ -38,6 +38,7 @@ _RESET = 0
 class logical_layer(object):
     'Component that output the control object'
     def __init__(self, buildingID, SwitchID):
+        print("Starting Logical Layer")
         self.buildingID = buildingID
         self.SwitchID = SwitchID
         self.building_config = switch_board_building(self.buildingID)
@@ -60,7 +61,7 @@ class logical_layer(object):
         # online_reader.join()  # https://stackoverflow.com/questions/25391025/what-exactly-is-python-multiprocessing-modules-join-method-doing?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
     def run(self):
-        time.sleep(4)
+        time.sleep(7)
         pb = path_builder(self.intf, self.comms, self.translator)
         pm = path_matcher()
         mssgr = message_for_controller(self.intf, self.comms, self.translator)
@@ -69,12 +70,12 @@ class logical_layer(object):
         self.latest_configuration_file_read = open("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/configurations.txt", "rb")
         try:
             processed_configurations = pickle.load(self.latest_configuration_file_read)
-            print("read")
+            #print("read")
             processed_configurations = self.logic.controller_restarter(processed_configurations, pm, mssgr)
             print(processed_configurations)
             self.latest_configuration_file_read.close()
         except Exception:
-            print("There was nothing online")
+            print("There was nothing running")
             pass
         self.latest_configuration_file_write = open("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/configurations.txt", 'wb')
         if processed_configurations:
@@ -139,7 +140,7 @@ class logical_layer(object):
                         time.sleep(1)
                         #self.logic.print_on_file(self.latest_configuration_file_write, processed_configurations)
 
-                        print(processed_configurations)
+                        print(processed_configurations.keys())
                     else:
                         print("Comms lost with physical layer, configuration {0} not delivered".format(system_input))
 

@@ -20,11 +20,13 @@ class physical_logic(object):
 
     def __init__(self):
         self.valves_status = {
-            "Bay_4L-Busbar_2R": 0.51, "Bay_4L-Busbar_1R": 0.11, "Bay_4H-Busbar_B": 0.11, "Bay_4H-Busbar_2F": 0.11, "Bay_4H-Busbar_1F": 0.91, "Bay_4L-Busbar_B": 0.11,
-            "Bay_5L-Busbar_1R": 0.11, "Bay_5L-Busbar_2R": 0.11, "Bay_5H-Busbar_B": 0.11, "Bay_5H-Busbar_1F": 0.11, "Bay_5H-Busbar_2F": 0.11, "Bay_5L-Busbar_B": 0.11,
-            "Bay_6L-Busbar_1R": 0.11, "Bay_6L-Busbar_2R": 0.11, "Bay_6H-Busbar_B": 0.11, "Bay_6H-Busbar_1F": 0.11, "Bay_6H-Busbar_2F": 0.11, "Bay_6L-Busbar_B": 0.11,
-            "Bay_7H-Busbar_1F": 0.11, "Bay_7H-Busbar_2F": 0.11, "Bay_7L-Busbar_1R": 0.51, "Bay_7L-Busbar_2R": 0.11,
-            "Bay_8H-Busbar_1F": 0.11, "Bay_8H-Busbar_2F": 0.11, "Bay_8L-Busbar_1R": 0.11, "Bay_8L-Busbar_2R": 0.11}
+            "Bay_2L-Busbar_2R": 0.0, "Bay_2L-Busbar_1R": 0.0, "Bay_2H-Busbar_B": 0.0, "Bay_2H-Busbar_2F": 0.0, "Bay_2H-Busbar_1F": 0.0, "Bay_2L-Busbar_B": 0.0,
+            "Bay_3L-Busbar_2R": 0.0, "Bay_3L-Busbar_1R": 0.0, "Bay_3H-Busbar_B": 0.0, "Bay_3H-Busbar_2F": 0.0, "Bay_3H-Busbar_1F": 0.0, "Bay_3L-Busbar_B": 0.0,
+            "Bay_4L-Busbar_2R": 0.0, "Bay_4L-Busbar_1R": 0.0, "Bay_4H-Busbar_B": 0.0, "Bay_4H-Busbar_2F": 0.0, "Bay_4H-Busbar_1F": 0.0, "Bay_4L-Busbar_B": 0.0,
+            "Bay_5L-Busbar_1R": 0.0, "Bay_5L-Busbar_2R": 0.0, "Bay_5H-Busbar_B": 0.0, "Bay_5H-Busbar_1F": 0.0, "Bay_5H-Busbar_2F": 0.0, "Bay_5L-Busbar_B": 0.0,
+            "Bay_6L-Busbar_1R": 0.0, "Bay_6L-Busbar_2R": 0.0, "Bay_6H-Busbar_B": 0.0, "Bay_6H-Busbar_1F": 0.0, "Bay_6H-Busbar_2F": 0.0, "Bay_6L-Busbar_B": 0.0,
+            "Bay_7H-Busbar_1F": 0.0, "Bay_7H-Busbar_2F": 0.0, "Bay_7L-Busbar_1R": 0.0, "Bay_7L-Busbar_2R": 0.0,
+            "Bay_8H-Busbar_1F": 0.0, "Bay_8H-Busbar_2F": 0.0, "Bay_8L-Busbar_1R": 0.0, "Bay_8L-Busbar_2R": 0.0}
         self.pumps_status = {
             "Pump_Bay4": 0.0,
             "Pump_Bay5": 0.0,
@@ -155,7 +157,7 @@ class physical_logic(object):
     def shut_pumps(self, pumps):
         pumps = pumps[_PUMP]
         for pump in pumps:
-            self.interface.stopPump(pump)
+            #self.interface.stopPump(pump)
             print("Pump ", pump, " was stopped")
         return ("All the pumps not in use have been stopped")
 

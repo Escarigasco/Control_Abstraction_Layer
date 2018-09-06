@@ -240,7 +240,7 @@ class System_Configurator(KnowledgeEngine):
         self.declare(Actuator_facts(actuator_location=actuator.location))
         self.retract(_ALL_FLAGS_ACTUATOR_TYPE)
         self.retract(_ALL_FLAGS_PUMP_LOCATION_MODE)
-        print(self.facts)
+        #print(self.facts)
 
     @Rule(Bays(sources=MATCH.n_sources, sinks=MATCH.n_sinks),
           TEST(lambda n_sinks: n_sinks == _FIRST_OF_CLASS),
@@ -262,7 +262,7 @@ class System_Configurator(KnowledgeEngine):
         self.declare(Actuator_facts(actuator_location=actuator.location))
         self.retract(_ALL_FLAGS_ACTUATOR_TYPE)
         self.retract(_ALL_FLAGS_PUMP_LOCATION_MODE)
-        print(self.facts)
+        #print(self.facts)
 
     @Rule(Sensors_facts(sensor_location=P(lambda sensor_location: sensor_location == Location.__all_flags__)),
           Actuator_facts(actuator_type=P(lambda actuator_type: actuator_type != Actuator_type.__all_flags__)),
@@ -302,7 +302,7 @@ class Actuator_obj(object):
 class rule_engine(object):
 
     def run(self, system_input, available_components):
-        print(available_components)
+        #print(available_components)
         n_sources = len(system_input['sources'])
         n_sinks = len(system_input['sinks'])
         n_pumps = len(available_components["Pumps_active"])
@@ -316,7 +316,7 @@ class rule_engine(object):
         n_sensors_sinks = available_components["Sensors_in_sinks"]
         n_bays = n_sinks + n_sources
         booster = system_input['boosted']
-        print(booster)
+        #print(booster)
         feedback_variable = system_input['parameters']
         engine = System_Configurator()
         engine.reset()

@@ -1,8 +1,10 @@
 #!~/Desktop/SwitchBoard/SwitchBoard/bin/activate python
 
 from controller_constant_flow import controller_constant_flow
-from controller_constant_pressure import controller_constant_pressure
-from test_controller_1_2_1 import controller_constant_curve
+# from controller_constant_pressure import controller_constant_pressure
+from single_sink_controller import controller_constant_curve
+from multiple_sink_controller import controller_constant_pressure
+# from test_controller_1_2_1 import controller_constant_curve
 from multiprocessing import Process
 from multiprocessing import Queue
 from physical_layer_online_reader import physical_layer_online_reader
@@ -53,7 +55,7 @@ class physical_layer(object):
         self.p_logic = physical_logic()
         self.op_controller_flow = controller_constant_flow()
         self.op_controller_pressure = controller_constant_pressure()
-        self.op_controller_pressure = controller_constant_curve()
+        self.op_controller_curve = controller_constant_curve()
         self.processes = {}
         self.queues = {}
         new_input = False
@@ -174,14 +176,17 @@ class physical_layer(object):
     def process_create(self, inputs, c):
         inputs.pop(_DESCRIPTION)
         name = inputs[_CONTROLLER_NAME]
+        print(inputs)
+        time.sleep(5)
         if name not in self.processes.keys():
             self.queues[inputs[_CONTROLLER_NAME]] = Queue()
             input_for_controller = (self.data_from_API, inputs[_CONTROLLER_NAME], self.queues[inputs[_CONTROLLER_NAME]])
 
             if (inputs[_CIRCULATOR_MODE] == '0'):
+                print("This is a single sink")
                 self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_curve.PID_controller, args=input_for_controller)
             else:
-                print("this is a constant pressure controller")
+                print("This is a multiple sinks")
                 self.processes[inputs[_CONTROLLER_NAME]] = Process(target=self.op_controller_pressure.PID_controller, args=input_for_controller)
 
             print("New Process started")
@@ -217,7 +222,7 @@ class physical_layer(object):
         name = inputs[_CONTROLLER_NAME]
         killed = False
         if name in self.processes.keys():
-            print("Mi è stato detto di ucciderti, ", inputs[_CONTROLLER_NAME])
+            print("I was told to kill you, ", inputs[_CONTROLLER_NAME])
             while self.processes[inputs[_CONTROLLER_NAME]].is_alive():
                 time.sleep(0.1)
                 self.processes[inputs[_CONTROLLER_NAME]].terminate()
@@ -244,18 +249,18 @@ class physical_layer(object):
     def check_pumps(self, inputs, c):
         #print(inputs)
         inputs.pop(_DESCRIPTION)
-        #pumps_for_logical_layer = self.p_logic.get_pumps_status(inputs)
-        pumps_for_logical_layer = self.p_logic.get_pumps_simulated_status(inputs)
+        pumps_for_logical_layer = self.p_logic.get_pumps_status(inputs)
+        #pumps_for_logical_layer = self.p_logic.get_pumps_simulated_status(inputs)
         message_serialized = pickle.dumps(pumps_for_logical_layer)
         #print(valves_for_logical_layer)
         c.sendall(message_serialized)
 
-    '''if you want to move to the simulator, you have to uncomment all the below'''
     def actuate(self, inputs, c):
         '''Here you should firs check if actuation is necessary - not really at the end of the day because it will confirm a setpoint and it's not a big issue'''
         inputs.pop(_DESCRIPTION)
         complete = self.p_logic.set_hydraulic_circuit(inputs)
         message_serialized = pickle.dumps(complete)
+        '''you need the below three lines for the simulator'''
         #complete = self.p_logic.set_hydraulic_simulated_circuit(inputs)
         #self.work_q.put(complete[_FIRST_OF_CLASS])
         #message_serialized = pickle.dumps(complete[_BEGIN_WITH])
