@@ -104,8 +104,8 @@ class configuration_selector(object):
                 valves_other_bays_to_close.append(valve)
 
         available_components[selected_configuration][_VALVES_TO_SHUT] = available_components[selected_configuration][_VALVES_TO_SHUT] + valves_other_bays_to_close
-        print(available_components[selected_configuration][_VALVES_TO_SHUT])
-        print(available_components[selected_configuration][_VALVES])
+        #print(available_components[selected_configuration][_VALVES_TO_SHUT])
+        #print(available_components[selected_configuration][_VALVES])
 
         message_to_return = {_GRAPH: actuable_configuration[selected_configuration],
                              _AVAILABLE_COMPONENTS: available_components[selected_configuration],

@@ -45,11 +45,11 @@ class controller_constant_curve(object):
     def PID_controller(self, inputs, process_ID, queue):
         inputs = pickle.loads(inputs)
         print(inputs)
-        inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']N", 'description': 'creator',
-                  'gain': '1', 'kp': '4', 'ki': '7', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
-                  'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [4],
-                  'feedback_sensor': ['Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
-                  'secondary_actuators': "Bay_3L-Busbar_1R"}
+        #inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']N", 'description': 'creator',
+        #          'gain': '1', 'kp': '4', 'ki': '7', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
+        #          'circulator': ['Pump_Bay4'], 'circulator_mode': '0', 'actuator': ['Pump_Bay4'], 'setpoint': [4],
+        #          'feedback_sensor': ['Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
+        #          'secondary_actuators': "Bay_3L-Busbar_1R"}
         print("Controller Constant Flow Started")
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
@@ -93,7 +93,7 @@ class controller_constant_curve(object):
         print(circulator_mode)
         feedback_sensor = inputs["feedback_sensor"]
         feedback_sensor = feedback_sensor[_BEGIN_WITH]
-        actuator_valve = inputs['actuator_valve']
+        actuator_valve = inputs['secondary_actuators']
         actuators = inputs["actuator"]
         valves = inputs["valves"]
         setpoint = [float(n) for n in inputs["setpoint"]]
@@ -143,11 +143,11 @@ class controller_constant_curve(object):
         time.sleep(30)
         while(1):
 
-            #try:
+            try:
                 stop_time = time.time()
                 if (not self.work_q.empty()):
                     received_setpoint = self.work_q.get()
-                    setpoint = [float(n) for n in inputs["setpoint"]]
+                    setpoint = [float(i) for i in received_setpoint]
                     setpoint = setpoint[_BEGIN_WITH]
                     self.n = 0
 
@@ -245,11 +245,11 @@ class controller_constant_curve(object):
 
                 time.sleep(_ACQUISITION_TIME)
 
-            #except (KeyboardInterrupt, SystemExit):
-            #    for circulator in circulators:
-            #        interface.stopPump(pump)
-            #        print("Circulator {0} is now at zero flow".format(circulator))
-            #    sys.exit(0)
+            except (KeyboardInterrupt, SystemExit):
+                for circulator in circulators:
+                    interface.stopPump(pump)
+                    print("Circulator {0} is now at zero flow".format(circulator))
+                sys.exit(0)
             #except Exception:
             #    '''there is the condition because it will keep except'''
             #    self.shut_down_routine(pumps_of_circuit, valves, interface)
@@ -297,6 +297,9 @@ class controller_constant_curve(object):
 
     def signal_term_handler(self, signal, frame):
         print('got SIGTERM - the process was killed as the configuration was not matched any more')
+        #for circulator in circulators:
+        #    interface.stopPump(pump)
+        #    print("Circulator {0} is now at zero flow".format(circulator))
         sys.exit(0)
 
     def pump_setpoint_converter(self, volume_flow):

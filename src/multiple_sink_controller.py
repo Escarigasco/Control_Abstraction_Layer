@@ -44,11 +44,11 @@ class controller_constant_pressure(object):
     def PID_controller(self, inputs, process_ID, queue):
         inputs = pickle.loads(inputs)
         print(inputs)
-        inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']['Sink_1DL2']N", 'description': 'creator',
-                  'gain': '1', 'kp': '0', 'ki': '0.07', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
-                  'circulator': ['Pump_Bay4'], 'circulator_mode': '4', 'actuator': ['Bay_2L-Busbar_1R', 'Bay_3L-Busbar_1R'], 'setpoint': [4, 2],
-                  'feedback_sensor': ['Bay_2', 'Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
-                  'sources_meters': ['Bay_4'], 'secondary_actuators': []}
+        #inputs = {'controller_name': "['Source_1BH4']['Sink_1DL3']['Sink_1DL2']N", 'description': 'creator',
+        #          'gain': '1', 'kp': '0', 'ki': '0.07', 'kd': '0', 'ki_valve': '0.07', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay3'],
+        #          'circulator': ['Pump_Bay4'], 'circulator_mode': '4', 'actuator': ['Bay_2L-Busbar_1R', 'Bay_3L-Busbar_1R'], 'setpoint': [4, 2],
+        #          'feedback_sensor': ['Bay_2', 'Bay_3'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_3H-Busbar_2F', 'Bay_3L-Busbar_1R'],
+        #          'sources_meters': ['Bay_4'], 'secondary_actuators': []}
         print("Controller Constant Pressure Started")
         interface = syslab.HeatSwitchBoard(_BUILDING_NAME)
         plt.show()
@@ -144,7 +144,7 @@ class controller_constant_pressure(object):
             interface.setPumpSetpoint(pump, optimum_pressure)
             #interface.setMaxFlowLimit(pump, flow_limit)
             time.sleep(0.2)
-            print("Pump ", pumps_of_circuit[n], "was started")
+            print("Pump ", pump, "was started")
 
         time.sleep(30)
         start_time = time.time()
@@ -156,7 +156,7 @@ class controller_constant_pressure(object):
         check_valves = True
         while(1):
 
-            #try:
+            try:
                 stop_time = time.time()
                 if (not self.work_q.empty()):
                     received_setpoint = self.work_q.get()
@@ -267,11 +267,11 @@ class controller_constant_pressure(object):
 
                 time.sleep(_ACQUISITION_TIME)
 
-            #except (KeyboardInterrupt, SystemExit):
-            #    for circulator in circulators:
-            #        interface.stopPump(pump)
-            #        print("Circulator {0} is now at zero flow".format(circulator))
-            #    sys.exit(0)
+            except (KeyboardInterrupt, SystemExit):
+                for circulator in circulators:
+                    interface.stopPump(pump)
+                    print("Circulator {0} is now at zero flow".format(circulator))
+                sys.exit(0)
             #except Exception:
             #    '''there is the condition because it will keep except'''
                 #self.shut_down_routine(pumps_of_circuit, valves, interface)
@@ -437,7 +437,6 @@ if __name__ == "__main__":
                             'gain': '1.5', 'kp': '0.2', 'ki': '0.1', 'kd': '0', 'pumps_of_circuit': ['Pump_Bay4', 'Pump_Bay6', 'Pump_Bay7', 'Pump_Bay8'],
                             'circulator': ['Pump_Bay4', 'Pump_Bay6'], 'circulator_mode': '3', 'actuator': ['Bay_7L-Busbar_2R', 'Bay_8L-Busbar_2R'],
                             'setpoint': [1, 1], 'feedback_sensor': ['Bay_7', 'Bay_8'], 'valves': ['Bay_4L-Busbar_2R', 'Bay_4H-Busbar_1F', 'Bay_7H-Busbar_2F', 'Bay_7L-Busbar_1R']}
-
 
     queue = Queue()
     inputs = pickle.dumps(input_for_controller)

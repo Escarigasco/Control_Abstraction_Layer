@@ -48,7 +48,7 @@ class message_for_controller(object):
             pumps_of_circuit = [pump.ID for pump in available_components["Pumps_active"]]
         #    try:
             valves_of_circuit = self.components_name_translator([valve.ID for valve in available_components["Valves_active"]])
-            print(valves_of_circuit)
+            #print(valves_of_circuit)
             engine = rule_engine()
             ideal_components = engine.run(system_input, available_components)
             act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
@@ -79,16 +79,12 @@ class message_for_controller(object):
                 #print("There is a failure in calculate the components to be used")
                 #return _CONTROLLER_DEACTIVED
 
+            #return _CONTROLLER_DEACTIVED
             try:
-                #if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    #feedback = self.comms.send(input_for_controller)
-                    feedback = 0
+                    feedback = self.comms.send(input_for_controller)
                     print("Message Sent")
                     print("Feedback: ", feedback)
                     return _CONTROLLER_ACTIVATED
-                #else:
-                #    print("\n Sorry I can't deliver Controller {0} as the use case is not implemented \n".format(input_for_controller["controller_name"]))
-                #    return _CONTROLLER_DEACTIVED
             except Exception:
                 print("Message sending failed")
                 return _CONTROLLER_DEACTIVED
@@ -114,9 +110,9 @@ class message_for_controller(object):
 # sensor -
 
         def shut_the_pumps_up(self, pumps, comms):
-            print(pumps)
+            #print(pumps)
             pumps = [pump.ID for pump in pumps]
-            print(pumps)
+            #print(pumps)
             translated_pumps = self.components_name_translator(pumps)
             pumps_shutter = {_DESCRIPTION: _SHUTTER, _PUMP: translated_pumps}
             feedback = comms.send(pumps_shutter)
@@ -134,7 +130,7 @@ class message_for_controller(object):
             for location in ideal_pump.location:
                 locations.append(location.data)
             for pump in pumps:
-                print(pump.location)
+                #print(pump.location)
                 if (pump.location in locations):
                     circulation_pumps.append(pump.get_name())
             pumps_mode = {"pumps": circulation_pumps, "mode": ideal_pump.mode.data}
@@ -156,7 +152,7 @@ class message_for_controller(object):
         '''this method is missing the discrimination -- which valve of the rule engine'''
         def actuator_selector(self, ideal_actuator, valves, pumps):
             actuators = valves + pumps
-            print(actuators)
+            #print(actuators)
             active_actuators = []
             secondary_active_actuators = []
             locations = []
@@ -165,6 +161,7 @@ class message_for_controller(object):
                 locations.append(location.data)
             for location in ideal_actuator.secondary_location:
                 secondary_locations.append(location.data)
+
             for actuator in actuators:
                 if ((actuator.object_type == ideal_actuator.type.data) & (actuator.location in locations)):
                     if (actuator.object_type == _VALVE):
@@ -174,15 +171,22 @@ class message_for_controller(object):
                         active_actuators.append(actuator.get_name())
                 if (ideal_actuator.number == len(active_actuators)):
                     break
+            print(actuators)
             for actuator in actuators:
+                #print(actuator)
+                #print(actuator.object_type)
+                #print(actuator.location)
                 if ((actuator.object_type == ideal_actuator.secondary_type.data) & (actuator.location in secondary_locations)):
+                    print("I am here")
                     if (actuator.object_type == _VALVE):
                         if (actuator.flow == _COLD_FLOW):
                             secondary_active_actuators.append(actuator.get_name())
                     elif (actuator.object_type == _PUMP):
                         secondary_active_actuators.append(actuator.get_name())
-                if (ideal_actuator.secondary_number == len(active_actuators)):
+                if (ideal_actuator.secondary_number == len(secondary_active_actuators)):
                     break
 
             acts = {"actuators": active_actuators, "secondary_actuators": secondary_active_actuators}
+            #print(secondary_locations)
+            print("These are the actuators", acts)
             return acts
