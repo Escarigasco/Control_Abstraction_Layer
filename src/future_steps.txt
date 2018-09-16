@@ -31,33 +31,9 @@ CRUCIAL TO BE DETERMINED FOR FUTURE PROGRESSES:
   - Remote killing of the process? Or we should just kill it breaking the circuit?
     $Red button - can kill all process or just pause actuation (able to restart)$
 
-  DONE
-  - recommendation/preferences for the implementation - it can pass by TCP (always connected, is it stable?), pipe(as per the two process of the Logical Layer), or file in folder(typica_check is there is a file then ->)
-  *******************************THIS IS NOW IN TCP MULTICLIENT***********************************************
-    $It is Ok$
 
   TODO
--> Decision over NaN and 0, this is quite relevant
-  - Decision over contactor (future work, this is a non trivial operation as you need motor protection plus contactor, need of space and heavely recabling - need
-   to run cables + extensions behind pipes to bring stuff in a control cabin next to the PLC - integration in PLC(if enough DO/DI) + Syslab Poll)
-   ************************************************************** the pump has a DI that do this for you, page 38 **************************************************************
-   $Out of scope$
-   $No for the pump$
-
--> How the system will handle requests in terms of - what happen if:
-    TODO
-  - we switch the configuration of the system with the same user input (e.g. we move the same experiment from busbars 1H-1C to 2H-2C), should  the controller $Now is the software that decides the configuration$
-    be killed and restarted or it should not change? If stays an opening procedure for valves shall be carefully designed in the higher layer - You should think (Oliver) a tap transformer like routine to         minimize pressure increase --> careful that if the valves where the actuators you are in troubles
-    --> expecially because if the previous circuit is broken the thread stops. If you want to kill it you just start a routine that breaks the circuit but then you also need a new input command
-    $if necessary kill it or not$
-
-    DONE
-  - we change user input, should the controller kill the previous process? Not of course. Then it is necessary to build a dictionary memory with the previous
-    user_input/matching_configuration to be able to run again a path_matching with the old user inputs requests. THIS IS VERY EXPENSIVE BUT EASILY DOABLE THEN YOU CAN REMOVE DICTIONARIES KEYS WITH dict.pop() AND KILL PROCESSES IF THE NEW CHECKING DOESN'T DETECT THE MATCH BETWEEN THE OLD REQUEST AND THE PREVIOUS USER INPUT
-    *******************THIS IS NOW IMPLEMENTED AND OLD INPUTS ARE STORED AND CHECKED************ -> does it need error handling for two overlapping requests? it should never happen, it is a "bug" of the test rig
-    ------------------------------------------------->>>>>>>>> what about on the fly setpoint change???????
-    $Don't kill the process if not necessary$
-
+-> Discrimination over NaN and 0 can be done using temperature that is always available
 
 DONE
 -> Is it acceptable that:
@@ -93,9 +69,9 @@ DONE
    with another parameter that say "calculate energy or whatever" --> they are all multiplication so you don't need to keep track of the order
    -> Necessary to enable all sensors all around the system to build up redundancy - this may be missing in Java too (e.g. you can't get temperature from pump even though there is a MB register for it)
     $Yes we want the replacement$
-    
 
-TODO -->>> you can reverse the pump and use a bypass circuit
+
+TODO --> you can reverse the pump and use a bypass circuit
 A sink is not always a sink so the source apart from the booster heater
 Fix the booster heater (has to check if also the sink include 1BH4 and then set N)
 Fix the rules

@@ -1,14 +1,14 @@
 # Connected Device Class
 
 
-class connected_device:
+class connected_device(object):
     'Class for Pump definition and properties'
 
     def __init__(self, parent_ID, ID, type_device, rated_power):
         self.parent_ID = parent_ID
         self.ID = ID
         self.type = type_device
-        print(self.type)
+        #print(self.type)
         self.rated_power = float(rated_power)
         self.object_type = "connected_device"
 

@@ -7,13 +7,14 @@ from line_pump import line_pump
 class connector_line(object):
     'Class for switch board definition and properties'
 
-    def __init__(self, parent_ID, ID, line, flow_type, is_return, connected_dev):
+    def __init__(self, parent_ID, ID, line, flow_type, connected_dev):
         self.parent_ID = parent_ID
         self.ID = ID
         self.flow_type = flow_type
         self.line_sensors = {}
         self.pumps = {}
         self.line = line
+        #print(self.ID)
 
         sensors = self.line.find_all("sensor")
         pumps = self.line.find_all("pump")

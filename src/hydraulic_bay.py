@@ -21,11 +21,9 @@ class hydraulic_bay(object):
         connector = self.bay.find("connector")  # find connectors
         # valves = self.bay.find_all("valve")     # find valves
 
-        output_line = "hydraulic bay - Is it relevant?"
-        print(output_line)  # discrimination for the connector
         pipes_in = self.bay.find_all("pipe", direction="in")   # find inlet pipes
         pipes_out = self.bay.find_all("pipe", direction="out")  # find outlet pipes
-        self.connectors_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, output_line, connected_dev)  # create connectors object
+        self.connectors_list[connector["id"]] = bay_connector(self.ID, connector["id"], connector, connected_dev)  # create connectors object
 
         for pipe in pipes_in:
             direction = "in"

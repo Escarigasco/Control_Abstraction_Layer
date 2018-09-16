@@ -1,11 +1,10 @@
 # Valve Class
 from random import choice
 
-
 class bay_valve(object):
     'Class for Valve definition and properties'
 
-    def __init__(self, parent_ID, ID, connection, flow, direction, connected_dev, status=None):
+    def __init__(self, parent_ID, ID, connection, flow, direction, connected_dev, status=None, opening_score=0):
         self.parent_ID = parent_ID
         self.ID = ID
         self.connection = connection
@@ -15,10 +14,13 @@ class bay_valve(object):
         self.object_type = "Valve"
 
         #self.opening_threshold = 0.1
-        self.opening_threshold = 20
-        if status is None:
-            status = choice([1, 1, 1])
-        self.status = status
+        #self.opening_threshold = 20
+        #if status is None:
+        #    status = choice([1, 1, 1])
+        #self.status = status
+
+    def score_calculator(self, value):
+        self.opening_score = value
 
     def get_flow_direction(self):
         return self.flow_direction
@@ -43,7 +45,7 @@ class bay_valve(object):
         return self.status
 
     def __repr__(self):
-        return "{0}".format(self.ID)
+        return "-{0}-".format(self.ID)
 
     def __str__(self):
-        return "{0}".format(self.ID)
+        return "-{0}-".format(self.ID)

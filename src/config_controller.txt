@@ -1,12 +1,16 @@
-[Constant_Energy_Pump_Actuating]
+[3]
+name = multiple_sink
 gain = 1
-kp = 2.58
-ki = 2.58
+kp = 0
+ki = 0
 kd = 0
-circulator_mode = PRESSURE_MODE_CONSTANT_FLOW
+ki_valve = 0.07
 
-[PUMP_MODE_CONSTANT_FLOW]
+
+[0]
+name = single_sink
 gain = 1
-kp = 2.58
-ki = 2.58
+kp = 4
+ki = 7
 kd = 0
+ki_valve = 0.07

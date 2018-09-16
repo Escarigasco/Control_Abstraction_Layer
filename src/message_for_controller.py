@@ -6,91 +6,97 @@ from rule_engine import rule_engine
 import socket
 import sys
 import time
+from pprint import pprint
+
 
 _FIRST_OF_CLASS = 1
 _CONTROLLER_ACTIVATED = "Active"
 _CONTROLLER_DEACTIVED = "Inactive"
+_DESCRIPTION = "description"
+_KILLER = "killer"
+_CREATOR = "creator"
+_HOT_FLOW = "H"
+_COLD_FLOW = "C"
+_VALVE = "Valve"
+_PUMP = "Pump"
+_SHUTTER = "shut_all_pumps"
 
 
 class message_for_controller(object):
 
-        def __init__(self):
+        def __init__(self, interface, comms, translator):
+            self.translator = translator
+            self.intf = interface
+            self.comms = comms
             self.HOST = 'localhost'    # The remote host
             self.PORT = 2000              # The same port as used by the server
 
-        def run(self, unique, system_input, interface, controller_name):
+        def run(self, available_components, system_input, controller_name):
 
-            system_valves = interface.get_system_valves()
-            system_pipes = interface.get_system_pipes()
-            system_pumps = interface.get_system_pumps()
-            system_sensors = interface.get_system_sensors()
-            system_busbars = interface.build_busbars(system_pipes)
-            system_connected_devices = interface.get_connected_devices()
-            system_components = {**system_sensors, **system_busbars, **system_valves, **system_connected_devices, **system_valves, **system_pumps}
+            system_valves = self.intf.get_system_valves()
+            system_pipes = self.intf.get_system_pipes()
+            system_pumps = self.intf.get_system_pumps()
+            system_sensors = self.intf.get_system_sensors()
+            system_busbars = self.intf.build_busbars(system_pipes)
+            system_connected_devices = self.intf.get_connected_devices()
+            system_components = {**system_sensors, **system_busbars, **system_connected_devices, **system_valves, **system_pumps}
             unique_nodes = {}
             config = configparser.ConfigParser()
             config.read("/home/federico/Desktop/SwitchBoard/SwitchBoard/src/config_controller.txt")
 
-            nodes = list(unique.nodes)
-            for node in nodes:
-                unique_nodes[node] = system_components[node]
+            #self.shut_the_pumps_up(available_components["Pumps_active"], self.comms)
+            pumps_of_circuit = [pump.ID for pump in available_components["Pumps_active"]]
+        #    try:
+            valves_of_circuit = self.components_name_translator([valve.ID for valve in available_components["Valves_active"]])
+            #print(valves_of_circuit)
+            engine = rule_engine()
+            ideal_components = engine.run(system_input, available_components)
+            act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
+            #print(act_circulator)
+            actuators = self.actuator_selector(ideal_components["Ideal_Actuator"], available_components["Valves_active"], available_components["Pumps_active"])
+            #print(actuators)
+            feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
+            #print(feedback_sensors)
+            act_circulator["pumps"] = self.components_name_translator(act_circulator["pumps"])
+            pumps_of_circuit = self.components_name_translator(pumps_of_circuit)
+            #print(act_circulator)
+            feedback_sensors["sensors"] = self.components_name_translator(feedback_sensors["sensors"])
+            #print(feedback_sensors)
+            actuators["actuators"] = self.components_name_translator(actuators["actuators"])
+            actuators["secondary_actuators"] = self.components_name_translator(actuators["secondary_actuators"])
+            #print(actuators)
+            controller_mode = act_circulator["mode"]
+            # self.controller_name = act_circulator["mode"]
 
-            print(nodes)
+            input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _CREATOR, "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
+                                    "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"), "ki_valve": config.get(controller_mode, "ki_valve"), "pumps_of_circuit": pumps_of_circuit,
+                                    "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"], "actuator": actuators["actuators"],
+                                    "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"], "valves": valves_of_circuit, "secondary_actuators": actuators["secondary_actuators"]}
 
-            c_status = components_status()
-            available_components = c_status.run(interface, unique_nodes)
+            print(input_for_controller)
+
+            #except Exception:
+                #print("There is a failure in calculate the components to be used")
+                #return _CONTROLLER_DEACTIVED
+
+            #return _CONTROLLER_DEACTIVED
             try:
-                engine = rule_engine()
-                ideal_components = engine.run(system_input, available_components)
-                act_circulator = self.pump_selector(ideal_components["Ideal_Pump"], available_components["Pumps_active"])
-                print(act_circulator)
-                actuators = self.actuator_selector(ideal_components["Ideal_Actuator"], available_components["Valves_active"], available_components["Pumps_active"])
-                print(actuators)
-                feedback_sensors = self.sensor_selector(ideal_components["Ideal_Sensor"], available_components["Sensors_active"], system_input["parameters"])
-                print(feedback_sensors)
-                act_circulator["pumps"] = self.circulator_name_translator(act_circulator["pumps"])
-                print(act_circulator)
-                feedback_sensors["sensors"] = self.sensors_name_translator(feedback_sensors["sensors"])
-                print(feedback_sensors)
-                actuators["actuators"] = self.actuators_name_translator(actuators["actuators"])
-                print(actuators)
-                controller_mode = act_circulator["mode"]
-                # self.controller_name = act_circulator["mode"]
-
-                input_for_controller = {"controller_name": controller_name, "kill": 'N', "gain": config.get(controller_mode, "gain"), "kp": config.get(controller_mode, "kp"),
-                                        "ki": config.get(controller_mode, "ki"), "kd": config.get(controller_mode, "kd"),
-                                        "circulator": act_circulator["pumps"], "circulator_mode": act_circulator["mode"],
-                                        "actuator": actuators["actuators"], "setpoint": system_input['setpoints'], "feedback_sensor": feedback_sensors["sensors"]}
-                print(input_for_controller)
-
-            except Exception:
-                return _CONTROLLER_DEACTIVED
-
-            try:
-                if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    message_serialized = pickle.dumps(input_for_controller)
-
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.HOST, self.PORT))
-                        s.sendall(message_serialized)
-
-                    s.close()
+                    feedback = self.comms.send(input_for_controller)
+                    print("Message Sent")
+                    print("Feedback: ", feedback)
                     return _CONTROLLER_ACTIVATED
             except Exception:
                 print("Message sending failed")
                 return _CONTROLLER_DEACTIVED
 
         def kill(self, system_input, controller_name):
-            input_for_controller = {"controller_name": controller_name, "kill": 'Y'}
+            input_for_controller = {"controller_name": controller_name, _DESCRIPTION: _KILLER}
             print(input_for_controller)
 
             try:
-                if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
-                    message_serialized = pickle.dumps(input_for_controller)
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.HOST, self.PORT))
-                        s.sendall(message_serialized)
-                    s.close()
+                #if ((len(system_input["sinks"]) >= 1) & (len(system_input["sources"]) == 1) & (system_input["boosted"] == 'N')):
+                    feedback = self.comms.send(input_for_controller)
+                    print("Feedback: ", feedback)
                     return _CONTROLLER_DEACTIVED
             except Exception:
                 print("Message sending failed")
@@ -103,46 +109,20 @@ class message_for_controller(object):
 #       - if two sinks always use both pumps of each sink
 # sensor -
 
-        def sensors_name_translator(self, sensors):
-            translated_sensors = []
-            sensors_name = {
-                'Sensor_1HT4': "Bay_4", 'Sensor_1CT4': "Bay_4", 'Sensor_1CF4': "Bay_4", 'Sensor_1E4': "Bay_4",
-                'Sensor_1HT5': "Bay_5", 'Sensor_1CT5': "Bay_5", 'Sensor_1CF5': "Bay_5", 'Sensor_1E5': "Bay_5",
-                'Sensor_1HT6': "Bay_6", 'Sensor_1CT6': "Bay_6", 'Sensor_1CF6': "Bay_6", 'Sensor_1E6': "Bay_6",
-                'Sensor_1HT7': "Bay_7", 'Sensor_1CT7': "Bay_7", 'Sensor_1CF7': "Bay_7", 'Sensor_1E7': "Bay_7",
-                'Sensor_1HT8': "Bay_8", 'Sensor_1CT8': "Bay_8", 'Sensor_1CF8': "Bay_8", 'Sensor_1E8': "Bay_8"}
-            for sensor in sensors:
-                translated_sensors.append(sensors_name[sensor])
-            return translated_sensors
+        def shut_the_pumps_up(self, pumps, comms):
+            #print(pumps)
+            pumps = [pump.ID for pump in pumps]
+            #print(pumps)
+            translated_pumps = self.components_name_translator(pumps)
+            pumps_shutter = {_DESCRIPTION: _SHUTTER, _PUMP: translated_pumps}
+            feedback = comms.send(pumps_shutter)
+            print(feedback)
 
-        def actuators_name_translator(self, actuators):
-            translated_actuator = []
-            actuator_name = {
-                'Pump_1C4': "Pump_Bay4",
-                'Pump_1H5': "Pump_Bay5",
-                'Pump_1H6': "Pump_Bay6",
-                'Pump_1H7': "Pump_Bay7",
-                'Pump_1H8': "Pump_Bay8",
-                'Valve_2C4': "Bay_4L-Busbar_2R", 'Valve_1C4': "Bay_4L-Busbar_1R", 'Valve_1B4': "Bay_4H-Busbar_B", 'Valve_2H4': "Bay_4H-Busbar_2F", 'Valve_1H4': "Bay_4H-Busbar_1F", 'Valve_2B4': "Bay_4L-Busbar_B",
-                'Valve_2C5': "Bay_5L-Busbar_1R", 'Valve_1C5': "Bay_5L-Busbar_2R", 'Valve_1B5': "Bay_5H-Busbar_B", 'Valve_2H5': "Bay_5H-Busbar_1F", 'Valve_1H5': "Bay_5H-Busbar_2F", 'Valve_2B5': "Bay_5L-Busbar_B",
-                'Valve_2C6': "Bay_6L-Busbar_1R", 'Valve_1C6': "Bay_6L-Busbar_2R", 'Valve_1B6': "Bay_6H-Busbar_B", 'Valve_2H6': "Bay_6H-Busbar_1F", 'Valve_1H6': "Bay_6H-Busbar_2F", 'Valve_2B6': "Bay_6L-Busbar_B",
-                'Valve_2H7': "Bay_7H-Busbar_1F", 'Valve_1H7': "Bay_7H-Busbar_2F", 'Valve_2C7': "Bay_7L-Busbar_1R", 'Valve_1C7': "Bay_7L-Busbar_2R",
-                'Valve_2H8': "Bay_8H-Busbar_1F", 'Valve_1H8': "Bay_8H-Busbar_2F", 'Valve_2C8': "Bay_8L-Busbar_1R", 'Valve_1C8': "Bay_8L-Busbar_2R"}
-            for actuator in actuators:
-                translated_actuator.append(actuator_name[actuator])
-            return translated_actuator
-
-        def circulator_name_translator(self, circulators):
-            translated_circulator = []
-            circulators_name = {
-                'Pump_1C4': "Pump_Bay4",
-                'Pump_1H5': "Pump_Bay5",
-                'Pump_1H6': "Pump_Bay6",
-                'Pump_1H7': "Pump_Bay7",
-                'Pump_1H8': "Pump_Bay8"}
-            for circulator in circulators:
-                translated_circulator.append(circulators_name[circulator])
-            return translated_circulator
+        def components_name_translator(self, components):
+            translated_components = []
+            for component in components:
+                translated_components.append(self.translator.components(component))
+            return translated_components
 
         def pump_selector(self, ideal_pump, pumps):
             circulation_pumps = []
@@ -150,6 +130,7 @@ class message_for_controller(object):
             for location in ideal_pump.location:
                 locations.append(location.data)
             for pump in pumps:
+                #print(pump.location)
                 if (pump.location in locations):
                     circulation_pumps.append(pump.get_name())
             pumps_mode = {"pumps": circulation_pumps, "mode": ideal_pump.mode.data}
@@ -163,19 +144,49 @@ class message_for_controller(object):
             for sensor in sensors:
                 if ((sensor.location in locations) & (sensor.variable == variable)):
                     feedback_sensors.append(sensor.get_name())
-
+                    if (ideal_sensor.number == len(feedback_sensors)):
+                        break
             sensors_feed = {"sensors": feedback_sensors}
             return sensors_feed
 
         '''this method is missing the discrimination -- which valve of the rule engine'''
         def actuator_selector(self, ideal_actuator, valves, pumps):
             actuators = valves + pumps
+            #print(actuators)
             active_actuators = []
+            secondary_active_actuators = []
             locations = []
+            secondary_locations = []
             for location in ideal_actuator.location:
                 locations.append(location.data)
+            for location in ideal_actuator.secondary_location:
+                secondary_locations.append(location.data)
+
             for actuator in actuators:
                 if ((actuator.object_type == ideal_actuator.type.data) & (actuator.location in locations)):
-                    active_actuators.append(actuator.get_name())
-            acts = {"actuators": active_actuators}
+                    if (actuator.object_type == _VALVE):
+                        if (actuator.flow == _COLD_FLOW):
+                            active_actuators.append(actuator.get_name())
+                    elif (actuator.object_type == _PUMP):
+                        active_actuators.append(actuator.get_name())
+                if (ideal_actuator.number == len(active_actuators)):
+                    break
+            print(actuators)
+            for actuator in actuators:
+                #print(actuator)
+                #print(actuator.object_type)
+                #print(actuator.location)
+                if ((actuator.object_type == ideal_actuator.secondary_type.data) & (actuator.location in secondary_locations)):
+                    print("I am here")
+                    if (actuator.object_type == _VALVE):
+                        if (actuator.flow == _COLD_FLOW):
+                            secondary_active_actuators.append(actuator.get_name())
+                    elif (actuator.object_type == _PUMP):
+                        secondary_active_actuators.append(actuator.get_name())
+                if (ideal_actuator.secondary_number == len(secondary_active_actuators)):
+                    break
+
+            acts = {"actuators": active_actuators, "secondary_actuators": secondary_active_actuators}
+            #print(secondary_locations)
+            print("These are the actuators", acts)
             return acts
